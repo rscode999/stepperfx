@@ -43,21 +43,17 @@
          <!-- Selector Area -->
          <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="30.0">
 
-            <ChoiceBox fx:id="modeSelector" prefWidth="150.0"
+            <ChoiceBox fx:id="modeSelector" prefWidth="120.0"
                        style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
 
-            <ChoiceBox fx:id="punctSelector" prefWidth="150.0"
+            <ChoiceBox fx:id="punctSelector" prefWidth="160.0"
                        style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
 
-            <ComboBox fx:id="threadSelector" prefWidth="200.0"
+            <ChoiceBox fx:id="inputSelector" prefWidth="130.0"
+                       style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;"/>
+
+            <ComboBox fx:id="threadSelector" prefWidth="180.0"
                       style="-fx-background-color: #3c783c; -fx-control-inner-background: #3c783c;" />
-
-            <CheckBox mnemonicParsing="false" style="-fx-control-inner-background: #3c643c; -fx-border-color: #3c643c;"
-                      text="Version 2">
-               <font>
-                  <Font name="Trebuchet MS" size="12.0" />
-               </font>
-            </CheckBox>
 
          </HBox>
 
@@ -68,26 +64,32 @@
          </Label>
 
          <TextArea fx:id="keyInput" prefHeight="50.0" prefWidth="200.0" promptText="Bottom Text"
-                   style="-fx-control-inner-background: #3c643c; -fx-background-color: #3c643c; -fx-text-fill: gray;"
-                   wrapText="true" />
+                   style="-fx-control-inner-background: #3c643c; -fx-background-color: #3c643c; -fx-text-fill: gray;" wrapText="true" />
 
          <!-- Bottom "Enter Button" Area -->
          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="40.0">
 
-            <Button cancelButton="true" mnemonicParsing="false" onAction="#setLoginScreen"
+            <Button onAction="#setLoginScreen" cancelButton="true" mnemonicParsing="false"
                     style="-fx-background-color: #3c643c;" text="Return to login">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>
             </Button>
 
-            <Button fx:id="startButton"  onAction="#startProcess"
-                    defaultButton="true" mnemonicParsing="false" prefWidth="90.0" style="-fx-background-color: #3c643c;"
-                    text="Forward">
+            <Button fx:id="startButton" onAction="#startProcess"
+                    defaultButton="true" mnemonicParsing="false" prefWidth="90.0"
+                    style="-fx-background-color: #3c643c;" text="Forward">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>
             </Button>
+
+            <CheckBox fx:id="v2Selector" mnemonicParsing="false"
+                      style="-fx-control-inner-background: #3c643c; -fx-border-color: #3c643c;" text="Version 2">
+               <font>
+                  <Font name="Trebuchet MS" size="12.0" />
+               </font>
+            </CheckBox>
 
          </HBox>
 

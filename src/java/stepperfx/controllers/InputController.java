@@ -1,6 +1,5 @@
 package stepperfx.controllers;
 
-import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -17,7 +16,12 @@ import java.util.Optional;
 final public class InputController extends IntegratedController {
 
     /**
-     * Options for the app's mode selector. The first option should be treated as equal to the second option.
+     * Options for the app's input selector. The first option should be treated as equal to the second option.
+     */
+    final private String[] INPUT_SELECTION_OPTIONS = {"Select input mode", "Text", "File"};
+
+    /**
+     * Options for the app's operation mode selector. The first option should be treated as equal to the second option.
      */
     final private String[] MODE_OPTIONS = {"Select process", "Forward", "Reverse"};
 
@@ -52,6 +56,20 @@ final public class InputController extends IntegratedController {
      */
     @FXML
     private Button startButton;
+
+    /**
+     * Allows the user to choose between normal and enhanced (v2) operations
+     */
+    @FXML
+    private CheckBox v2Selector;
+
+    /**
+     * Allows the user to select the operation mode (text or file)<br><br>
+     *
+     * Contents are specified by {@code INPUT_SELECTION_OPTIONS}
+     */
+    @FXML
+    private ChoiceBox<String> inputSelector;
 
     /**
      * Allows the user to select the operation mode (forward or reverse process)<br><br>
@@ -134,6 +152,8 @@ final public class InputController extends IntegratedController {
         this.fields = fields;
 
         //Set choice boxes and combo box. Then select their first option
+        inputSelector.setItems(FXCollections.observableArrayList(INPUT_SELECTION_OPTIONS));
+        inputSelector.getSelectionModel().selectFirst();
         modeSelector.setItems(FXCollections.observableArrayList(MODE_OPTIONS));
         modeSelector.getSelectionModel().selectFirst();
         punctSelector.setItems(FXCollections.observableArrayList(PUNCT_OPTIONS));
@@ -258,6 +278,21 @@ final public class InputController extends IntegratedController {
     @FXML
     private void startProcess() {
 
+        //Set mode options
+        boolean encrypting = !modeSelector.getValue().equals(MODE_OPTIONS[2]);
+
+        //Set punctuation mode
+        byte punctMode = 0;
+        if(punctSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
+            punctMode = 2;
+        }
+        else if(punctSelector.getValue().equals(INPUT_SELECTION_OPTIONS[1])) {
+            punctMode = 1;
+        }
+
+        //Set file loading mode
+        boolean loadingFromFile = !inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2]);
+
         //Set thread count
         int threadCount = 0;
         if(threadSelector.getValue().equals( THREAD_OPTIONS[0] )) {
@@ -274,6 +309,7 @@ final public class InputController extends IntegratedController {
         }
 
         screenManager.showScreen("loading");
-        fields.startService(textInput.getText(), keyInput.getText(), threadCount);
+        fields.startService(textInput.getText().strip(), keyInput.getText().strip(), encrypting, v2Selector.isSelected(),
+                punctMode, loadingFromFile, threadCount);
     }
 }

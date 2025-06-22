@@ -12,10 +12,24 @@ import stepperfx.threading.ProcessService;
 public class StepperFields {
 
     /**
+     * Number of blocks in the key
+     */
+    final public static int BLOCK_COUNT = 6;
+
+    /**
+     * Number of characters in each key block
+     */
+    final public static int BLOCK_LENGTH = 25;
+
+    /**
+     * Filename for the input file if none is given
+     */
+    final public static String DEFAULT_INPUT_FILENAME = "input.txt";
+
+    /**
      * The maximum amount of threads that the app can use
      */
     final public static int MAX_THREADS = 9999;
-
 
     /**
      * Holds the result of the ProcessService's work. May be null.<br><br>
@@ -124,22 +138,27 @@ public class StepperFields {
 
 
     /**
-     * Starts the app's Service, loading it with data to process.
+     * Starts the app's Service, loading it with the given data.
      * If the Service is not in the READY state, throws an IllegalStateException.
      *
-     * @param input what the Service should process. Cannot be null
+     * @param input what the Service should process, or a filepath to the input. Cannot be null
      * @param key key for processing the input. Cannot be null
+     * @param encrypting true if the service will encrypt, false if the service will decrypt
+     * @param usingV2Process true if using enhanced (v2) processes, false otherwise
+     * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
+     *                  2 if the task processes the input with all punctuation
+     * @param loadingFromFile true if loading input from a separate file, false otherwise
      * @param nThreads number of threads to use during processing. Must be on the interval [0, MAX_THREADS]
      * @throws IllegalStateException if the service is not ready to be run
      */
-    public void startService(String input, String key, int nThreads) {
+    public void startService(String input, String key, boolean encrypting, boolean usingV2Process, byte punctMode, boolean loadingFromFile, int nThreads) {
         if(input == null) throw new AssertionError("Input cannot be null");
         if(key==null) throw new AssertionError("Key cannot be null");
         if(nThreads<0 || nThreads>MAX_THREADS) throw new AssertionError("Number of threads (" + nThreads + ")" +
                 " must be on the interval [0, " + MAX_THREADS + "]");
 
         if(service.getState() == Worker.State.READY) {
-            service.initializeService(input, key, nThreads);
+            service.initializeService(input, key, encrypting, usingV2Process, punctMode, loadingFromFile, nThreads);
             service.start();
         }
         else {
