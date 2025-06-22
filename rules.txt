@@ -1,0 +1,214 @@
+PROJECT RULES
+This is a project of rules and regulations! Read this document thoroughly before
+starting work on the project!
+As a friendly reminder, failure to follow the rules means I will hunt you down and [REDACTED].
+
+
+
+Table of contents:
+-Docstring Rules
+-FXML Rules
+-Method Rules
+-Class Structure Rules
+-Final Remarks
+
+
+
+
+Docstring Rules
+All docstrings must follow the template given below:
+/**
+ * One-line summary of the method or class, followed by two "<br>" tags.
+ *
+ * Additional details of the method or class. This may span multiple lines.
+ * If each line exceeds ~80 characters (where a significant portion of the text crosses the thin white line on the right of the screen),
+ * any additional text must be on a new line.
+ * Any new lines must use the "<br>" tag.
+ *
+ * One or two lines of important notice for clients, i.e. preconditions not enforceable by exceptions.
+ * This section must contain "Helper to <parent method name>" if the method is a private helper to another method.
+ * -If an important notice section is included, the additional details section must end with two "<br>" tags.
+ * -If the method modifies an input, the information must be provided here.
+ *
+ * @param parameter1 the first parameter, followed by a period. Then state any preconditions on the parameter
+ * @param parameter2...
+ * @return some value. Return value descriptions are required! Must come immediately after the parameters
+ * @throws Exception... Newly thrown exceptions are required!
+ * Exception description is not needed if throwing an Exception that an overridden function throws,
+ * or if the Exception is unlikely to be thrown (i.e. ExecutionException and InterruptedException in a SwingWorker)
+ *
+ * NOTE: All parameter, return value, and exception entries must have a description, even if the associated values are trivial!
+ */
+
+Class docstrings need not include parameters, return values, or exception information.
+Docstrings for fields can contain only a one-line summary.
+
+
+
+
+
+
+FXML Rules
+These rules apply, even if Scene Builder is used!
+
+The parent container's FXML declaration must be in the following format:
+-Open angled bracket.
+-Characteristics of the container, listed in alphabetical order, followed by a newline.**
+-URLs to important resources, followed by a newline.*
+-Package and name of controller*
+-FX ID, if applicable*
+
+*These lines must be indented
+**If the characteristics are excessively long, the attributes may be split by a newline.
+
+Examples:
+<VBox alignment="CENTER_LEFT" prefHeight="500" prefWidth="1000" spacing="30.0" style="-fx-background-color: #aaaaaa;"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="stepperfx.controllers.LoginController" fx:id="background">
+      ^ Notice the indentation on the second and third lines.
+
+<VBox alignment="CENTER_LEFT" prefHeight="500" prefWidth="1000"
+    spacing="30.0" style="-fx-background-color: #aaaaaa;"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="stepperfx.controllers.LoginController" fx:id="background">
+
+
+Objects arranged inside containers must be arranged
+from top to bottom, left to right.
+Example:
+<Top>
+    ...
+<Top/>
+
+<Left>
+    ...
+<Left/>
+
+<Bottom>
+    ...
+<Bottom/>
+
+
+All objects or attributes contained within another object
+must be separated by 1 level of indentation.
+
+The FXML defining individual GUI elements must be separated by one new line.
+Attributes, such as Font, should not be separated by newlines.
+
+Example:
+<Container>
+
+    <ExampleObject option1=... option2=...>
+        <Attribute... />
+    <ExampleObject/>
+
+    <ExampleObject option1=... option2=...>
+        <Attribute... />
+    <ExampleObject/>
+
+
+<Container/>
+
+
+At the start of the FXML object's options should be the fx:id, followed by the onAction option.
+Options for FXML objects must be listed in alphabetical order (or in some other logical order).
+Examples:
+<ExampleObject fx:id="exampleObject" onAction="#doSomething" option1=... option2=...  />
+<ExampleObject fx:id="exampleObject2" option1=... option2=.../>
+<ExampleObject onAction="#doSomethingElse" option1=... option2=.../>
+
+If the options exceed 80 characters, the FXML value should have a line wrap.
+The line wrap should be on the same level of indentation, or one level in, as the rest of the object.
+Lines may wrap if the options are shorter than 80 characters.
+Example:
+<ExampleObject option1=... option2=... option3=... option4=... option5=...
+    option6=... option7=... option8=... />
+
+
+
+
+Method Rules
+
+Unless otherwise specified, all methods must not modify any of their inputs. Modifications must occur on deep defensive copies.
+If a method modifies its input, the modification must be explicitly stated in the method docstring
+as the docstring's last line of text.
+
+If a class constructor takes a non-primitive type as an input, the constructor must load the corresponding field with a
+deep copy of the input. (Strings do not need to have defensive copies)
+
+
+
+
+
+
+
+Class Structure Rules
+Classes must match the template below. The number of comment lines is important.
+
+/**
+ * Docstring that conforms to the Docstring Rules
+ *
+ * NOTE: Since class definitions have no inputs or return values,
+ * a class docstring does not include any parameters, return values, or exceptions.
+ */
+ class MyClass... {
+
+    Constants, whose names are in all caps, with a descriptive name.
+        Must be declared in a logical order. If no logical order exists, declare in alphabetical order by variable name.
+
+        Example:
+        final String DEFAULT_INPUT = "Hello world";
+        final int MAX_HEIGHT = 1000;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    FXML variable fields
+        Must be declared in a logical order. If no logical order exists, declare in alphabetical order by variable name.
+
+    Variable fields
+        Must be declared in a logical order. If no logical order exists, declare in alphabetical order by variable name.
+
+
+    NOTE: All constant and variable fields MUST HAVE DOCSTRINGS!
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    If the class is short (~100 lines or shorter), there may be two lines of comment slashes instead of four lines.
+
+
+    Class constructor(s). If the class has multiple constructors, the most frequently used constructors are first.
+        ALL CLASSES must have an explicitly defined constructor, even if the constructor does nothing.
+        Exception: subclasses do not need explicitly defined constructors if the superclass has one.
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    Getter and setter methods, utility methods (i.e. toString)
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    Additional non-main methods
+        All additional methods should be in alphabetical order by the method's name.
+
+        Private helper methods may go immediately below the parent method.
+        They may break the alphabetical order rule.
+        These methods must have a message in their docstrings that says "Helper to <parent method name>"
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    Main method: public static void main(String[] args) {...}
+        Only one class, the main application, is permitted to have a main method.
+ }
+
+
+
+
+
+Final Remarks
+Curran Muhlburger is not allowed to contribute to any documentation in this project.

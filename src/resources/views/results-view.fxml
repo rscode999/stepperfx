@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox prefHeight="400.0" prefWidth="800.0" spacing="10.0" style="-fx-background-color: #3c783c;"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="stepperfx.controllers.ResultsController">
+
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+
+    <Label text="Result">
+        <font>
+          <Font name="Trebuchet MS" size="14.0" />
+        </font>
+    </Label>
+
+    <TextArea fx:id="resultArea" editable="false" prefHeight="375.0" prefWidth="200.0"
+              style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
+              translateY="-10.0" />
+
+    <Label text="Key">
+        <font>
+          <Font name="Trebuchet MS" size="14.0" />
+        </font>
+    </Label>
+
+    <TextArea fx:id="keyArea" editable="false" prefHeight="200.0" prefWidth="200.0"
+              style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
+              translateY="-10.0" />
+
+    <Button defaultButton="true" mnemonicParsing="false" onAction="#setLoginScreen"
+            style="-fx-background-color: #3c943c;" text="Return to Login">
+      <font>
+         <Font name="Trebuchet MS" size="14.0" />
+      </font>
+    </Button>
+
+</VBox>

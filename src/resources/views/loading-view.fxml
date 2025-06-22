@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox alignment="CENTER" prefHeight="400.0" prefWidth="800.0" spacing="20.0" style="-fx-background-color: #3c643c;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="stepperfx.controllers.LoadingController">
+
+    <Label text="Loading...">
+        <font>
+          <Font name="Trebuchet MS" size="24.0" />
+        </font>
+    </Label>
+
+    <Label fx:id="loadStatus" text="Loading input" translateY="5.0">
+        <font>
+          <Font name="Trebuchet MS" size="14.0" />
+        </font>
+    </Label>
+
+    <Button onAction="#stopService" defaultButton="true" mnemonicParsing="false"
+            style="-fx-background-color: #3c783c;" text="Cancel">
+        <font>
+          <Font name="Trebuchet MS" size="16.0" />
+        </font>
+    </Button>
+
+</VBox>
