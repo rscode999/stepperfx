@@ -12,24 +12,36 @@ import stepperfx.threading.ProcessService;
 public class StepperFields {
 
     /**
-     * Number of blocks in the key
+     * Number of blocks in the key. Must be positive.
      */
     final public static int BLOCK_COUNT = 6;
 
     /**
-     * Number of characters in each key block
+     * Number of characters in each key block. Must be positive.<br><br>
+     *
+     * Highly recommended to be relatively prime with {@code BLOCK_COUNT}.
      */
     final public static int BLOCK_LENGTH = 25;
 
     /**
-     * Filename for the input file if none is given
+     * Filename for the input file if none is given. Cannot be null. Must end in ".txt"
      */
     final public static String DEFAULT_INPUT_FILENAME = "input.txt";
 
     /**
-     * The maximum amount of threads that the app can use
+     * Amount to shift during v2 processes. Cannot be null. Length must equal BLOCK_COUNT
+     */
+    final private static byte[] KEY_BLOCK_INCREMENTS = {2,3,5,7,11,13};
+
+    /**
+     * The maximum amount of threads that the app can use. Must be at least 1
      */
     final public static int MAX_THREADS = 9999;
+
+
+    // ////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////
+    //VARIABLES
 
     /**
      * Holds the result of the ProcessService's work. May be null.<br><br>
@@ -62,6 +74,8 @@ public class StepperFields {
      * A new instance should be created only once.
      */
     public StepperFields() {
+        assertConstantInvariants();
+
         service = new ProcessService();
 
         //Set the service to update the result each time a value property is changed
@@ -73,9 +87,27 @@ public class StepperFields {
         });
     }
 
+
+    /**
+     * Throws an AssertionError if any constant's invariants are broken
+     */
+    private void assertConstantInvariants() {
+        if(BLOCK_COUNT<=0) throw new AssertionError("Block count must be positive");
+        if(BLOCK_LENGTH<=0) throw new AssertionError("Block length must be positive");
+        if(DEFAULT_INPUT_FILENAME==null || DEFAULT_INPUT_FILENAME.length()<4 || !DEFAULT_INPUT_FILENAME.endsWith(".txt"))
+            throw new AssertionError("Default input filename must end in \".txt\"");
+        if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length!=BLOCK_COUNT)
+            throw new AssertionError("Key block increment length must equal BLOCK_COUNT");
+        if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
+    }
+
+
+
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
     //GETTERS
+
+
 
     /**
      * Returns the processing result stored in the fields
@@ -87,10 +119,24 @@ public class StepperFields {
 
     /**
      * Returns the key used to process the input
-     * @return key text (may be null)
+     * @return key text (can be null)
      */
     public String key() {
         return key;
+    }
+
+    /**
+     * Returns the value at index {@code index} of the key block increments
+     * @param index index to retrieve
+     * @return index of block increments
+     * @throws ArrayIndexOutOfBoundsException if the index is outside the array's range
+     */
+    public static byte getKeyBlockIncrementIndex(int index) {
+        if(index<0 || index>=KEY_BLOCK_INCREMENTS.length) {
+            throw new ArrayIndexOutOfBoundsException("The given index ( " + index +
+                    ") must be in the interval [0, " + (KEY_BLOCK_INCREMENTS.length-1) + "]");
+        }
+        return KEY_BLOCK_INCREMENTS[index];
     }
 
 
@@ -107,6 +153,7 @@ public class StepperFields {
     public void addServiceMessageListener(ChangeListener<? super String> listener) {
         service.messageProperty().addListener(listener);
     }
+
 
     /**
      * Assigns {@code listener} as a progress property listener on the app's Service.
@@ -151,7 +198,9 @@ public class StepperFields {
      * @param nThreads number of threads to use during processing. Must be on the interval [0, MAX_THREADS]
      * @throws IllegalStateException if the service is not ready to be run
      */
-    public void startService(String input, String key, boolean encrypting, boolean usingV2Process, byte punctMode, boolean loadingFromFile, int nThreads) {
+    public void startService(String input, String key, boolean encrypting, boolean usingV2Process, byte punctMode,
+                             boolean loadingFromFile, int nThreads) {
+
         if(input == null) throw new AssertionError("Input cannot be null");
         if(key==null) throw new AssertionError("Key cannot be null");
         if(nThreads<0 || nThreads>MAX_THREADS) throw new AssertionError("Number of threads (" + nThreads + ")" +

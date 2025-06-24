@@ -81,9 +81,9 @@ public class ProcessTask extends Task<String> {
 
 
     /**
-     * NOT YET IMPLEMENTED! Returns the string "hallo world".
-     * @return
-     * @throws Exception
+     * Returns the output of the Task's processing
+     * @return result of transforming the input with the given parameters
+     * @throws Exception if any exception occurs during processing
      */
     @Override
     protected String call() throws Exception {
@@ -132,6 +132,7 @@ public class ProcessTask extends Task<String> {
 
         //The subtask workloads are no longer needed now
         subtaskWorkloads = null;
+        System.gc();
 
         //Start the subtasks
         for(ProcessSubtask subtask : subtasks) {
@@ -140,7 +141,7 @@ public class ProcessTask extends Task<String> {
 
 
         //Get the results
-        String[] results = new String[nWorkerThreads];
+        StringBuilder finalResult = new StringBuilder(100);
         for(int i=0; i<nWorkerThreads; i++) {
             //continuously check if the workers finish or the job is cancelled
             while(!subtasks[i].isDone()) {
@@ -158,7 +159,7 @@ public class ProcessTask extends Task<String> {
 
             //when the current worker finishes, load its result
             try {
-                results[i] = subtasks[i].get();
+                finalResult.append(subtasks[i].get());
             }
             catch(InterruptedException e) {
                 return "";
@@ -169,8 +170,9 @@ public class ProcessTask extends Task<String> {
                 System.exit(-1);
             }
         }
+        executorService.shutdown(); //needed to free threads from memory
 
-        return "hallo world";
+        return finalResult.toString();
     }
 
 

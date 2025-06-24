@@ -106,6 +106,7 @@ public class ProcessService extends Service<String> {
         this.input = input;
         this.key = key;
         this.encrypting = encrypting;
+        this.usingV2Process = usingV2Process;
         this.nThreads = nThreads;
         this.punctMode = punctMode;
         this.loadingFromFile = loadingFromFile;
