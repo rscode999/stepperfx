@@ -1,8 +1,11 @@
 package stepperfx.administration;
 
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -15,7 +18,7 @@ import stepperfx.StepperFields;
  * Centralized manager for screen transitions.
  * All Controller classes will be managed by an instance of this class.
  */
-public class ScreenManager {
+final public class ScreenManager {
 
     /**
      * Reference to the main application window where the screens will be displayed
@@ -46,8 +49,9 @@ public class ScreenManager {
      * Adds a FXML file dictating a scene at path {@code fxmlPath},
      * giving it the name {@code name} and loading it with the shared fields {@code fields}.<br><br>
      *
-     * Paths to FXMLs use the `resources` directory as their root.<br>
-     * To load a FXML at src/main/resources/views/view.fxml, the accepted load path is /views/view.fxml.<br>
+     * Paths to FXMLs are relative to the directory marked as the `resources` root.<br>
+     * To load a FXML at src/main/resources/views/view.fxml, the accepted load path is /views/view.fxml. This
+     * assumes that the resources root is `resources`.<br>
      * Important: Load paths must begin with a slash.<br><br>
      *
      * Passing an invalid FXML path causes an IOException. If the FXML's controller is not an instance
@@ -121,6 +125,7 @@ public class ScreenManager {
      * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
      */
     public void showScreen(String name) {
+
         //Check that the manager actually contains the screen
        if(!screenMap.containsKey(name)) {
            throw new AssertionError("The screen \"" + name + "\" is not tracked by this manager");
@@ -132,6 +137,7 @@ public class ScreenManager {
         }
         else {
             primaryStage.getScene().setRoot(screenMap.get(name));
+            // System.out.println(screenMap.get(name).hashCode());
         }
 
         primaryStage.sizeToScene(); //Adjust window size to fit new content

@@ -31,7 +31,6 @@ final public class LoadingController extends IntegratedController {
         fields.addServiceMessageListener((obs, oldValue, newValue) -> {
             loadStatus.setText(newValue);
         });
-
     }
 
 

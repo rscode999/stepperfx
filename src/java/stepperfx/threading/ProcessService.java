@@ -10,7 +10,7 @@ import stepperfx.StepperFields;
  * IMPORTANT: The service must be re-initialized before each run. The service's fields are set to {@code null}
  * during each run. Initialize using the service's {@code initializeService} method.
  */
-public class ProcessService extends Service<String> {
+public class ProcessService extends Service<String[]> {
 
     /**
      * True if the service is encrypting, false if the service is decrypting
@@ -55,13 +55,14 @@ public class ProcessService extends Service<String> {
     // //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    //CONSTRUCTOR
-    /**
-     * Creates a new ProcessService with uninitialized fields
-     */
-    public ProcessService() {
-        //An explicitly defined constructor is required by the rules
-    }
+//    //CONSTRUCTOR
+//    /**
+//     * Creates a new ProcessService with uninitialized fields
+//     */
+//    public ProcessService() {
+//        super();
+//        //An explicitly defined constructor is required by the rules
+//    }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //CREATE TASK
@@ -69,12 +70,12 @@ public class ProcessService extends Service<String> {
     /**
      * Creates and runs a ProcessTask. The Service's fields are set to null to save memory.
      */
-    public Task<String> createTask() {
+    public Task<String[]> createTask() {
         ProcessTask task = new ProcessTask(input, key, encrypting, usingV2Process, punctMode, loadingFromFile, nThreads);
 
-        input = null;
-        key = null;
-        nThreads = Integer.MIN_VALUE;
+//        input = null;
+//        key = null;
+//        nThreads = Integer.MIN_VALUE;
 
         return task;
     }
@@ -107,9 +108,9 @@ public class ProcessService extends Service<String> {
         this.key = key;
         this.encrypting = encrypting;
         this.usingV2Process = usingV2Process;
-        this.nThreads = nThreads;
         this.punctMode = punctMode;
         this.loadingFromFile = loadingFromFile;
+        this.nThreads = nThreads;
     }
 
 

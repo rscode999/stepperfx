@@ -9,7 +9,7 @@ import stepperfx.threading.ProcessService;
  * Contains fields shared between the application's controllers.
  * One of the fields is a javafx.concurrent.Service used to do operations.
  */
-public class StepperFields {
+final public class StepperFields {
 
     /**
      * Number of blocks in the key. Must be positive.
@@ -79,9 +79,12 @@ public class StepperFields {
         service = new ProcessService();
 
         //Set the service to update the result each time a value property is changed
-        service.valueProperty().addListener(new ChangeListener<String>() {
-            public void changed(ObservableValue<? extends String> obs, String oldValue, String newValue) {
-                result = newValue;
+        service.valueProperty().addListener(new ChangeListener<String[]>() {
+            public void changed(ObservableValue<? extends String[]> obs, String[] oldValue, String[] newValue) {
+                if(newValue != null) {
+                    result = newValue[0];
+                    key = newValue[1];
+                }
                 System.out.println("VALUE PROPERTY CHANGE as tracked by StepperFields instance");
             }
         });
@@ -165,10 +168,12 @@ public class StepperFields {
 
 
     /**
-     * Assigns {@code listener} as a value property listener on the app's Service.
+     * Assigns {@code listener} as a value property listener on the app's Service.<br><br>
+     *
+     * If the Service's new value is non-null, the Service's process successfully finished.
      * @param listener listener to assign
      */
-    public void addServiceValueListener(ChangeListener<? super String> listener) {
+    public void addServiceValueListener(ChangeListener<? super String[]> listener) {
         service.valueProperty().addListener(listener);
     }
 

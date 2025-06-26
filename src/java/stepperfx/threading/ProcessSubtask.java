@@ -124,6 +124,7 @@ public class ProcessSubtask extends Task<String> {
         //reinsert non-alphas
         textPiece = recombineNonAlphas(textPiece, nonAlphas, punctMode>=1);
 
+//        System.out.println(textPiece);
         return textPiece;
     }
 

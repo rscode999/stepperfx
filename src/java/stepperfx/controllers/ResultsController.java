@@ -42,10 +42,12 @@ final public class ResultsController extends IntegratedController {
 
                 //Null check is important to ensure this is executed only if the result is set
                 if(fields.result() != null) {
-                    System.out.println(fields.result());
                     screenManager.showScreen("results");
                     resultArea.setText(fields.result());
                     keyArea.setText(fields.key());
+                }
+                else {
+                    System.out.println("Results Controller: result is not null, finished");
                 }
 
             });

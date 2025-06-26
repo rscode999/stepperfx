@@ -11,11 +11,12 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Processes user input on a separate thread. Uses ProcessSubtask threads to help with processing.
  */
-public class ProcessTask extends Task<String> {
+public class ProcessTask extends Task<String[]> {
 
     /**
      * True if the service is encrypting, false if the service is decrypting
@@ -81,24 +82,27 @@ public class ProcessTask extends Task<String> {
 
 
     /**
-     * Returns the output of the Task's processing
+     * Returns the output of the Task's processing.<br>
+     * The output is a list of length 2. The first index is the result of processing.
+     * The second index is the formatted key used during the process.
+     *
      * @return result of transforming the input with the given parameters
      * @throws Exception if any exception occurs during processing
      */
     @Override
-    protected String call() throws Exception {
+    protected String[] call() throws Exception {
+
         //Get the input from a file, if chosen
         if(loadingFromFile) {
             input = getTextFromFile(input);
         }
         //`input` now contains the text to be loaded
 
-
         //Find first nonzero number in the text (will be given to the operations worker threads)
         int firstNonzeroNumber = Integer.MIN_VALUE;
         for(int i=0; i<input.length(); i++) {
             if(isCancelled()) {
-                return "";
+                return new String[] {""};
             }
 
             if((int)input.charAt(i)>=49 && (int)input.charAt(i)<=57) {
@@ -109,6 +113,13 @@ public class ProcessTask extends Task<String> {
 
         //Make the key
         byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
+
+        //Take forever
+        for(long i=0; i<10000; i++) {
+            if(isCancelled()) {
+                return new String[] {""};
+            }
+        }
 
         //Create subtasks and workloads
         ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
@@ -126,12 +137,12 @@ public class ProcessTask extends Task<String> {
             startingSegment += charCounts / StepperFields.BLOCK_LENGTH;
 
             if(isCancelled()) {
-                return "";
+                return new String[] {""};
             }
         }
 
         //The subtask workloads are no longer needed now
-        subtaskWorkloads = null;
+        // subtaskWorkloads = null;
         System.gc();
 
         //Start the subtasks
@@ -152,7 +163,7 @@ public class ProcessTask extends Task<String> {
                     }
                     executorService.shutdown();
                     System.out.println("MULTITHREADED PROCESS CANCELLED");
-                    return "";
+                    return new String[] {""};
 
                 }
             }
@@ -162,7 +173,7 @@ public class ProcessTask extends Task<String> {
                 finalResult.append(subtasks[i].get());
             }
             catch(InterruptedException e) {
-                return "";
+                return new String[] {""};
             }
             catch(ExecutionException e) {
                 System.err.println("EXCEPTION THROWN DURING MULTITHREADED STEP");
@@ -171,8 +182,8 @@ public class ProcessTask extends Task<String> {
             }
         }
         executorService.shutdown(); //needed to free threads from memory
-
-        return finalResult.toString();
+//        System.out.println(finalResult);
+        return new String[] {finalResult.toString(), createKeyBlocksReverse(formattedKey)};
     }
 
 
@@ -292,6 +303,40 @@ public class ProcessTask extends Task<String> {
         return output;
     }
 
+
+    /**
+     * Returns a string representation of the input byte array.<br><br>
+     *
+     * The given array should represent a valid key configuration from processes.
+     *
+     * @param input input array. Cannot be null. No subarrays can be null. All indices must be on the interval [0, 25]
+     * @return String representation of the input
+     */
+    private String createKeyBlocksReverse(byte[][] input) {
+        if(input == null) {
+            throw new AssertionError("Input cannot be null");
+        }
+
+        StringBuilder output = new StringBuilder(input.length * input[0].length);
+
+        //move through the blocks
+        for (int b=0; b<input.length; b++) {
+            if(input[b] == null) {
+                throw new AssertionError("Block index " + b + " cannot be null");
+            }
+
+            //append each value in the block to the output
+            for(int c=0; c<input[b].length; c++) {
+                if((int)input[b][c]<0 || (int)input[b][c]>25) {
+                    throw new AssertionError("Index [" + b + "][" + c + "] ( " + input[b][c] + ") must be on the interval [0, 25]");
+                }
+
+                output.append((char)(input[b][c] + 97));
+            }
+        }
+
+        return output.toString();
+    }
 
 
     /**

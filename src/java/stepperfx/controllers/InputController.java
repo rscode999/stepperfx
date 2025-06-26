@@ -1,9 +1,12 @@
 package stepperfx.controllers;
 
+import javafx.animation.PauseTransition;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.util.Duration;
 import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
@@ -96,6 +99,12 @@ final public class InputController extends IntegratedController {
     private ComboBox<String> threadSelector;
 
     /**
+     * Label for the top text input that receives the plaintext or ciphertext.
+     */
+    @FXML
+    private Label textInputLabel;
+
+    /**
      * Text area where the user inputs text. Larger than the key input
      */
     @FXML
@@ -161,13 +170,23 @@ final public class InputController extends IntegratedController {
         threadSelector.setItems(FXCollections.observableArrayList(THREAD_OPTIONS));
         threadSelector.getSelectionModel().selectFirst();
 
-        //Set button text changing when the mode selector changes
+        //Set button and label changing when the mode selector changes
         modeSelector.valueProperty().addListener((obs, oldValue, newValue) -> {
             if(newValue.equals(MODE_OPTIONS[2])) {
-                startButton.setText("Reverse");
+                startButton.setText("Decrypt");
+                textInputLabel.setText("Ciphertext");
             }
             else {
-                startButton.setText("Forward");
+                startButton.setText("Encrypt");
+                textInputLabel.setText("Plaintext");
+            }
+        });
+
+        //Set listener on the shared service to clear the inputs when completed
+        fields.addServiceValueListener((obs, oldValue, newValue) -> {
+            if(newValue != null) {
+                textInput.setText("");
+                keyInput.setText("");
             }
         });
 
@@ -268,48 +287,51 @@ final public class InputController extends IntegratedController {
      */
     @FXML
     private void setLoginScreen() {
+        textInput.setText("");
+        keyInput.setText("");
         screenManager.showScreen("login");
     }
 
 
     /**
-     * Starts the process with the user's selected settings. Transitions to the loading screen.
+     * Loads the shared Service with the user's selected settings and runs the Service.<br>
+     * Transitions to the loading screen.
      */
     @FXML
     private void startProcess() {
+
+        screenManager.showScreen("loading");
 
         //Set mode options
         boolean encrypting = !modeSelector.getValue().equals(MODE_OPTIONS[2]);
 
         //Set punctuation mode
         byte punctMode = 0;
-        if(punctSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
+        if (punctSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
             punctMode = 2;
-        }
-        else if(punctSelector.getValue().equals(INPUT_SELECTION_OPTIONS[1])) {
+        } else if (punctSelector.getValue().equals(INPUT_SELECTION_OPTIONS[1])) {
             punctMode = 1;
         }
 
         //Set file loading mode
-        boolean loadingFromFile = !inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2]);
+        boolean loadingFromFile = inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2]);
 
         //Set thread count
         int threadCount = 0;
-        if(threadSelector.getValue().equals( THREAD_OPTIONS[0] )) {
+        if (threadSelector.getValue().equals(THREAD_OPTIONS[0])) {
             threadCount = 1;
-        }
-        else if(threadSelector.getValue().equals( THREAD_OPTIONS[1] )) {
+        } else if (threadSelector.getValue().equals(THREAD_OPTIONS[1])) {
             throw new IllegalArgumentException("Invalid choice");
-        }
-        else {
+        } else {
             //Remove the "Threads: " part of the string
             String substr = threadSelector.getValue();
             substr = substr.substring(9);
             threadCount = Integer.parseInt(substr);
         }
 
-        screenManager.showScreen("loading");
+
         fields.startService(textInput.getText().strip(), keyInput.getText().strip(), encrypting, v2Selector.isSelected(),
                 punctMode, loadingFromFile, threadCount);
+
     }
 }

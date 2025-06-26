@@ -26,13 +26,13 @@
    <center>
       <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
 
-         <Label text="Top Text">
+         <Label fx:id="textInputLabel" text="Plaintext">
             <font>
                <Font size="18.0" />
             </font>
          </Label>
 
-         <TextArea fx:id="textInput" prefHeight="150.0" prefWidth="200.0" promptText="Top Text"
+         <TextArea fx:id="textInput" prefHeight="150.0" prefWidth="200.0" promptText="Text"
                    style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
                    wrapText="true">
             <font>
@@ -57,14 +57,15 @@
 
          </HBox>
 
-         <Label text="Bottom Text">
+         <Label text="Key">
             <font>
                <Font size="18.0" />
             </font>
          </Label>
 
-         <TextArea fx:id="keyInput" prefHeight="50.0" prefWidth="200.0" promptText="Bottom Text"
-                   style="-fx-control-inner-background: #3c643c; -fx-background-color: #3c643c; -fx-text-fill: gray;" wrapText="true" />
+         <TextArea fx:id="keyInput" prefHeight="50.0" prefWidth="200.0" promptText="Key"
+                   style="-fx-control-inner-background: #3c643c; -fx-background-color: #3c643c; -fx-text-fill: gray;"
+                   wrapText="true" />
 
          <!-- Bottom "Enter Button" Area -->
          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="40.0">
@@ -78,7 +79,7 @@
 
             <Button fx:id="startButton" onAction="#startProcess"
                     defaultButton="true" mnemonicParsing="false" prefWidth="90.0"
-                    style="-fx-background-color: #3c643c;" text="Forward">
+                    style="-fx-background-color: #3c643c;" text="Encrypt">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>
