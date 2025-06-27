@@ -82,9 +82,11 @@ public class ProcessTask extends Task<String[]> {
 
 
     /**
-     * Returns the output of the Task's processing.<br>
-     * The output is a list of length 2. The first index is the result of processing.
-     * The second index is the formatted key used during the process.
+     * Returns the output of the Task's processing.<br><br>
+     *
+     * The output is an array of length 1 or 2.<br>
+     * If the output's length is 2, the operation completed. The result is in index 0 and the key is in index 1.<br>
+     * If the output length is 1, the operation encountered an input error. Index 0 contains the error message.
      *
      * @return result of transforming the input with the given parameters
      * @throws Exception if any exception occurs during processing
@@ -94,7 +96,12 @@ public class ProcessTask extends Task<String[]> {
 
         //Get the input from a file, if chosen
         if(loadingFromFile) {
-            input = getTextFromFile(input);
+            try {
+                input = getTextFromFile(input);
+            }
+            catch(FileNotFoundException e) {
+                return new String[] {"EEEEEEEEEEEE"};
+            }
         }
         //`input` now contains the text to be loaded
 
@@ -115,7 +122,7 @@ public class ProcessTask extends Task<String[]> {
         byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
 
         //Take forever
-        for(long i=0; i<10000; i++) {
+        for(long i=0; i<100000000000L; i++) {
             if(isCancelled()) {
                 return new String[] {""};
             }

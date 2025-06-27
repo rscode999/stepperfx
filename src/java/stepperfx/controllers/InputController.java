@@ -1,12 +1,10 @@
 package stepperfx.controllers;
 
-import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.util.Duration;
 import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
@@ -169,6 +167,19 @@ final public class InputController extends IntegratedController {
         punctSelector.getSelectionModel().selectFirst();
         threadSelector.setItems(FXCollections.observableArrayList(THREAD_OPTIONS));
         threadSelector.getSelectionModel().selectFirst();
+
+        //Set label changing when input mode is changed
+        inputSelector.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if(newValue.equals(INPUT_SELECTION_OPTIONS[2])) {
+                textInputLabel.setText("Path to input file");
+            }
+            else if(modeSelector.getValue().equals(MODE_OPTIONS[2])){
+                textInputLabel.setText("Ciphertext");
+            }
+            else {
+                textInputLabel.setText("Plaintext");
+            }
+        });
 
         //Set button and label changing when the mode selector changes
         modeSelector.valueProperty().addListener((obs, oldValue, newValue) -> {

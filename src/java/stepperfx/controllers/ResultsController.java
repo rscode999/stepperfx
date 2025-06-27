@@ -2,10 +2,12 @@ package stepperfx.controllers;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
+
+import java.util.Optional;
 
 /**
  * Controller for the results screen
@@ -42,9 +44,27 @@ final public class ResultsController extends IntegratedController {
 
                 //Null check is important to ensure this is executed only if the result is set
                 if(fields.result() != null) {
-                    screenManager.showScreen("results");
-                    resultArea.setText(fields.result());
-                    keyArea.setText(fields.key());
+
+                    if(newValue.length > 1) {
+                        screenManager.showScreen("results");
+                        resultArea.setText(fields.result());
+                        keyArea.setText(fields.key());
+                    }
+                    else {
+                        screenManager.showScreen("input");
+                        fields.resetService();
+
+                        Dialog<String> dialog = new Dialog<>();
+                        //Setting the title
+                        dialog.setTitle("Error");
+                        ButtonType type = new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE);
+                        //Setting the content of the dialog
+                        dialog.setContentText(newValue[0]);
+                        //Adding buttons to the dialog pane
+                        dialog.getDialogPane().getButtonTypes().add(type);
+
+                        dialog.showAndWait();
+                    }
                 }
                 else {
                     System.out.println("Results Controller: result is not null, finished");

@@ -5,6 +5,8 @@ import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
 import stepperfx.threading.ProcessService;
 
+import java.util.Arrays;
+
 /**
  * Contains fields shared between the application's controllers.
  * One of the fields is a javafx.concurrent.Service used to do operations.
@@ -82,10 +84,17 @@ final public class StepperFields {
         service.valueProperty().addListener(new ChangeListener<String[]>() {
             public void changed(ObservableValue<? extends String[]> obs, String[] oldValue, String[] newValue) {
                 if(newValue != null) {
-                    result = newValue[0];
-                    key = newValue[1];
+                    if(newValue.length == 1) {
+                        result = newValue[0];
+                        key = null;
+                    }
+                    else {
+                        result = newValue[0];
+                        key = newValue[1];
+                    }
                 }
-                System.out.println("VALUE PROPERTY CHANGE as tracked by StepperFields instance");
+
+                System.out.println("VALUE PROPERTY CHANGE as tracked by StepperFields instance: " + Arrays.toString(oldValue) + " -> " + Arrays.toString(newValue));
             }
         });
     }
