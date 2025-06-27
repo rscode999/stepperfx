@@ -91,7 +91,7 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Processes the subtask's inputs, returning an output
+     * Processes the subtask's inputs, returning an output.
      * @return the output of processing
      */
     public String call() {
@@ -124,7 +124,6 @@ public class ProcessSubtask extends Task<String> {
         //reinsert non-alphas
         textPiece = recombineNonAlphas(textPiece, nonAlphas, punctMode>=1);
 
-//        System.out.println(textPiece);
         return textPiece;
     }
 
@@ -141,11 +140,10 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns the decrypted version of text using the given key beginning at index `startSegment`.<br><br>
+     * Returns the decrypted version of {@code text} using the given key beginning at index {@code startSegment}.<br><br>
      *
-     * The result should be as if the entire text was decrypted, then only the substring starting at `startSegment` is
-     * included in the final result.<br>
-     * Throws IllegalArgumentException if any preconditions are broken<br><br>
+     * The result should be as if the entire text was decrypted, then only the substring starting at {@code startSegment} is
+     * included in the final result.<br><br>
      *
      * Algorithm first implemented on February 26-29, 2024. By Chris P Bacon
      *
@@ -159,11 +157,11 @@ public class ProcessSubtask extends Task<String> {
 
         //Check that both inputs are not null
         if(text == null || key == null) {
-            throw new IllegalArgumentException("Text and key cannot be null");
+            throw new AssertionError("Text and key cannot be null");
         }
         for(byte[] k : key) {
             if(k==null) {
-                throw new IllegalArgumentException("No index in the key can be null");
+                throw new AssertionError("No index in the key can be null");
             }
         }
 
@@ -173,14 +171,14 @@ public class ProcessSubtask extends Task<String> {
         for(int a=0; a<key.length; a++) {
             for(int i=0; i<key[a].length; i++) {
                 if(key[a][i]<0 || key[a][i]>25) {
-                    throw new IllegalArgumentException("All key indices must be on the interval [0,25]");
+                    throw new AssertionError("All key indices must be on the interval [0,25]");
                 }
             }
         }
 
         //Check start index is non-negative
         if(startSegment < 0) {
-            throw new IllegalArgumentException("Starting index must be non-negative");
+            throw new AssertionError("Starting index must be non-negative");
         }
 
 
@@ -294,8 +292,8 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns the Version 2 decrypted version of `text` using the given key.
-     * Operations start after `startingSegment` segments have been decrypted.<br><br>
+     * Returns the Version 2 decrypted version of {@code text} using the given key.
+     * Operations start after {@code startingSegment} segments have been decrypted.<br><br>
      *
      * Algorithm first implemented on February 26-29, 2024. Enhanced encryption finished on July 18, 2024. By Chris P Bacon
      *
@@ -339,7 +337,7 @@ public class ProcessSubtask extends Task<String> {
         }
 
 
-        //////////////////////////
+        // ////////////////////////
 
         //Configure positions
         byte[] keyBlockBasePositions=initializeKeyBlockPositions(startingSegment + text.length()/StepperFields.BLOCK_LENGTH);
@@ -441,12 +439,12 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns a copy of `input` after being number decrypted with `key`.<br><br>
+     * Returns a copy of {@code input} with its numbers decrypted using {@code key}.<br><br>
      *
      * Any non-number is unchanged in the output.
      * @param input input array containing some numbers
      * @param key key to decrypt with. Must be on the interval [1,9]
-     * @return copy of `input` with numbers decrypted
+     * @return copy of {@code input} with numbers decrypted
      */
     private char[] decryptNumbers(char[] input, byte key) {
         if(input==null) {
@@ -475,11 +473,11 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns the encrypted version of text, using inputKey as the key. Encryption starts at index `startSegment`. <br><br>
+     * Returns the encrypted version of {@code text}, using {@code inputKey} as the key.
+     * Encryption starts at index {@code startSegment}. <br><br>
      *
-     * The result should be as if the entire text was encrypted, then only the substring starting at `startSegment` is
-     * included in the final result.<br>
-     * Throws IllegalArgumentException if any preconditions are broken<br><br>
+     * The result should be as if the entire text was encrypted, then only the substring starting at {@code startSegment} is
+     * included in the final result.<br><br>
      *
      * Algorithm first implemented on February 26-29, 2024. By Chris P Bacon
      *
@@ -493,18 +491,18 @@ public class ProcessSubtask extends Task<String> {
 
         //Check that both inputs are not null
         if(text == null || key == null) {
-            throw new IllegalArgumentException("Text and key cannot be null");
+            throw new AssertionError("Text and key cannot be null");
         }
         for(byte[] k : key) {
             if(k==null) {
-                throw new IllegalArgumentException("No index in the key can be null");
+                throw new AssertionError("No index in the key can be null");
             }
         }
 
         //Check text contents: all alphabetic lowercase ASCII characters
         for(int v=0; v<text.length(); v++) {
             if(!(text.charAt(v)>=97 && text.charAt(v)<=122)) {
-                throw new IllegalArgumentException("Text must contain all lowercase English ASCII characters");
+                throw new AssertionError("Text must contain all lowercase English ASCII characters");
             }
         }
 
@@ -512,18 +510,18 @@ public class ProcessSubtask extends Task<String> {
         for(int a=0; a<key.length; a++) {
             for(int i=0; i<key[a].length; i++) {
                 if(key[a][i]<0 || key[a][i]>25) {
-                    throw new IllegalArgumentException("All key indices must be on the interval [0,25]");
+                    throw new AssertionError("All key indices must be on the interval [0,25]");
                 }
             }
         }
 
         //Check start index is non-negative
         if(startSegment < 0) {
-            throw new IllegalArgumentException("Starting segment must be non-negative");
+            throw new AssertionError("Starting segment must be non-negative");
         }
 
 
-        //////////////////////////
+        // ////////////////////////
         //Start the process
 
         byte[] keyBlockPositions = setKeyBlockPositions((long)startSegment * (long)StepperFields.BLOCK_LENGTH);
@@ -612,10 +610,10 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns the Version 2 encrypted version of `text`, using `inputKey` as the key.
-     * Encryption starts after `startingSegment` segments. <br><br>
+     * Returns the Version 2 encrypted version of {@code text}, using {@code inputKey} as the key.
+     * Encryption starts after {@code startingSegment} segments. <br><br>
      *
-     * The result should be as if the entire text was encrypted, then only the substring starting after `startingSegment` is
+     * The result should be as if the entire text was encrypted, then only the substring starting after {@code startingSegment} is
      * in the final result.<br><br>
      *
      * Algorithm first implemented on February 26-29, 2024. Enhanced encryption finished on July 18, 2024. By Chris P Bacon
@@ -660,7 +658,7 @@ public class ProcessSubtask extends Task<String> {
         }
 
 
-        //////////////////////////
+        // ////////////////////////
         //Start the process
 
         byte[] keyBlockBasePositions = initializeKeyBlockPositions(startingSegment);
@@ -737,10 +735,10 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns a copy of input, but with numbers encrypted using inputKey.<br><br>
+     * Returns a copy of {@code input}, but with numbers encrypted using {@code key}.<br><br>
      *
      * Any non-number is unchanged in the output.
-     * @param input the input text segment
+     * @param input the input text segment. Cannot be null
      * @param key key to encrypt with. Must be on the interval [1, 9]
      * @return copy of input, but with numbers encrypted
      */
@@ -764,17 +762,18 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns an array containing the positions of all non-alphabetic characters in `text`.
+     * Returns an array containing the positions of all non-alphabetic characters in {@code text}.
      * If there's an alphabetic character, puts a 0 in the output index.<br><br>
      *
      * Alphabetic characters are ASCII characters that belong to the English alphabet.<br>
+     * Uppercase and lowercase letters are both treated as letters.<br><br>
      *
-     * Example: if the text is "a1b2c3", the output, expressed as ints, should be {0, 48, 0, 49, 0, 50}.
+     * Example: if the text is "A1b2c3", the output, expressed as ints, should be {0, 48, 0, 49, 0, 50}.
      * Since indices 0, 2, and 4 in the input are alphabetic characters, the corresponding indices in the output is 0.
      * Indices 1, 3, and 5 hold the corresponding ASCII value in the corresponding output indices
      *
      * @param text text to find non-alphabetic characters in. Cannot be null
-     * @return char array containing locations of non-alphabetic characters. Returns {(char)0} if the Worker is cancelled.
+     * @return char array containing locations of non-alphabetic characters. Returns {@code {(char)0}} if the Worker is cancelled.
      */
     private char[] findNonAlphaPositions(String text) {
         if(text==null) {
@@ -810,23 +809,23 @@ public class ProcessSubtask extends Task<String> {
 
     /**
      * Returns an array of bytes representing the key block positions at the end of encryption,
-     * if the input was `blocks` blocks long<br><br>
+     * if the input had {@code segments} segments<br><br>
      *
-     * `blocks` should equal the number of blocks before the starting position.<br>
-     * Example: if `blocks` equals 4, the output would be the block positions just after encrypting 4 blocks.<br><br>
+     * {@code segments} should equal the number of segments before the starting position.<br>
+     * Example: if {@code segments}  equals 4, the output would be the block positions just after encrypting 4 segments.<br><br>
      *
      * Helper to the operation functions.
      *
-     * @param blocks number of blocks encrypted so far, non-negative
-     * @return key block positions after encrypting `blocks` blocks
+     * @param segments number of blocks encrypted so far, non-negative
+     * @return key block positions after encrypting {@code segments} segments
      */
-    private byte[] initializeKeyBlockPositions(long blocks) {
-        assert blocks >= 0;
+    private byte[] initializeKeyBlockPositions(long segments) {
+        assert segments >= 0;
 
-        byte[] output = setKeyBlockPositions(blocks);
+        byte[] output = setKeyBlockPositions(segments);
 
         //Simulate moving through the remainder of the blocks
-        for(int b = 0; b < blocks%StepperFields.BLOCK_LENGTH; b++) {
+        for(int b = 0; b < segments%StepperFields.BLOCK_LENGTH; b++) {
             //Increment each index of the output
             for(int i=0; i<output.length; i++) {
                 output[i] = (byte) ((output[i] + StepperFields.getKeyBlockIncrementIndex(i)) % StepperFields.BLOCK_LENGTH);
@@ -838,38 +837,39 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns text, with all characters from nonAlphas reinserted in their places<br><br>
+     * Returns {@code text}, with all characters from {@code nonAlphas} reinserted in their places.<br><br>
      *
-     * text represents an output without non-alphabetic characters.<br>
+     * -{@code text} represents an output without non-alphabetic characters.<br>
      *
-     * nonAlphas contains characters at every index where there would normally be
-     * a non-alphabetic character in text, and a non-positive number otherwise<br>
+     * -{@code nonAlphas} contains the Unicode values of characters that were removed from {@code text} at every index
+     * containing a positive number<br>
      *
-     * If reinsertPunctuation is true, the text returned should contain all characters from nonAlphas
+     * -If {@code reinsertPunctuation} is true, the text returned should contain all characters from nonAlphas
      * reinserted in their original places.
-     * If not, the text returned should contain only alphanumeric characters.<br>
+     * If not, the text returned should contain only alphanumeric characters.<br><br>
      *
-     * Example: if the text to return is 'abc defg 123' and punct is 'y' or 's':<br>
-     * text would contain [0, 1, 2, 3, 4, 5, 6], the numerical values for 'abcdefg'<br>
-     * nonAlphas would contain [0,0,0,32,0,0,0,48,49,50]<br>
-     * There is a space at the original text's index 3, so nonAlphas's index 3 is 32<br>
-     * All other indices are 0 because the original text's indices there are letters<br>
+     * Example: {@code text} is "abcdefg", {@code nonAlphas} is [0,0,0,32,0,0,0,48,49,50].<br>
+     * {@code nonAlphas}'s positive entries are at positions where, in the original text, there were non-alphabetic
+     * characters that were removed. A space (Unicode: 32) was at index 3 in the original text. Numbers '1', '2', and '3'
+     * (Unicode: 48, 49, 50) were at indices 7, 8, and 9.<br>
+     * Given the text, the non-alpha positions, and a {@code reinsertingPunctuation} value of true, the output would be
+     * "abc defg123".<br>
      *
-     * If reinsertPunctuation was false, the output would be "abcdefg123".<br><br>
+     * If {@code reinsertPunctuation} was false, the output would be "abcdefg123".<br><br>
      *
-     * Undoes the separation of characters in 'removeNonAlphas'.
+     * Undoes the separation of characters in {@code removeNonAlphas}.
      *
      * @param text input text without non-alphabetic characters
-     * @param nonAlphasIn array containing locations of non-alphabetic characters
+     * @param nonAlphas array containing locations of non-alphabetic characters
      * @param reinsertingPunctuation whether to include punctuation in the output;
      *                            if false, the function reinserts numbers only
      * @return version of text with non-alphabetic characters in their places
      */
-    private String recombineNonAlphas(String text, char[] nonAlphasIn, boolean reinsertingPunctuation) {
+    private String recombineNonAlphas(String text, char[] nonAlphas, boolean reinsertingPunctuation) {
         if(text==null) {
             throw new AssertionError("Text cannot be null");
         }
-        if(nonAlphasIn==null) {
+        if(nonAlphas==null) {
             throw new AssertionError("Non-alphas cannot be null");
         }
 
@@ -880,13 +880,13 @@ public class ProcessSubtask extends Task<String> {
         }
 
         //make defensive copy of nonAlphasIn
-        char[] nonAlphas = new char[nonAlphasIn.length];
-        for(int t=0; t<nonAlphas.length; t++) {
+        char[] nonAlphasWorking = new char[nonAlphas.length];
+        for(int t=0; t<nonAlphasWorking.length; t++) {
             if(isCancelled()) {
                 return "";
             }
 
-            nonAlphas[t]=nonAlphasIn[t];
+            nonAlphasWorking[t]=nonAlphas[t];
         }
 
         StringBuilder output = new StringBuilder(text.length());
@@ -894,7 +894,7 @@ public class ProcessSubtask extends Task<String> {
         int nonAlphasIndex=0;
         int outputLen=text.length();
 
-        if(text.length() > nonAlphas.length) {
+        if(text.length() > nonAlphasWorking.length) {
             System.err.println("WARNING: does 'symbols' have blank spaces accounted for?");
         }
 
@@ -907,18 +907,18 @@ public class ProcessSubtask extends Task<String> {
             }
 
             //If there's a symbol in the current index
-            if(nonAlphas[nonAlphasIndex] > 0) {
+            if(nonAlphasWorking[nonAlphasIndex] > 0) {
                 //If not an apostrophe (ignore the compiler warning)
-                if(!(nonAlphas[nonAlphasIndex]==(char)39 || nonAlphas[nonAlphasIndex]==(char)96 || nonAlphas[nonAlphasIndex]=='’' || nonAlphas[nonAlphasIndex]=='`')) {
+                if(!(nonAlphasWorking[nonAlphasIndex]==(char)39 || nonAlphasWorking[nonAlphasIndex]==(char)96 || nonAlphasWorking[nonAlphasIndex]=='’' || nonAlphasWorking[nonAlphasIndex]=='`')) {
 
                     if( (reinsertingPunctuation) ||
-                            (nonAlphas[nonAlphasIndex]>=48 && nonAlphas[nonAlphasIndex]<=57) ) {
+                            (nonAlphasWorking[nonAlphasIndex]>=48 && nonAlphasWorking[nonAlphasIndex]<=57) ) {
                         //add to output
-                        output.append((char)nonAlphas[nonAlphasIndex]);
+                        output.append((char)nonAlphasWorking[nonAlphasIndex]);
                     }
 
                     //empty the symbol
-                    nonAlphas[nonAlphasIndex]=0;
+                    nonAlphasWorking[nonAlphasIndex]=0;
                 }
 
                 outputLen++;
@@ -937,14 +937,14 @@ public class ProcessSubtask extends Task<String> {
         //Add the rest of the symbols
 
         //all characters from [0..nonAlphasIndex) in text should be already processed
-        while(nonAlphasIndex < nonAlphas.length) {
+        while(nonAlphasIndex < nonAlphasWorking.length) {
             if(isCancelled()) {
                 return "";
             }
 
-            if((nonAlphas[nonAlphasIndex]>0 && reinsertingPunctuation)
-                    || (nonAlphas[nonAlphasIndex])>=48 && nonAlphas[nonAlphasIndex]<=57) {
-                output.append(nonAlphas[nonAlphasIndex]);
+            if((nonAlphasWorking[nonAlphasIndex]>0 && reinsertingPunctuation)
+                    || (nonAlphasWorking[nonAlphasIndex])>=48 && nonAlphasWorking[nonAlphasIndex]<=57) {
+                output.append(nonAlphasWorking[nonAlphasIndex]);
             }
             nonAlphasIndex++;
         }
@@ -1019,7 +1019,7 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns a version of text without non-alphabetic characters.
+     * Returns a version of {@code text} without non-alphabetic characters.
      * The text returned is converted to lowercase.<br><br>
      *
      * WARNING! Not to be confused with removeNonAlnums! This method removes all non-letters, including numbers!
@@ -1053,7 +1053,7 @@ public class ProcessSubtask extends Task<String> {
 
 
     /**
-     * Returns a copy of `input`, but with spaces removed.<br><br>
+     * Returns a copy of {@code input}, but with spaces removed.<br><br>
      *
      * Any space between two letters is to be removed. All other spaces are to remain in the output.
      *

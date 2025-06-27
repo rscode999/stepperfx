@@ -1,1 +1,1 @@
-Started 2025-06-19v0.5.0 completed 2025-06-22
+Started 2025-06-19GUI and text inputs completed 2025-06-22File inputs completed 2025-06-26

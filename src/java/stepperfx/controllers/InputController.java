@@ -1,6 +1,5 @@
 package stepperfx.controllers;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -25,7 +24,7 @@ final public class InputController extends IntegratedController {
     /**
      * Options for the app's operation mode selector. The first option should be treated as equal to the second option.
      */
-    final private String[] MODE_OPTIONS = {"Select process", "Forward", "Reverse"};
+    final private String[] MODE_OPTIONS = {"Select process", "Encrypt", "Decrypt"};
 
     /**
      * Options for the app's punctuation selector. The first option should be treated as equal to the second option.
@@ -45,7 +44,7 @@ final public class InputController extends IntegratedController {
      * All options except for the first two should be in the format "Threads: {integer on the interval [1, StepperFields.MAX_THREADS]}"
      */
     final private String[] THREAD_OPTIONS = {"Number of threads: 1", "Custom...", "Threads: 2", "Threads: 4", "Threads: 6",
-            "Threads: 8", "Threads: 10", "Threads: 12", "Threads: 16", "Threads: 32"};
+            "Threads: 8", "Threads: 12", "Threads: 16", "Threads: 32"};
 
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -169,10 +168,12 @@ final public class InputController extends IntegratedController {
         threadSelector.setItems(FXCollections.observableArrayList(THREAD_OPTIONS));
         threadSelector.getSelectionModel().selectFirst();
 
+        // ///////////////////////////////////////////////////////////////////////////
+
         //Set label changing when input mode is changed
         inputSelector.valueProperty().addListener((obs, oldValue, newValue) -> {
             if(newValue.equals(INPUT_SELECTION_OPTIONS[2])) {
-                textInputLabel.setText("Path to input file");
+                textInputLabel.setText("Path to input text (*.txt) file");
             }
             else if(modeSelector.getValue().equals(MODE_OPTIONS[2])){
                 textInputLabel.setText("Ciphertext");
@@ -184,19 +185,29 @@ final public class InputController extends IntegratedController {
 
         //Set button and label changing when the mode selector changes
         modeSelector.valueProperty().addListener((obs, oldValue, newValue) -> {
+           //Set start button and enabling/disabling of punctuation selector
             if(newValue.equals(MODE_OPTIONS[2])) {
                 startButton.setText("Decrypt");
-                textInputLabel.setText("Ciphertext");
+                punctSelector.setDisable(true);
             }
             else {
                 startButton.setText("Encrypt");
-                textInputLabel.setText("Plaintext");
+                punctSelector.setDisable(false);
+            }
+
+            //Set text input label (if file input is not selected)
+            if(!inputSelector.getSelectionModel().getSelectedItem().equals(INPUT_SELECTION_OPTIONS[2])) {
+                textInputLabel.setText((modeSelector.getSelectionModel().getSelectedItem().equals(MODE_OPTIONS[2]))
+                ? "Decrypt"
+                : "Encrypt");
             }
         });
 
-        //Set listener on the shared service to clear the inputs when completed
+        //Set listener on the shared service to clear the inputs upon successful output
         fields.addServiceValueListener((obs, oldValue, newValue) -> {
-            if(newValue != null) {
+            //This means: the service was not cancelled, and the service produced a valid output with a null error message
+            //Service output: {processed text, key, error message}
+            if(newValue!=null && newValue[0]!=null && newValue[1]!=null && newValue[2]==null) {
                 textInput.setText("");
                 keyInput.setText("");
             }
@@ -319,9 +330,10 @@ final public class InputController extends IntegratedController {
 
         //Set punctuation mode
         byte punctMode = 0;
-        if (punctSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
+        if (punctSelector.getValue().equals(PUNCT_OPTIONS[3])) {
             punctMode = 2;
-        } else if (punctSelector.getValue().equals(INPUT_SELECTION_OPTIONS[1])) {
+        }
+        else if (punctSelector.getValue().equals(PUNCT_OPTIONS[2])) {
             punctMode = 1;
         }
 
@@ -333,7 +345,7 @@ final public class InputController extends IntegratedController {
         if (threadSelector.getValue().equals(THREAD_OPTIONS[0])) {
             threadCount = 1;
         } else if (threadSelector.getValue().equals(THREAD_OPTIONS[1])) {
-            throw new IllegalArgumentException("Invalid choice");
+            throw new IllegalArgumentException("Invalid thread selector option- Cannot choose \"Custom...\"");
         } else {
             //Remove the "Threads: " part of the string
             String substr = threadSelector.getValue();

@@ -88,7 +88,9 @@ public class ProcessTask extends Task<String[]> {
      * If operations complete successfully, the output and key will be non-null, with a null error message.<br>
      * If not, the error message will be non-null, with the first two indices null.<br><br>
      *
-     * If the task is cancelled, the return value will have all three indices as null.
+     * If the task is cancelled, the return value will have all three indices as null.<br><br>
+     *
+     * The output is received with a ValueProperty listener assigned to the Service that deployed the Task.
      *
      * @return result of transforming the input with the given parameters
      * @throws Exception if any exception occurs during processing
@@ -96,7 +98,7 @@ public class ProcessTask extends Task<String[]> {
     @Override
     protected String[] call() throws Exception {
 
-        //Get the input from a file, if chosen
+        //Get the input from a file, if chosen. Upon failure, present the error message
         if(loadingFromFile) {
             try {
                 input = getTextFromFile(input);
@@ -123,12 +125,6 @@ public class ProcessTask extends Task<String[]> {
         //Make the key
         byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
 
-        //Take forever
-        for(long i=0; i<10000L; i++) {
-            if(isCancelled()) {
-                return new String[] {null, null, null};
-            }
-        }
 
         //Create subtasks and workloads
         ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
