@@ -12,7 +12,8 @@ import stepperfx.administration.ScreenManager;
 import java.util.Optional;
 
 /**
- * Controller for the user input screen
+ * Controller for the user input screen. Responsible for changing text on the input screen and starting the shared Service.<br>
+ * Not responsible for taking the output of the Service or handling the Service's cancellation.
  */
 final public class InputController extends IntegratedController {
 

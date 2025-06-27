@@ -45,18 +45,6 @@ final public class StepperFields {
     // ////////////////////////////////////////////////////////////////////////////////////////////////
     //VARIABLES
 
-    /**
-     * Holds the result of the ProcessService's work. May be null.<br><br>
-     *
-     * A change from null to non-null indicates that processing finished.<br>
-     * A change from non-null to null means the results finished displaying.
-     */
-    private String result;
-
-    /**
-     * Key for processing the input. May be null.
-     */
-    private String key;
 
     /**
      * A Service that controllers can start, cancel, and reset. Can never be null.
@@ -80,23 +68,7 @@ final public class StepperFields {
 
         service = new ProcessService();
 
-        //Set the service to update the result each time a value property is changed
-        service.valueProperty().addListener(new ChangeListener<String[]>() {
-            public void changed(ObservableValue<? extends String[]> obs, String[] oldValue, String[] newValue) {
-                if(newValue != null) {
-                    if(newValue.length == 1) {
-                        result = newValue[0];
-                        key = null;
-                    }
-                    else {
-                        result = newValue[0];
-                        key = newValue[1];
-                    }
-                }
 
-                System.out.println("VALUE PROPERTY CHANGE as tracked by StepperFields instance: " + Arrays.toString(oldValue) + " -> " + Arrays.toString(newValue));
-            }
-        });
     }
 
 
@@ -119,23 +91,6 @@ final public class StepperFields {
     // ///////////////////////////////////////////////////////////////////////////////////
     //GETTERS
 
-
-
-    /**
-     * Returns the processing result stored in the fields
-     * @return result text (may be null)
-     */
-    public String result() {
-        return result;
-    }
-
-    /**
-     * Returns the key used to process the input
-     * @return key text (can be null)
-     */
-    public String key() {
-        return key;
-    }
 
     /**
      * Returns the value at index {@code index} of the key block increments
@@ -188,12 +143,10 @@ final public class StepperFields {
 
 
     /**
-     * Sets the app's Service to its READY state, preparing it to be run again.
-     * The result and key are set to {@code null} to indicate a restart.
+     * Sets the app's Service to its READY state, preparing it to be run again.<br><br>
+     * This method works when the Service is in any state.
      */
     public void resetService() {
-        result = null;
-        key = null;
         service.reset();
     }
 
@@ -233,11 +186,9 @@ final public class StepperFields {
 
     /**
      * Stops the Service's execution and puts it in the READY state.
-     * The result is also reset to null to indicate a restart.
      */
     public void stopService() {
         service.cancel();
-        result = null;
         service.reset();
     }
 

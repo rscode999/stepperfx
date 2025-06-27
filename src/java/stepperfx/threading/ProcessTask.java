@@ -84,9 +84,11 @@ public class ProcessTask extends Task<String[]> {
     /**
      * Returns the output of the Task's processing.<br><br>
      *
-     * The output is an array of length 1 or 2.<br>
-     * If the output's length is 2, the operation completed. The result is in index 0 and the key is in index 1.<br>
-     * If the output length is 1, the operation encountered an input error. Index 0 contains the error message.
+     * The output is an array of length 3. The indices are: {output, formatted key, error message}<br>
+     * If operations complete successfully, the output and key will be non-null, with a null error message.<br>
+     * If not, the error message will be non-null, with the first two indices null.<br><br>
+     *
+     * If the task is cancelled, the return value will have all three indices as null.
      *
      * @return result of transforming the input with the given parameters
      * @throws Exception if any exception occurs during processing
@@ -100,7 +102,7 @@ public class ProcessTask extends Task<String[]> {
                 input = getTextFromFile(input);
             }
             catch(FileNotFoundException e) {
-                return new String[] {"EEEEEEEEEEEE"};
+                return new String[] {null, null, e.getMessage()};
             }
         }
         //`input` now contains the text to be loaded
@@ -109,7 +111,7 @@ public class ProcessTask extends Task<String[]> {
         int firstNonzeroNumber = Integer.MIN_VALUE;
         for(int i=0; i<input.length(); i++) {
             if(isCancelled()) {
-                return new String[] {""};
+                return new String[] {null, null, null};
             }
 
             if((int)input.charAt(i)>=49 && (int)input.charAt(i)<=57) {
@@ -122,9 +124,9 @@ public class ProcessTask extends Task<String[]> {
         byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
 
         //Take forever
-        for(long i=0; i<100000000000L; i++) {
+        for(long i=0; i<10000L; i++) {
             if(isCancelled()) {
-                return new String[] {""};
+                return new String[] {null, null, null};
             }
         }
 
@@ -144,7 +146,7 @@ public class ProcessTask extends Task<String[]> {
             startingSegment += charCounts / StepperFields.BLOCK_LENGTH;
 
             if(isCancelled()) {
-                return new String[] {""};
+                return new String[] {null, null, null};
             }
         }
 
@@ -170,7 +172,7 @@ public class ProcessTask extends Task<String[]> {
                     }
                     executorService.shutdown();
                     System.out.println("MULTITHREADED PROCESS CANCELLED");
-                    return new String[] {""};
+                    return new String[] {null, null, null};
 
                 }
             }
@@ -190,7 +192,7 @@ public class ProcessTask extends Task<String[]> {
         }
         executorService.shutdown(); //needed to free threads from memory
 //        System.out.println(finalResult);
-        return new String[] {finalResult.toString(), createKeyBlocksReverse(formattedKey)};
+        return new String[] {finalResult.toString(), createKeyBlocksReverse(formattedKey), null};
     }
 
 

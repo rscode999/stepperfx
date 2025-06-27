@@ -7,7 +7,7 @@ import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
 
 /**
- * Controller for the loading screen. Responsible for stopping the Service.
+ * Controller for the loading screen. Responsible for stopping the Service and tracking its progress.
  */
 final public class LoadingController extends IntegratedController {
 
