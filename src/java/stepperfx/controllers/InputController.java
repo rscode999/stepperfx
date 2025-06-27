@@ -123,8 +123,8 @@ final public class InputController extends IntegratedController {
 
 
     /**
-     * Initializes the controller with {@code manager} and {@code fields}.
-     * Also configures GUI elements.
+     * Initializes the controller with {@code manager} and {@code fields}.<br>
+     * Also sets GUI elements. Assigns a listener to clear the text inputs upon successful operations.
      *
      * @param manager the ScreenManager responsible for the controller
      * @param fields reference to shared fields between controllers
@@ -170,38 +170,6 @@ final public class InputController extends IntegratedController {
 
         // ///////////////////////////////////////////////////////////////////////////
 
-        //Set label changing when input mode is changed
-        inputSelector.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if(newValue.equals(INPUT_SELECTION_OPTIONS[2])) {
-                textInputLabel.setText("Path to input text (*.txt) file");
-            }
-            else if(modeSelector.getValue().equals(MODE_OPTIONS[2])){
-                textInputLabel.setText("Ciphertext");
-            }
-            else {
-                textInputLabel.setText("Plaintext");
-            }
-        });
-
-        //Set button and label changing when the mode selector changes
-        modeSelector.valueProperty().addListener((obs, oldValue, newValue) -> {
-           //Set start button and enabling/disabling of punctuation selector
-            if(newValue.equals(MODE_OPTIONS[2])) {
-                startButton.setText("Decrypt");
-                punctSelector.setDisable(true);
-            }
-            else {
-                startButton.setText("Encrypt");
-                punctSelector.setDisable(false);
-            }
-
-            //Set text input label (if file input is not selected)
-            if(!inputSelector.getSelectionModel().getSelectedItem().equals(INPUT_SELECTION_OPTIONS[2])) {
-                textInputLabel.setText((modeSelector.getSelectionModel().getSelectedItem().equals(MODE_OPTIONS[2]))
-                ? "Decrypt"
-                : "Encrypt");
-            }
-        });
 
         //Set listener on the shared service to clear the inputs upon successful output
         fields.addServiceValueListener((obs, oldValue, newValue) -> {
@@ -211,87 +179,6 @@ final public class InputController extends IntegratedController {
                 textInput.setText("");
                 keyInput.setText("");
             }
-        });
-
-        //Set "Custom" value insertion option
-        threadSelector.valueProperty().addListener((obs, oldValue, newValue) -> {
-            if(newValue.equals("Custom...")) {
-                TextInputDialog dialog = new TextInputDialog();
-                dialog.setTitle("Custom thread input");
-                dialog.setHeaderText("Enter number of threads");
-                dialog.setContentText("Example: if your computer has 4 cores,\nuse 4 threads to use all the cores");
-
-                //At least try to set the background color
-//                DialogPane pane = dialog.getDialogPane();
-//                pane.setStyle("-fx-background-color: green;");
-
-                Optional<String> userInput = dialog.showAndWait();
-                if(userInput.isPresent()) {
-
-                    //Take the user input as an integer
-                    int newThreadCount = Integer.MIN_VALUE;
-                    try {
-                        newThreadCount = (int)Float.parseFloat(userInput.get());
-                    }
-                    //Not a number: show error dialog
-                    catch(NumberFormatException e) {
-                        threadSelector.getSelectionModel().selectFirst();
-                        threadSelector.getSelectionModel().selectFirst();
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Error");
-                        alert.setHeaderText("Invalid number of threads");
-                        alert.setContentText("Number of threads must be an integer");
-                        alert.showAndWait();
-                        return;
-                    }
-
-                    //Invalid number of threads: show dialog
-                    if(newThreadCount<1 || newThreadCount>StepperFields.MAX_THREADS) {
-                        threadSelector.getSelectionModel().selectFirst();
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Error");
-                        alert.setHeaderText("Invalid number of threads");
-                        alert.setContentText("Number of threads must be an integer\n" +
-                                "between 1 and " + StepperFields.MAX_THREADS);
-                        alert.showAndWait();
-                        return;
-                    }
-
-                    //User wants 1 thread: set value to the default
-                    if(newThreadCount == 1) {
-                        threadSelector.getSelectionModel().selectFirst();
-                        return;
-                    }
-
-                    ObservableList<String> threadSelectorContents = threadSelector.getItems();
-                    //Look through the list for matching values
-                    for(int i=2; i<threadSelectorContents.size(); i++) {
-                        int currentThreadCount = Integer.parseInt( threadSelectorContents.get(i).substring(9) );
-
-                        //User input equals current value: set combo box to inputted value
-                        if(currentThreadCount == newThreadCount) {
-                            threadSelector.setValue("Threads: " + newThreadCount);
-                            return;
-                        }
-                        //User input doesn't equal current value: add inputted value to combobox
-                        else if(currentThreadCount > newThreadCount) {
-                            threadSelector.getItems().add(i, "Threads: " + newThreadCount);
-                            threadSelector.setValue("Threads: " + newThreadCount);
-                            return;
-                        }
-                    }
-                    //No matches: add the value to the end
-                    threadSelector.getItems().add(threadSelectorContents.size(), "Threads: " + newThreadCount);
-                    threadSelector.setValue("Threads: " + newThreadCount);
-                }
-                else {
-                    threadSelector.getSelectionModel().selectFirst();
-                }
-
-                //END OF USER INPUT PROCESSING
-            }
-
-            //END OF USER INPUT DIALOG DEFINITION
         });
 
     }
@@ -304,16 +191,150 @@ final public class InputController extends IntegratedController {
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //METHODS
 
+    /**
+     * Changes the start button and text input labels when the mode is changed.<br>
+     * If the new mode is the last index in {@code MODE_OPTIONS}, sets for reverse process.
+     * Otherwise, sets for forward process.
+     */
+    @FXML
+    private void onOperationSelectorChange() {
+        //Change start button text
+        if(modeSelector.getValue().equals(MODE_OPTIONS[2])) {
+            startButton.setText("Decrypt");
+        }
+        else {
+            startButton.setText("Encrypt");
+        }
+
+        //Change label text, if file input is not selected
+        if(!inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
+            if(modeSelector.getValue().equals(MODE_OPTIONS[2])) {
+                textInputLabel.setText("Ciphertext");
+            }
+            else {
+                textInputLabel.setText("Plaintext");
+            }
+        }
+    }
+
+
 
     /**
-     * Displays the login screen
+     * Changes the text input label depending on the user's input preferences.<br>
+     * On change to file input, the input label should say "path to input file". Otherwise,
+     * the label should display the appropriate operation input text.
+     */
+    @FXML
+    private void onInputSelectorChange() {
+
+        if(inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
+            textInputLabel.setText("Path to input text (*.txt) file");
+        }
+        else if(modeSelector.getValue()!=null && modeSelector.getValue().equals(MODE_OPTIONS[2])){
+            textInputLabel.setText("Ciphertext");
+        }
+        else {
+            textInputLabel.setText("Plaintext");
+        }
+    }
+
+
+
+    /**
+     * Checks if the new value is "Custom..." If so, displays a dialog and allows the user to enter a new thread value.
+     */
+    @FXML
+    private void onThreadSelectorChange() {
+
+        if(threadSelector.getValue().equals("Custom...")) {
+            final String ERROR_TITLE = "Invalid input";
+            final String ERROR_HEADER = "Invalid number of threads";
+
+            //Create the dialog
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Custom thread input");
+            dialog.setHeaderText("Enter number of threads");
+            dialog.setContentText("Example: if your computer has 4 cores,\nuse 4 threads to use all the cores");
+
+
+            Optional<String> userInput = dialog.showAndWait();
+            if(userInput.isPresent()) {
+
+                //Take the user input as an integer
+                int newThreadCount = Integer.MIN_VALUE;
+                try {
+                    newThreadCount = (int)Float.parseFloat(userInput.get());
+                }
+                //Not a number: show error dialog
+                catch(NumberFormatException e) {
+                    threadSelector.getSelectionModel().selectFirst();
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle(ERROR_TITLE);
+                    alert.setHeaderText(ERROR_HEADER);
+                    alert.setContentText("Number of threads must be an integer");
+                    alert.showAndWait();
+                    return;
+                }
+
+                //Invalid number of threads: show dialog
+                if(newThreadCount<1 || newThreadCount>StepperFields.MAX_THREADS) {
+                    threadSelector.getSelectionModel().selectFirst();
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
+                    alert.setTitle(ERROR_TITLE);
+                    alert.setHeaderText(ERROR_HEADER);
+                    alert.setContentText("Number of threads must be an integer\n" +
+                            "between 1 and " + StepperFields.MAX_THREADS);
+                    alert.showAndWait();
+                    return;
+                }
+
+                //User wants 1 thread: set value to the default
+                if(newThreadCount == 1) {
+                    threadSelector.getSelectionModel().selectFirst();
+                    return;
+                }
+
+                ObservableList<String> threadSelectorContents = threadSelector.getItems();
+                //Look through the list for matching values
+                for(int i=2; i<threadSelectorContents.size(); i++) {
+                    int currentThreadCount = Integer.parseInt( threadSelectorContents.get(i).substring(9) );
+
+                    //User input equals current value: set combo box to inputted value
+                    if(currentThreadCount == newThreadCount) {
+                        threadSelector.setValue("Threads: " + newThreadCount);
+                        return;
+                    }
+                    //User input doesn't equal current value: add inputted value to combobox
+                    else if(currentThreadCount > newThreadCount) {
+                        threadSelector.getItems().add(i, "Threads: " + newThreadCount);
+                        threadSelector.setValue("Threads: " + newThreadCount);
+                        return;
+                    }
+                }
+                //No matches: add the value to the end
+                threadSelector.getItems().add(threadSelectorContents.size(), "Threads: " + newThreadCount);
+                threadSelector.setValue("Threads: " + newThreadCount);
+            }
+            else {
+                threadSelector.getSelectionModel().selectFirst();
+            }
+
+            //END OF USER INPUT PROCESSING
+        }
+    }
+
+
+
+    /**
+     * Displays the login screen and resets the text inputs
      */
     @FXML
     private void setLoginScreen() {
+        screenManager.showScreen("login");
         textInput.setText("");
         keyInput.setText("");
-        screenManager.showScreen("login");
     }
+
 
 
     /**

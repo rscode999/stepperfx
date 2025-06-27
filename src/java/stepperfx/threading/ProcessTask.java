@@ -11,7 +11,6 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Processes user input on a separate thread. Uses ProcessSubtask threads to help with processing.
@@ -109,86 +108,103 @@ public class ProcessTask extends Task<String[]> {
         }
         //`input` now contains the text to be loaded
 
-        //Find first nonzero number in the text (will be given to the operations worker threads)
-        int firstNonzeroNumber = Integer.MIN_VALUE;
-        for(int i=0; i<input.length(); i++) {
-            if(isCancelled()) {
-                return new String[] {null, null, null};
-            }
-
-            if((int)input.charAt(i)>=49 && (int)input.charAt(i)<=57) {
-                firstNonzeroNumber = (int)input.charAt(i) - 48;
-                break;
-            }
-        }
 
         //Make the key
         byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
 
+        StringBuilder runResult = new StringBuilder(); //Intermediate result
+        int firstNonzeroNumber = Integer.MIN_VALUE; //First nonzero number (must wait until diacritics are removed)
+        for(int run=1; run<=2; run++) { //run 1 -> diacritics workers, run 2 -> main process workers
 
-        //Create subtasks and workloads
-        ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
-        String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, StepperFields.BLOCK_LENGTH);
-        ProcessSubtask[] subtasks = new ProcessSubtask[nWorkerThreads];
+            //Create subtasks and workloads
+            ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
+            String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, StepperFields.BLOCK_LENGTH);
 
-        //Assign work to each subtask
-        int startingSegment = 0;
-        for(int i=0; i<nWorkerThreads; i++) {
-            subtasks[i] = new ProcessSubtask(subtaskWorkloads[i], formattedKey, encrypting, usingV2Process,
-                    punctMode, firstNonzeroNumber, startingSegment);
+            //Assign worker threads. Run 1 -> diacritics workers, run 2 -> main process workers
+            Task<String>[] subtasks = (run==1)
+                    ? new ProcessSubtaskDiacritics[nWorkerThreads]
+                    : new ProcessSubtaskMain[nWorkerThreads];
 
-            //Advance starting segment
-            int charCounts = countAlphaChars(subtaskWorkloads[i]);
-            startingSegment += charCounts / StepperFields.BLOCK_LENGTH;
+            //Assign work to each subtask and create each subtask
+            int startingSegment = 0;
+            for (int i = 0; i < nWorkerThreads; i++) {
+                subtasks[i] = (run==1)
+                        ? new ProcessSubtaskDiacritics(subtaskWorkloads[i])
+                        : new ProcessSubtaskMain(subtaskWorkloads[i], formattedKey, encrypting, usingV2Process,
+                            punctMode, firstNonzeroNumber, startingSegment);
 
-            if(isCancelled()) {
-                return new String[] {null, null, null};
-            }
-        }
+                //Advance starting segment
+                int charCounts = countAlphaChars(subtaskWorkloads[i]);
+                startingSegment += charCounts / StepperFields.BLOCK_LENGTH;
 
-        //The subtask workloads are no longer needed now
-        // subtaskWorkloads = null;
-        System.gc();
-
-        //Start the subtasks
-        for(ProcessSubtask subtask : subtasks) {
-            executorService.submit(subtask);
-        }
-
-
-        //Get the results
-        StringBuilder finalResult = new StringBuilder(100);
-        for(int i=0; i<nWorkerThreads; i++) {
-            //continuously check if the workers finish or the job is cancelled
-            while(!subtasks[i].isDone()) {
-                if(this.isCancelled()) {
-
-                    for(ProcessSubtask subtask : subtasks) {
-                        subtask.cancel();
-                    }
-                    executorService.shutdown();
-                    System.out.println("MULTITHREADED PROCESS CANCELLED");
-                    return new String[] {null, null, null};
-
+                if (isCancelled()) {
+                    return new String[]{null, null, null};
                 }
             }
 
-            //when the current worker finishes, load its result
-            try {
-                finalResult.append(subtasks[i].get());
+            //The subtask workloads are no longer needed now
+            subtaskWorkloads = null;
+            System.gc();
+
+            //Start the subtasks
+            for (Task<String> subtask : subtasks) {
+                executorService.submit(subtask);
             }
-            catch(InterruptedException e) {
-                return new String[] {""};
+
+
+            //Get the results
+            runResult = new StringBuilder(100);
+            for (int i = 0; i < nWorkerThreads; i++) {
+                //continuously check if the workers finish or the job is cancelled
+                while (!subtasks[i].isDone()) {
+                    if (this.isCancelled()) {
+
+                        for (Task<String> subtask : subtasks) {
+                            subtask.cancel();
+                        }
+                        executorService.shutdown();
+                        System.out.println("MULTITHREADED PROCESS CANCELLED");
+                        return new String[]{null, null, null};
+
+                    }
+                }
+
+                //when the current worker finishes, load its result
+                try {
+                    runResult.append(subtasks[i].get());
+                }
+                catch (InterruptedException e) {
+                    return new String[]{""};
+                }
+                catch (ExecutionException e) {
+                    System.err.println("EXCEPTION THROWN DURING MULTITHREADED STEP");
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
             }
-            catch(ExecutionException e) {
-                System.err.println("EXCEPTION THROWN DURING MULTITHREADED STEP");
-                e.printStackTrace();
-                System.exit(-1);
+            executorService.shutdown(); //needed to free threads from memory
+
+            //reload the input if run 2 still needs to go
+            if(run == 1) {
+                input = runResult.toString();
+                runResult = null;
+
+                //Find the first nonzero number. Weirdly formatted numbers are ASCII numbers after diacritic removal
+                for(int i=0; i<input.length(); i++) {
+                    if(isCancelled()) {
+                        return new String[] {null, null, null};
+                    }
+
+                    if((int)input.charAt(i)>=49 && (int)input.charAt(i)<=57) {
+                        firstNonzeroNumber = (int)input.charAt(i) - 48;
+                        break;
+                    }
+                }
             }
         }
-        executorService.shutdown(); //needed to free threads from memory
+
 //        System.out.println(finalResult);
-        return new String[] {finalResult.toString(), createKeyBlocksReverse(formattedKey), null};
+        return new String[] {runResult.toString(), createKeyBlocksReverse(formattedKey), null};
     }
 
 

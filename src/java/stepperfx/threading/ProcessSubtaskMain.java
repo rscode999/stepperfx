@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Performs part of the work of a ProcessTask
  */
-public class ProcessSubtask extends Task<String> {
+public class ProcessSubtaskMain extends Task<String> {
 
     /**
      * True if this worker is encrypting its text, false otherwise
@@ -60,8 +60,8 @@ public class ProcessSubtask extends Task<String> {
      *          or Integer.MIN_VALUE if not operating on numbers
      * @param startSegment where to start processing the input at. Must be at least 0
      */
-    public ProcessSubtask(String input, byte[][] key, boolean encrypting, boolean usingV2Process,
-                          byte punctMode, int textFirstNumber, int startSegment) {
+    public ProcessSubtaskMain(String input, byte[][] key, boolean encrypting, boolean usingV2Process,
+                              byte punctMode, int textFirstNumber, int startSegment) {
 
         if(input==null || key==null) throw new AssertionError("Input text and key cannot be null");
         if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on the interval [0,2]");
@@ -96,9 +96,6 @@ public class ProcessSubtask extends Task<String> {
      */
     public String call() {
 
-        //lowercase and remove diacritics
-        textPiece = removeDiacritics(textPiece);
-
         //remove spaces (if specified)
         if(punctMode == 1) {
             textPiece = removeSpaces(textPiece);
@@ -108,17 +105,17 @@ public class ProcessSubtask extends Task<String> {
         char[] nonAlphas = findNonAlphaPositions(textPiece);
         textPiece = removeNonAlphas(textPiece);
 
-        //do the numbers
-        if(firstNumber != Byte.MIN_VALUE) {
-            nonAlphas = encrypting ? encryptNumbers(nonAlphas, firstNumber) : decryptNumbers(nonAlphas, firstNumber);
-        }
-
         //do the specified process
         if(usingV2Process) {
             textPiece = encrypting ? encrypt2(textPiece, key, startSegment) : decrypt2(textPiece, key, startSegment);
         }
         else {
             textPiece = encrypting ? encrypt(textPiece, key, startSegment) : decrypt(textPiece, key, startSegment);
+        }
+
+        //do the numbers
+        if(firstNumber != Byte.MIN_VALUE) {
+            nonAlphas = encrypting ? encryptNumbers(nonAlphas, firstNumber) : decryptNumbers(nonAlphas, firstNumber);
         }
 
         //reinsert non-alphas
@@ -951,69 +948,6 @@ public class ProcessSubtask extends Task<String> {
 
 
         return output.toString();
-    }
-
-
-    /**
-     * Returns a lowercased version of the input without accent marks or letter variants.
-     *
-     * @param input String to remove diacritics from
-     * @return copy of input without diacritics
-     */
-    private String removeDiacritics(String input) {
-
-        //These are the characters to remove. Corresponding indices in `replacementChars` are their replacements
-        String[] accentedChars={"àáâãäå", "ç", "ð", "èéëêœæ", "ìíîï", "òóôõöø", "ǹńñň",
-                "ß", "ùúûü", "ýÿ", "⁰₀", "¹₁", "²₂", "³₃", "⁴₄", "⁵₅", "⁶₆", "⁷₇", "⁸₈", "⁹₉", "—"};
-        char[] replacementChars={'a', 'c', 'd', 'e', 'i', 'o', 'n', 's', 'u', 'y',  '0', '1',
-                '2', '3', '4', '5', '6', '7', '8', '9', '-'};
-
-        Map<Character, Character> charMap = new HashMap<>(accentedChars.length);
-
-        //load the map
-        for(int a=0; a<accentedChars.length; a++) {
-            //assign each character in the current accented char string as a key to map the corresponding replacement char
-            for(int r=0; r<accentedChars[a].length(); r++) {
-                charMap.put(accentedChars[a].charAt(r), replacementChars[a]);
-            }
-        }
-
-        accentedChars = null;
-        replacementChars = null;
-        StringBuilder output = new StringBuilder(input.length());
-
-        //build the output
-        char currentChar = (char)0;
-        for(int i=0; i<input.length(); i++) {
-            //lowercase the character
-            currentChar = Character.toLowerCase(input.charAt(i));
-
-            //check if the character is in the map: if so, convert it
-            if(charMap.containsKey(currentChar)) {
-                currentChar = charMap.get(currentChar);
-            }
-
-            //append converted char to output
-            output.append(currentChar);
-
-            if(isCancelled()) {
-                return "";
-            }
-        }
-
-        return output.toString();
-    }
-
-    /**
-     * Returns a version of the input without accent marks or letter variants.<br><br>
-     *
-     * FOR UNIT TESTING ONLY!
-     *
-     * @param input String to remove diacritics from
-     * @return copy of input without diacritics
-     */
-    public String removeDiacritics_Testing(String input) {
-        return removeDiacritics(input);
     }
 
 

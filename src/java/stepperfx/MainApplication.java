@@ -7,7 +7,7 @@ import stepperfx.administration.ScreenManager;
 /**
  * Responsible for configuring and displaying the app
  */
-public class MainApplication extends Application {
+final public class MainApplication extends Application {
 
     /**
      * Serves as the entry point for the application.

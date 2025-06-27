@@ -10,7 +10,7 @@ import stepperfx.StepperFields;
  * IMPORTANT: The service must be re-initialized before each run. The service's fields are set to {@code null}
  * during each run. Initialize using the service's {@code initializeService} method.
  */
-public class ProcessService extends Service<String[]> {
+final public class ProcessService extends Service<String[]> {
 
     /**
      * True if the service is encrypting, false if the service is decrypting

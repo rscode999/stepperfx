@@ -32,8 +32,8 @@ final public class LoginController extends IntegratedController {
     @FXML
     private void login() {
         if("password".equals(pwField.getText()) || "".equals(pwField.getText())) {
-            pwField.setText("");
             screenManager.showScreen("input");
+            pwField.setText("");
         }
         else {
             screenManager.showScreen("login-reject");
