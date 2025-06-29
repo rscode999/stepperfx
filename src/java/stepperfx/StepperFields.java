@@ -43,7 +43,7 @@ final public class StepperFields {
     /**
      * The maximum amount of threads that the app can use. Must be at least 1
      */
-    final public static int MAX_THREADS = 9999;
+    final public static int MAX_THREADS = 999;
 
     /**
      * Maximum number of characters that are displayed on a result page. Must be positive
@@ -55,6 +55,10 @@ final public class StepperFields {
     // ////////////////////////////////////////////////////////////////////////////////////////////////
     //VARIABLES
 
+    /**
+     * Holds the user's login credentials
+     */
+    private int loginCredentials;
 
     /**
      * A Service that controllers can start, cancel, and reset. Can never be null.
@@ -76,6 +80,7 @@ final public class StepperFields {
     public StepperFields() {
         assertConstantInvariants();
 
+        loginCredentials = 1;
         service = new ProcessService();
     }
 
@@ -118,6 +123,22 @@ final public class StepperFields {
     }
 
 
+    /**
+     * Returns the user's stored login credentials
+     * @return login credentials
+     */
+    public int loginCredentials() {
+        return loginCredentials;
+    }
+
+    /**
+     * Sets the stored login credentials to {@code newCredentials}.
+     * @param newCredentials new credentials to set
+     */
+    public void setLoginCredentials(int newCredentials) {
+        loginCredentials = newCredentials;
+    }
+
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -145,7 +166,14 @@ final public class StepperFields {
     /**
      * Assigns {@code listener} as a value property listener on the app's Service.<br><br>
      *
-     * If the Service's new value is non-null, the Service's process successfully finished.
+     * Value format: String array of length 3 containing {result, formatted key, error message}<br>
+     * Possible configurations:<br>
+     * - Result and key non-null, error message null: process completed successfully<br>
+     * - Result and key null, error message non-null: process stopped with error<br>
+     * - Result, key, and error message null: process was cancelled<br>
+     * - Entire output is null: should be ignored<br>
+     * If any other value is produced, there is a bug.
+     *
      * @param listener listener to assign
      */
     public void addServiceValueListener(ChangeListener<? super String[]> listener) {

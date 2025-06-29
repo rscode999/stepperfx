@@ -141,6 +141,7 @@ public class ProcessTask extends Task<String[]> {
      */
     @Override
     protected String[] call() throws Exception {
+
         //Constructor check
         if(input==null || key==null) {
             throw new AssertionError("WRONG CONSTRUCTOR USED");
@@ -174,6 +175,11 @@ public class ProcessTask extends Task<String[]> {
         for(int run=1; run<=2; run++) { //run 1 -> diacritics workers, run 2 -> main process workers
 
             updateMessage(LOADING_STATE_NAMES[run]);
+
+            //Bug fix
+            if(nWorkerThreads <= 0) {
+                return new String[] {"", "", null};
+            }
 
             //Create subtasks and workloads
             ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
@@ -256,6 +262,7 @@ public class ProcessTask extends Task<String[]> {
         Thread.sleep(100); //give the FX app thread time to update
 
         return new String[] {runResult.toString(), createKeyBlocksReverse(formattedKey), null};
+
     }
 
 

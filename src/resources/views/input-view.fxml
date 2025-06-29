@@ -26,7 +26,7 @@
    <center>
       <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
 
-         <Label fx:id="textInputLabel" text="Plaintext">
+         <Label fx:id="textInputLabel" text="Text">
             <font>
                <Font size="18.0" />
             </font>
@@ -43,17 +43,17 @@
          <!-- Selector Area -->
          <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="30.0">
 
-            <ChoiceBox fx:id="modeSelector" onAction="#onOperationSelectorChange"
-                       prefWidth="120.0" style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
+            <ChoiceBox fx:id="modeSelector" onAction="#onModeSelectorChange" prefWidth="120.0"
+                       style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
 
-            <ChoiceBox fx:id="punctSelector"
-                       prefWidth="160.0" style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
+            <ChoiceBox fx:id="punctSelector" prefWidth="160.0"
+                       style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
 
-            <ChoiceBox fx:id="inputSelector" onAction="#onInputSelectorChange"
-                       prefWidth="130.0" style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;"/>
+            <ChoiceBox fx:id="inputSelector" onAction="#onInputSelectorChange" prefWidth="130.0"
+                       style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
 
-            <ComboBox fx:id="threadSelector" onAction="#onThreadSelectorChange"
-                      prefWidth="180.0" style="-fx-background-color: #3c783c; -fx-control-inner-background: #3c783c;" />
+            <ComboBox fx:id="threadSelector" onAction="#onThreadSelectorChange" prefWidth="180.0"
+                      style="-fx-background-color: #3c783c; -fx-control-inner-background: #3c783c;" />
 
          </HBox>
 
@@ -65,21 +65,24 @@
 
          <TextArea fx:id="keyInput" prefHeight="110.0" prefWidth="200.0" promptText="Key"
                    style="-fx-control-inner-background: #3c643c; -fx-background-color: #3c643c; -fx-text-fill: gray;"
-                   wrapText="true" />
+                   wrapText="true">
+            <font>
+               <Font name="Trebuchet MS" size="12.0" />
+            </font>
+         </TextArea>
 
          <!-- Bottom "Enter Button" Area -->
          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="40.0">
 
-            <Button onAction="#setLoginScreen" cancelButton="true" mnemonicParsing="false"
+            <Button cancelButton="true" mnemonicParsing="false" onAction="#setLoginScreen"
                     style="-fx-background-color: #3c643c;" text="Return to login">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>
             </Button>
 
-            <Button fx:id="startButton" onAction="#startProcess"
-                    defaultButton="true" mnemonicParsing="false" prefWidth="90.0"
-                    style="-fx-background-color: #3c643c;" text="Encrypt">
+            <Button fx:id="startButton" onAction="#startProcess" defaultButton="true" mnemonicParsing="false"
+                    prefWidth="180.0" style="-fx-background-color: #3c643c;" text="Start Forward Process">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>

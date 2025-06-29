@@ -31,12 +31,30 @@ final public class LoginController extends IntegratedController {
      */
     @FXML
     private void login() {
-        if("password".equals(pwField.getText()) || "".equals(pwField.getText())) {
-            screenManager.showScreen("input");
-            pwField.setText("");
+        final String[] validPasswords = {"a", "asdf", "password", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "", " "};
+        int index = -1;
+        String enteredPW = pwField.getText();
+
+        for(int i=0; i<validPasswords.length; i++) {
+            if(validPasswords[i].equals(enteredPW)) {
+                index = i;
+                break;
+            }
+        }
+        if(index == validPasswords.length-1) {
+            index = 0;
+        }
+        else if(index != -1) {
+            index = 1;
+        }
+
+        if(index == -1) {
+            screenManager.showScreen("login-reject");
         }
         else {
-            screenManager.showScreen("login-reject");
+            screenManager.showScreen("input");
+            fields.setLoginCredentials(index);
+            pwField.setText("");
         }
     }
 }

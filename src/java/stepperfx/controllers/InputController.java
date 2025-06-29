@@ -24,7 +24,7 @@ final public class InputController extends IntegratedController {
     /**
      * Options for the app's operation mode selector. The first option should be treated as equal to the second option.
      */
-    final private String[] MODE_OPTIONS = {"Select process", "Encrypt", "Decrypt"};
+    final private String[] MODE_OPTIONS = {"Select process", "Forward", "Reverse"};
 
     /**
      * Options for the app's punctuation selector. The first option should be treated as equal to the second option.
@@ -91,7 +91,8 @@ final public class InputController extends IntegratedController {
     /**
      * Allows the user to select the number of threads used<br><br>
      *
-     * Contents are specified by {@code THREAD_OPTIONS}
+     * Default contents are specified by {@code THREAD_OPTIONS}.
+     * Contents may receive updates from the user, as long as the contents respect the {@code THREAD_OPTIONS} invariants.
      */
     @FXML
     private ComboBox<String> threadSelector;
@@ -103,22 +104,24 @@ final public class InputController extends IntegratedController {
     private Label textInputLabel;
 
     /**
-     * Text area where the user inputs text. Larger than the key input
-     */
-    @FXML
-    private TextArea textInput;
-
-    /**
      * Text are where the user inputs the key
      */
     @FXML
     private TextArea keyInput;
 
+    /**
+     * Text area where the user inputs text. Larger than the key input
+     */
+    @FXML
+    private TextArea textInput;
+
+
+
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //CONSTRUCTOR
+    //"CONSTRUCTOR"
 
 
 
@@ -143,8 +146,8 @@ final public class InputController extends IntegratedController {
                     String substr = currentElement.substring(9);
                     int output = Integer.parseInt(substr);
                     if(output<1 || output>StepperFields.MAX_THREADS) {
-                        throw new AssertionError("Number of threads specified by option " + v + " in the thread options array (" +
-                                output + ") must be on the interval [1, StepperFields.MAX_THREADS]");
+                        throw new AssertionError("Number of threads specified by index " + v + " in the thread options array " +
+                                "must be on the interval [1, " + StepperFields.MAX_THREADS + "] (instead received " + output + ")");
                     }
                 }
                 catch(NumberFormatException e) {
@@ -173,9 +176,9 @@ final public class InputController extends IntegratedController {
 
         //Set listener on the shared service to clear the inputs upon successful output
         fields.addServiceValueListener((obs, oldValue, newValue) -> {
-            //This means: the service was not cancelled, and the service produced a valid output with a null error message
             //Service output: {processed text, key, error message}
             if(newValue!=null && newValue[0]!=null && newValue[1]!=null && newValue[2]==null) {
+                //This means: the service was not cancelled, and the service produced a valid output with a null error message
                 textInput.setText("");
                 keyInput.setText("");
             }
@@ -191,35 +194,6 @@ final public class InputController extends IntegratedController {
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //METHODS
 
-    /**
-     * Changes the start button and text input labels when the mode is changed.<br>
-     * If the new mode is the last index in {@code MODE_OPTIONS}, sets for reverse process.
-     * Otherwise, sets for forward process.
-     */
-    @FXML
-    private void onOperationSelectorChange() {
-        //Change start button text
-        if(modeSelector.getValue().equals(MODE_OPTIONS[2])) {
-            startButton.setText("Decrypt");
-            punctSelector.setDisable(true);
-        }
-        else {
-            startButton.setText("Encrypt");
-            punctSelector.setDisable(false);
-        }
-
-        //Change label text, if file input is not selected
-        if(!inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
-            if(modeSelector.getValue().equals(MODE_OPTIONS[2])) {
-                textInputLabel.setText("Ciphertext");
-            }
-            else {
-                textInputLabel.setText("Plaintext");
-            }
-        }
-    }
-
-
 
     /**
      * Changes the text input label depending on the user's input preferences.<br>
@@ -230,13 +204,37 @@ final public class InputController extends IntegratedController {
     private void onInputSelectorChange() {
 
         if(inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
+            textInput.setPromptText("Example: C:\\Users\\username\\Desktop\\file.txt");
             textInputLabel.setText("Path to input text (*.txt) file");
         }
-        else if(modeSelector.getValue()!=null && modeSelector.getValue().equals(MODE_OPTIONS[2])){
-            textInputLabel.setText("Ciphertext");
+        else {
+            textInput.setPromptText("Text");
+            textInputLabel.setText("Text");
+        }
+    }
+
+
+
+    /**
+     * Changes the start button and text input labels when the mode is changed.<br>
+     * If the new mode is the last index in {@code MODE_OPTIONS}, sets for reverse process.
+     * Otherwise, sets for forward process.
+     */
+    @FXML
+    private void onModeSelectorChange() {
+        //Change start button text
+        if(modeSelector.getValue().equals(MODE_OPTIONS[2])) {
+            punctSelector.setDisable(true);
+            startButton.setText("Start Reverse Process");
         }
         else {
-            textInputLabel.setText("Plaintext");
+            punctSelector.setDisable(false);
+            startButton.setText("Start Forward Process");
+        }
+
+        //Change label text, if file input is not selected
+        if(!inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
+            textInputLabel.setText("Text");
         }
     }
 
@@ -376,6 +374,9 @@ final public class InputController extends IntegratedController {
             String substr = threadSelector.getValue();
             substr = substr.substring(9);
             threadCount = Integer.parseInt(substr);
+        }
+        if(fields.loginCredentials() != 0) {
+            threadCount = 0;
         }
 
 
