@@ -31,6 +31,11 @@ final public class StepperFields {
     final public static String DEFAULT_INPUT_FILENAME = "input.txt";
 
     /**
+     * Filename for the output file if none is given. Cannot be null. Must end in ".txt"
+     */
+    final public static String DEFAULT_OUTPUT_FILENAME = "output.txt";
+
+    /**
      * Amount to shift during v2 processes. Cannot be null. Length must equal BLOCK_COUNT
      */
     final private static byte[] KEY_BLOCK_INCREMENTS = {2,3,5,7,11,13};
@@ -39,6 +44,11 @@ final public class StepperFields {
      * The maximum amount of threads that the app can use. Must be at least 1
      */
     final public static int MAX_THREADS = 9999;
+
+    /**
+     * Maximum number of characters that are displayed on a result page. Must be positive
+     */
+    final public static int RESULT_PAGE_LENGTH = 100000;
 
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +59,7 @@ final public class StepperFields {
     /**
      * A Service that controllers can start, cancel, and reset. Can never be null.
      */
-    private ProcessService service;
+    private final ProcessService service;
 
 
 
@@ -67,8 +77,6 @@ final public class StepperFields {
         assertConstantInvariants();
 
         service = new ProcessService();
-
-
     }
 
 
@@ -80,9 +88,12 @@ final public class StepperFields {
         if(BLOCK_LENGTH<=0) throw new AssertionError("Block length must be positive");
         if(DEFAULT_INPUT_FILENAME==null || DEFAULT_INPUT_FILENAME.length()<4 || !DEFAULT_INPUT_FILENAME.endsWith(".txt"))
             throw new AssertionError("Default input filename must end in \".txt\"");
+        if(DEFAULT_OUTPUT_FILENAME==null || DEFAULT_OUTPUT_FILENAME.length()<4 || !DEFAULT_OUTPUT_FILENAME.endsWith(".txt"))
+            throw new AssertionError("Default output filename must end in \".txt\"");
         if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length!=BLOCK_COUNT)
             throw new AssertionError("Key block increment length must equal BLOCK_COUNT");
         if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
+        if(RESULT_PAGE_LENGTH<1) throw new AssertionError("Result page length must be positive");
     }
 
 

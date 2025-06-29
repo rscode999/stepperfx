@@ -50,10 +50,17 @@ public class IntegratedController {
      * This method may be overridden where the controller's {@code screenManager} and {@code fields}
      * must not be null. If overridden, the method should initialize the controller's {@code screenManager} and {@code fields}.
      *
-     * @param manager the ScreenManager responsible for the controller
-     * @param fields reference to shared fields between controllers
+     * @param manager the ScreenManager responsible for the controller. Cannot be null
+     * @param fields reference to shared fields between controllers. Cannot be null
      */
     public void initializeController(ScreenManager manager, StepperFields fields) {
+        if(manager==null) {
+            throw new AssertionError("Manager cannot be null");
+        }
+        if(fields == null) {
+            throw new AssertionError("Fields cannot be null");
+        }
+
         this.screenManager = manager;
         this.fields = fields;
     }

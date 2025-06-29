@@ -21,7 +21,38 @@
 
     <TextArea fx:id="resultArea" editable="false" prefHeight="375.0" prefWidth="200.0"
               style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
-              translateY="-10.0" wrapText="true"/>
+              translateY="-10.0" wrapText="true" />
+
+    <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="20.0" translateY="-10">
+
+        <Button fx:id="pageBackwardButton"  onAction="#setPreviousPage" mnemonicParsing="false" prefWidth="120.0"
+                style="-fx-background-color: #3c843c;" text="&lt;&lt;&lt; Previous Page">
+            <font>
+                <Font name="Trebuchet MS" size="12.0" />
+            </font>
+        </Button>
+
+        <Button fx:id="pageForwardButton" onAction="#setNextPage" mnemonicParsing="false" prefWidth="120.0"
+                style="-fx-background-color: #3c843c;" text="Next Page &gt;&gt;&gt;">
+           <font>
+               <Font name="Trebuchet MS" size="12.0" />
+           </font>
+        </Button>
+
+        <Button fx:id="copyButton" onAction="#copyResult" mnemonicParsing="false" prefWidth="150.0"
+                style="-fx-background-color: #3c843c;" text="Copy Result to Clipboard" translateX="15">
+            <font>
+                <Font name="Trebuchet MS" size="12.0" />
+            </font>
+        </Button>
+
+        <Label fx:id="pageDisplay" text="Page 420 of 69" translateX="25">
+            <font>
+                <Font name="Trebuchet MS" size="12.0" />
+            </font>
+        </Label>
+
+    </HBox>
 
     <Label text="Key">
         <font>
@@ -29,11 +60,11 @@
         </font>
     </Label>
 
-    <TextArea fx:id="keyArea" editable="false" prefHeight="200.0" prefWidth="200.0"
+    <TextArea fx:id="keyArea" editable="false" prefHeight="250" prefWidth="200.0"
               style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
-              translateY="-10.0" wrapText="true"/>
+              translateY="-10.0" wrapText="true" />
 
-    <Button defaultButton="true" mnemonicParsing="false" onAction="#setLoginScreen"
+    <Button defaultButton="true" onAction="#setLoginScreen" mnemonicParsing="false"
             style="-fx-background-color: #3c943c;" text="Return to Login">
       <font>
          <Font name="Trebuchet MS" size="14.0" />

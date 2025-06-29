@@ -1,11 +1,8 @@
 package stepperfx.administration;
 
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -15,8 +12,9 @@ import java.util.*;
 import stepperfx.StepperFields;
 
 /**
- * Centralized manager for screen transitions.
- * All Controller classes will be managed by an instance of this class.
+ * Centralized manager for screen transitions.<br><br>
+ *
+ * The {@code IntegratedController} class uses a {@code ScreenManager} to change the displayed screen.
  */
 final public class ScreenManager {
 
@@ -55,25 +53,31 @@ final public class ScreenManager {
      * Important: Load paths must begin with a slash.<br><br>
      *
      * Passing an invalid FXML path causes an IOException. If the FXML's controller is not an instance
-     * of {@code IntegratedController}, throws IllegalArgumentException.<br><br>
+     * of {@code IntegratedController}, throws IOException.
      *
-     * All FXML names must be unique.
-     *
-     * @param name associated name of the FXML file. Must not match any other screen names tracked by this ScreenManager
-     * @param fxmlPath path to FXML file, relative to the `resources` directory
-     * @param fields shared fields to load into the controller of the scene
-     * @throws IllegalArgumentException if the FXML's controller is not an instance of IntegratedController
-     * @throws IOException if the FXML file path is invalid
+     * @param name associated name of the FXML file. Cannot be null. Must not match any other screen names tracked by this ScreenManager
+     * @param fxmlPath path to FXML file, relative to the project's resources root. Cannot be null
+     * @param fields shared fields to load into the controller of the scene. Cannot be null
+     * @throws IOException if the FXML file path is invalid, or if the FXML controller is not an IntegratedController
      */
     public void addScreen(String name, String fxmlPath, StepperFields fields) throws IOException {
+        if(name==null) {
+            throw new AssertionError("Name cannot be null");
+        }
         if(screenMap.containsKey(name)) {
             throw new AssertionError("Duplicate screen names not allowed");
+        }
+        if(fxmlPath==null) {
+            throw new AssertionError("FXML path cannot be null");
+        }
+        if(fields==null) {
+            throw new AssertionError("Fields cannot be null");
         }
 
         URL resource = getClass().getResource(fxmlPath);
         //Check if no null
         if(resource == null) {
-            throw new IOException("Invalid FXML path");
+            throw new IOException("The path \"" + fxmlPath + "\" does not lead to a FXML file");
         }
 
         //Load the FXML file (specifically the file's graph's root) from the path
@@ -90,14 +94,15 @@ final public class ScreenManager {
             ((IntegratedController) controller).initializeController(this, fields);
         }
         else {
-            throw new IllegalArgumentException("FXML controller must be a subclass of IntegratedController");
+            throw new IOException("FXML controller must be a subclass of IntegratedController");
         }
 
-        // Optional: If you want to use the same Scene and just swap roots
+        // If you want to use the same Scene and just swap roots
         if (primaryStage.getScene() == null) {
             primaryStage.setScene(new Scene(root));
         }
     }
+
 
 
     /**
@@ -120,6 +125,7 @@ final public class ScreenManager {
     }
 
 
+
     /**
      * Sets the ScreenController's stage with a screen whose name is {@code name}.
      * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
@@ -137,11 +143,10 @@ final public class ScreenManager {
         }
         else {
             primaryStage.getScene().setRoot(screenMap.get(name));
-            // System.out.println(screenMap.get(name).hashCode());
         }
 
-        primaryStage.sizeToScene(); //Adjust window size to fit new content
-        primaryStage.show();
+       primaryStage.sizeToScene(); //Adjust window size to fit new content
+       primaryStage.show();
     }
 
 }

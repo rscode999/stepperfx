@@ -201,9 +201,11 @@ final public class InputController extends IntegratedController {
         //Change start button text
         if(modeSelector.getValue().equals(MODE_OPTIONS[2])) {
             startButton.setText("Decrypt");
+            punctSelector.setDisable(true);
         }
         else {
             startButton.setText("Encrypt");
+            punctSelector.setDisable(false);
         }
 
         //Change label text, if file input is not selected
@@ -365,9 +367,11 @@ final public class InputController extends IntegratedController {
         int threadCount = 0;
         if (threadSelector.getValue().equals(THREAD_OPTIONS[0])) {
             threadCount = 1;
-        } else if (threadSelector.getValue().equals(THREAD_OPTIONS[1])) {
+        }
+        else if (threadSelector.getValue().equals(THREAD_OPTIONS[1])) {
             throw new IllegalArgumentException("Invalid thread selector option- Cannot choose \"Custom...\"");
-        } else {
+        }
+        else {
             //Remove the "Threads: " part of the string
             String substr = threadSelector.getValue();
             substr = substr.substring(9);

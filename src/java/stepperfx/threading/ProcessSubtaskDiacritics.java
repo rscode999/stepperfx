@@ -15,31 +15,48 @@ public class ProcessSubtaskDiacritics extends Task<String> {
 
     /**
      * Creates a new subtask and assigns it to remove diacritics from {@code inputPiece}.
-     * @param inputPiece text to remove diacritics from
+     * @param inputPiece text to remove diacritics from. Cannot be null
      */
     public ProcessSubtaskDiacritics(String inputPiece) {
+        if(inputPiece==null)  throw new AssertionError("Input piece cannot be null");
         this.inputPiece = inputPiece;
     }
+
+    /**
+     * FOR METHOD UNIT TESTING ONLY! Creates a new instance, initialized to garbage values.
+     */
+    public ProcessSubtaskDiacritics() {
+        inputPiece = null;
+     }
+
+
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     /**
      * Performs this task's processing and returns the result
      * @return result of processing
-     * @throws Exception if any exceptions are thrown during processing
      */
     @Override
-    protected String call() throws Exception {
+    protected String call() {
+        //Constructor check
+        if(inputPiece==null) throw new AssertionError("WRONG CONSTRUCTOR USED");
+
         return removeDiacritics(inputPiece);
     }
+
+
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     /**
      * Returns a lowercased version of the input without accent marks or letter variants.
      *
-     * @param input String to remove diacritics from
+     * @param input String to remove diacritics from. Cannot be null
      * @return copy of input without diacritics
      */
     private String removeDiacritics(String input) {
+        if(input==null) throw new AssertionError("Input cannot be null");
 
         //These are the characters to remove. Corresponding indices in `replacementChars` are their replacements
         String[] accentedChars={"àáâãäå", "ç", "ð", "èéëêœæ", "ìíîï", "òóôõöø", "ǹńñň",
@@ -78,6 +95,8 @@ public class ProcessSubtaskDiacritics extends Task<String> {
             if(isCancelled()) {
                 return "";
             }
+
+            updateProgress(i, input.length());
         }
 
         return output.toString();

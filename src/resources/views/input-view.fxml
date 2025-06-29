@@ -9,7 +9,7 @@
             xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="stepperfx.controllers.InputController">
    <padding>
-      <Insets bottom="50.0" left="50.0" right="50.0" top="35.0" />
+      <Insets bottom="30" left="30" right="30" top="30" />
    </padding>
 
 
@@ -32,7 +32,7 @@
             </font>
          </Label>
 
-         <TextArea fx:id="textInput" prefHeight="150.0" prefWidth="200.0" promptText="Text"
+         <TextArea fx:id="textInput" prefHeight="180.0" prefWidth="200.0" promptText="Text"
                    style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
                    wrapText="true">
             <font>
@@ -63,7 +63,7 @@
             </font>
          </Label>
 
-         <TextArea fx:id="keyInput" prefHeight="50.0" prefWidth="200.0" promptText="Key"
+         <TextArea fx:id="keyInput" prefHeight="110.0" prefWidth="200.0" promptText="Key"
                    style="-fx-control-inner-background: #3c643c; -fx-background-color: #3c643c; -fx-text-fill: gray;"
                    wrapText="true" />
 

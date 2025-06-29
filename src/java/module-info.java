@@ -8,4 +8,5 @@ module test.stepperfx {
     exports stepperfx;
     exports stepperfx.controllers;
     opens stepperfx.controllers to javafx.fxml;
+    exports stepperfx.threading;
 }

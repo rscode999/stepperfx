@@ -4,8 +4,6 @@ import javafx.concurrent.Task;
 import stepperfx.StepperFields;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Performs part of the work of a ProcessTask
@@ -18,12 +16,6 @@ public class ProcessSubtaskMain extends Task<String> {
     final private boolean encrypting;
 
     /**
-     * Holds the first nonzero number in the text. Must be on the interval [1, 9] or be Byte.MIN_VALUE.
-     * If Byte.MIN_VALUE, the Worker will not perform operations on numbers.
-     */
-    final private byte firstNumber;
-
-    /**
      * The String to process. Can't be null
      */
     private String textPiece;
@@ -31,7 +23,7 @@ public class ProcessSubtaskMain extends Task<String> {
     /**
      * The key to process the input with. Can't be null
      */
-    private final byte[][] key;
+    final private byte[][] key;
 
     /**
      * Allowed values: 0 if including punctuation, 1 if excluding spaces, 2 if alphabetic characters only
@@ -49,26 +41,25 @@ public class ProcessSubtaskMain extends Task<String> {
     final private boolean usingV2Process;
 
     /**
-     * Creates a ProcessSubtask and loads its fields.
-     * @param input the substring it should process. Can't be null
-     * @param key the key to process the substring with. Can't be null. No subarrays can be null. All indices must be on [0,25]
+     * Creates a new {@code ProcessSubtaskMain} and loads its fields.
+     * @param textPiece the substring it should process. Can't be null
+     * @param key the key to process the substring with. Can't be null. No subarrays can be null.
+     *            All indices must be on the interval [0,25]
      * @param encrypting true if this Worker should encrypt its text, false otherwise
      * @param usingV2Process true if using enhanced (v2) process, false otherwise
      * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
      *            2 if the task processes the input with all punctuation
-     * @param textFirstNumber first nonzero number in the text. Must be on the interval [1, 9]
-     *          or Integer.MIN_VALUE if not operating on numbers
-     * @param startSegment where to start processing the input at. Must be at least 0
+     * @param startSegment text segment to start processing the input. Cannot be negative
      */
-    public ProcessSubtaskMain(String input, byte[][] key, boolean encrypting, boolean usingV2Process,
-                              byte punctMode, int textFirstNumber, int startSegment) {
+    public ProcessSubtaskMain(String textPiece, byte[][] key, boolean encrypting, boolean usingV2Process,
+                              byte punctMode, int startSegment) {
 
-        if(input==null || key==null) throw new AssertionError("Input text and key cannot be null");
+        if(textPiece==null) throw new AssertionError("Input text cannot be null");
+        if(key==null) throw new AssertionError("Key cannot be null");
         if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on the interval [0,2]");
-        if((textFirstNumber<=0 || textFirstNumber>9) && !(textFirstNumber==Integer.MIN_VALUE)) throw new AssertionError("First text number must be on the interval [1,9] or be Integer.MIN_VALUE");
         if(startSegment<0) throw new AssertionError("Start segment cannot be negative");
 
-        this.textPiece = input;
+        this.textPiece = textPiece;
 
         //Make a deep copy of the key
         if(key[0]==null) throw new AssertionError("All indices in the key cannot be null");
@@ -83,7 +74,6 @@ public class ProcessSubtaskMain extends Task<String> {
         }
 
         this.encrypting = encrypting;
-        this.firstNumber = (textFirstNumber==Integer.MIN_VALUE) ? Byte.MIN_VALUE : (byte)textFirstNumber;
         this.punctMode = punctMode;
         this.startSegment = startSegment;
         this.usingV2Process = usingV2Process;
@@ -91,19 +81,45 @@ public class ProcessSubtaskMain extends Task<String> {
 
 
     /**
+     * FOR METHOD UNIT TESTING ONLY! Creates a new {@code ProcessSubtaskMain}. Initializes fields against operation preconditions.
+     */
+    public ProcessSubtaskMain() {
+        this.textPiece = null;
+        this.key = null;
+        this.encrypting = false;
+        this.punctMode = -1;
+        this.startSegment = -1;
+        this.usingV2Process = false;
+    }
+
+
+
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    /**
      * Processes the subtask's inputs, returning an output.
      * @return the output of processing
      */
     public String call() {
+        //Constructor check
+        if(textPiece==null || key==null || punctMode<0 || punctMode>2 || startSegment<0) {
+            throw new AssertionError("WRONG CONSTRUCTOR USED");
+        }
 
         //remove spaces (if specified)
-        if(punctMode == 1) {
+        if(encrypting && punctMode==1) {
             textPiece = removeSpaces(textPiece);
         }
 
         //split non-alphas, then remove from the input
         char[] nonAlphas = findNonAlphaPositions(textPiece);
         textPiece = removeNonAlphas(textPiece);
+
 
         //do the specified process
         if(usingV2Process) {
@@ -114,12 +130,10 @@ public class ProcessSubtaskMain extends Task<String> {
         }
 
         //do the numbers
-        if(firstNumber != Byte.MIN_VALUE) {
-            nonAlphas = encrypting ? encryptNumbers(nonAlphas, firstNumber) : decryptNumbers(nonAlphas, firstNumber);
-        }
+        nonAlphas = encrypting ? encryptNumbers(nonAlphas, key) : decryptNumbers(nonAlphas, key);
 
         //reinsert non-alphas
-        textPiece = recombineNonAlphas(textPiece, nonAlphas, punctMode>=1);
+        textPiece = recombineNonAlphas(textPiece, nonAlphas, (!encrypting || punctMode>=1));
 
         return textPiece;
     }
@@ -440,14 +454,32 @@ public class ProcessSubtaskMain extends Task<String> {
      *
      * Any non-number is unchanged in the output.
      * @param input input array containing some numbers
-     * @param key key to decrypt with. Must be on the interval [1,9]
+     * @param key key to decrypt with. Cannot be null. All indices must be on the interval [0,25]
      * @return copy of {@code input} with numbers decrypted
      */
-    private char[] decryptNumbers(char[] input, byte key) {
+    private char[] decryptNumbers(char[] input, byte[][] key) {
         if(input==null) {
             throw new AssertionError("Input cannot be null");
         }
-        if(key<=0 || key>9) throw new AssertionError("Key must be on the interval [1,9]");
+        if(key==null) {
+            throw new AssertionError("Key cannot be null");
+        }
+
+        int decrKey = 0;
+        for(byte[] block : key) {
+            if(block==null) {
+                throw new AssertionError("All blocks in the key cannot be null");
+            }
+
+            for(byte letter : block) {
+                if(letter<0 || letter>25) {
+                    throw new AssertionError("All indices in the key must be on the interval [0, 25]");
+                }
+                decrKey += letter;
+            }
+        }
+
+        decrKey = decrKey % 26;
 
         char[] output = new char[input.length];
         for(int i=0; i<input.length; i++) {
@@ -456,7 +488,7 @@ public class ProcessSubtaskMain extends Task<String> {
             }
             else {
                 int newChar = (int)input[i] - 48;
-                newChar = (newChar - key) % 10;
+                newChar = (newChar - (byte)decrKey) % 10;
                 if(newChar < 0) {
                     newChar += 10;
                 }
@@ -736,12 +768,29 @@ public class ProcessSubtaskMain extends Task<String> {
      *
      * Any non-number is unchanged in the output.
      * @param input the input text segment. Cannot be null
-     * @param key key to encrypt with. Must be on the interval [1, 9]
+     * @param key key to encrypt with. Cannot be null. All indices must be on the interval [0, 25]
      * @return copy of input, but with numbers encrypted
      */
-    private char[] encryptNumbers(char[] input, byte key) {
+    private char[] encryptNumbers(char[] input, byte[][] key) {
         if(input == null) throw new AssertionError("Input cannot be null");
-        if(key<=0 || key>9) throw new AssertionError("Key must be on the interval [1,9]");
+        if(key==null) {
+            throw new AssertionError("Key cannot be null");
+        }
+
+        int decrKey = 0;
+        for(byte[] block : key) {
+            if(block==null) {
+                throw new AssertionError("All blocks in the key cannot be null");
+            }
+
+            for(byte letter : block) {
+                if(letter<0 || letter>25) {
+                    throw new AssertionError("All indices in the key must be on the interval [0, 25]");
+                }
+                decrKey += letter;
+            }
+        }
+        decrKey = decrKey % 26;
 
         char[] output = new char[input.length];
         for(int i=0; i<input.length; i++) {
@@ -750,7 +799,7 @@ public class ProcessSubtaskMain extends Task<String> {
             }
             else {
                 int newChar = (int)input[i] - 48;
-                newChar = (newChar + (int)key) % 10;
+                newChar = (newChar + (int)decrKey) % 10;
                 output[i] = (char)(newChar + 48);
             }
         }

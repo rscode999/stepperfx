@@ -1,10 +1,13 @@
 package stepperfx.threading;
 
+
 import javafx.concurrent.Task;
 import stepperfx.StepperFields;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -13,9 +16,25 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Processes user input on a separate thread. Uses ProcessSubtask threads to help with processing.
+ * Processes user input on a separate thread. Uses ProcessSubtask threads to help with processing. Single-use.<br><br>
+ *
+ * The output is an array of 3 Strings: {result, formatted key, error messages}.<br>
+ * If a user-produced error stops processing, the result and key will be null, with a non-null error message.<br>
+ * If the process is cancelled, all three output indices are null.<br>
+ * In the case of normal execution, the error message is the only non-null index of the output.
  */
 public class ProcessTask extends Task<String[]> {
+
+    /**
+     * Names for each of the possible loading states that the task can be in.
+     * Progression through the states starts at index 0, then index 1, and so on
+     */
+    public final static String[] LOADING_STATE_NAMES =
+            new String[] {"Loading input...", "Formatting...", "Executing...", "Finalizing..."};
+
+
+    // //////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     /**
      * True if the service is encrypting, false if the service is decrypting
@@ -63,6 +82,7 @@ public class ProcessTask extends Task<String[]> {
      * @param input input text to process, or a filepath to load from. Cannot be null
      * @param key key to process the input with. Cannot be null
      * @param encrypting true if the service encrypts, false if the service decrypts
+     * @param usingV2Process true if using enhanced (v2) processes, false otherwise
      * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
      *                  2 if the task processes the input with all punctuation
      * @param loadingFromFile whether to load input from a file
@@ -70,6 +90,13 @@ public class ProcessTask extends Task<String[]> {
      */
     public ProcessTask(String input, String key, boolean encrypting, boolean usingV2Process,
                        byte punctMode, boolean loadingFromFile, int nWorkerThreads) {
+        if(input==null) throw new AssertionError("Input cannot be null");
+        if(key==null) throw new AssertionError("Key cannot be null");
+        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on the interval [0,2]- received " + punctMode);
+        if(nWorkerThreads<0 || nWorkerThreads>StepperFields.MAX_THREADS)
+            throw new AssertionError("Number of worker threads must be on the interval [0, " + StepperFields.MAX_THREADS
+            + "]- received " + nWorkerThreads);
+
         this.input = input;
         this.key = key;
         this.encrypting = encrypting;
@@ -78,6 +105,24 @@ public class ProcessTask extends Task<String[]> {
         this.punctMode = punctMode;
         this.nWorkerThreads = nWorkerThreads;
     }
+
+    /**
+     * FOR UNIT TESTS ONLY! Creates a new ProcessTask and loads it with garbage values
+     */
+    public ProcessTask() {
+        this.input = null;
+        this.key = null;
+        this.encrypting = false;
+        this.usingV2Process = false;
+        this.loadingFromFile = false;
+        this.punctMode = -127;
+        this.nWorkerThreads = -1;
+    }
+
+
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
     /**
@@ -96,11 +141,24 @@ public class ProcessTask extends Task<String[]> {
      */
     @Override
     protected String[] call() throws Exception {
+        //Constructor check
+        if(input==null || key==null) {
+            throw new AssertionError("WRONG CONSTRUCTOR USED");
+        }
+
+        updateMessage(LOADING_STATE_NAMES[0]);
+
+        //Prevent the user from getting epilepsy
+        for(long s=0; s<400000000L; s++) {
+            if(isCancelled()) {
+                return new String[] {null, null, null};
+            }
+        }
 
         //Get the input from a file, if chosen. Upon failure, present the error message
         if(loadingFromFile) {
             try {
-                input = getTextFromFile(input);
+                input = readFile(input);
             }
             catch(FileNotFoundException e) {
                 return new String[] {null, null, e.getMessage()};
@@ -113,8 +171,9 @@ public class ProcessTask extends Task<String[]> {
         byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
 
         StringBuilder runResult = new StringBuilder(); //Intermediate result
-        int firstNonzeroNumber = Integer.MIN_VALUE; //First nonzero number (must wait until diacritics are removed)
         for(int run=1; run<=2; run++) { //run 1 -> diacritics workers, run 2 -> main process workers
+
+            updateMessage(LOADING_STATE_NAMES[run]);
 
             //Create subtasks and workloads
             ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
@@ -131,7 +190,7 @@ public class ProcessTask extends Task<String[]> {
                 subtasks[i] = (run==1)
                         ? new ProcessSubtaskDiacritics(subtaskWorkloads[i])
                         : new ProcessSubtaskMain(subtaskWorkloads[i], formattedKey, encrypting, usingV2Process,
-                            punctMode, firstNonzeroNumber, startingSegment);
+                            punctMode, startingSegment);
 
                 //Advance starting segment
                 int charCounts = countAlphaChars(subtaskWorkloads[i]);
@@ -151,59 +210,51 @@ public class ProcessTask extends Task<String[]> {
                 executorService.submit(subtask);
             }
 
+//            System.out.println("Run " + run + " started");
 
             //Get the results
             runResult = new StringBuilder(100);
-            for (int i = 0; i < nWorkerThreads; i++) {
-                //continuously check if the workers finish or the job is cancelled
-                while (!subtasks[i].isDone()) {
-                    if (this.isCancelled()) {
+            for (int s = 0; s < nWorkerThreads; s++) {
 
+                //when the current worker finishes, load its result
+                try {
+                    if (this.isCancelled()) {
                         for (Task<String> subtask : subtasks) {
                             subtask.cancel();
                         }
-                        executorService.shutdown();
+                        executorService.shutdownNow();
                         System.out.println("MULTITHREADED PROCESS CANCELLED");
                         return new String[]{null, null, null};
 
                     }
-                }
 
-                //when the current worker finishes, load its result
-                try {
-                    runResult.append(subtasks[i].get());
+                    runResult.append(subtasks[s].get());
                 }
                 catch (InterruptedException e) {
-                    return new String[]{""};
+                    return new String[]{null, null, null};
                 }
                 catch (ExecutionException e) {
                     System.err.println("EXCEPTION THROWN DURING MULTITHREADED STEP");
                     e.printStackTrace();
                     System.exit(-1);
                 }
+
             }
+//            System.out.println("Run " + run + " finished");
             executorService.shutdown(); //needed to free threads from memory
 
             //reload the input if run 2 still needs to go
             if(run == 1) {
                 input = runResult.toString();
                 runResult = null;
-
-                //Find the first nonzero number. Weirdly formatted numbers are ASCII numbers after diacritic removal
-                for(int i=0; i<input.length(); i++) {
-                    if(isCancelled()) {
-                        return new String[] {null, null, null};
-                    }
-
-                    if((int)input.charAt(i)>=49 && (int)input.charAt(i)<=57) {
-                        firstNonzeroNumber = (int)input.charAt(i) - 48;
-                        break;
-                    }
-                }
             }
         }
 
-//        System.out.println(finalResult);
+
+        //change the message to "Finalizing..." (which disables the cancel button)
+        updateMessage(LOADING_STATE_NAMES[3]);
+        Thread.sleep(100); //give the FX app thread time to update
+
         return new String[] {runResult.toString(), createKeyBlocksReverse(formattedKey), null};
     }
 
@@ -400,7 +451,7 @@ public class ProcessTask extends Task<String[]> {
      * @throws FileNotFoundException if the file can't be read or the filename lacks the ".txt" extension.
      * Displays a descriptive error message, which is used in the main App, if thrown.
      */
-    private String getTextFromFile(String filepath) throws FileNotFoundException {
+    private String readFile(String filepath) throws FileNotFoundException {
         if(filepath==null) {
             throw new AssertionError("Filename cannot be null");
         }
@@ -679,5 +730,73 @@ public class ProcessTask extends Task<String[]> {
      */
     public String[] setWorkerLoads_Testing(String text, int threads, int blockLength) {
         return setWorkerLoads(text, threads, blockLength);
+    }
+
+
+
+    /**
+     * EXPERIMENTAL
+     * @param filepath filepath to write to. Cannot be null. If not the empty string, must end in ".txt"
+     * @param contents what to write to the file. Cannot be null
+     * @param doingDryRun true if checking if the file exists, false if writing to the file
+     * @throws FileNotFoundException if the file write fails
+     */
+    private void writeFile(String filepath, String contents, boolean doingDryRun) throws FileNotFoundException {
+        if(filepath==null) {
+            throw new AssertionError("Filepath cannot be null");
+        }
+        if(contents == null) {
+            throw new AssertionError("Contents cannot be null");
+        }
+
+        File inputFile;
+
+        //Create file from default or the top text input
+        if(filepath.isEmpty()) {
+            inputFile = new File(StepperFields.DEFAULT_INPUT_FILENAME);
+        }
+        else {
+            inputFile = new File(filepath);
+        }
+
+        //Check if the input file ends in .txt
+        if(inputFile.getName().length()<=3 || !inputFile.getName().endsWith(".txt")) {
+            throw new AssertionError("The input file must have a .txt extension");
+        }
+
+        try {
+           FileWriter writer = new FileWriter(inputFile);
+           if(doingDryRun) {
+               return;
+           }
+           //Write an empty string to clear the file
+           writer.write("");
+
+           writer = new FileWriter(inputFile, true);
+
+           //Write 50000 characters at a time
+            int startIndex = 0;
+            int endIndex = 50000;
+            while(endIndex < contents.length()) {
+                if(isCancelled()) {
+                    return;
+                }
+
+                writer.write(contents.substring(startIndex, endIndex));
+
+                startIndex += 50000;
+                endIndex += 50000;
+            }
+            writer.write(contents.substring(startIndex));
+
+
+           writer.close();
+           System.out.println("WRITE FILE: Successfully wrote to the file.");
+        }
+        catch (IOException e) {
+            throw new FileNotFoundException("An error occurred.");
+        }
+
+
     }
 }

@@ -7,6 +7,13 @@ import stepperfx.StepperFields;
 /**
  * Schedules multithreaded tasks for the app.<br><br>
  *
+ * The output of the Service is retrieved using a ValuePropertyListener set on it.<br><br>
+ *
+ * The output is an array of 3 Strings: {result, formatted key, error messages}.<br>
+ * If a user-produced error stops processing, the result and key will be null, with a non-null error message.<br>
+ * If the process is cancelled, all three output indices are null.<br>
+ * In the case of normal execution, the error message is the only non-null index of the output.<br><br>
+ *
  * IMPORTANT: The service must be re-initialized before each run. The service's fields are set to {@code null}
  * during each run. Initialize using the service's {@code initializeService} method.
  */
@@ -55,14 +62,14 @@ final public class ProcessService extends Service<String[]> {
     // //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//    //CONSTRUCTOR
-//    /**
-//     * Creates a new ProcessService with uninitialized fields
-//     */
-//    public ProcessService() {
-//        super();
-//        //An explicitly defined constructor is required by the rules
-//    }
+    //CONSTRUCTOR
+    /**
+     * Creates a new ProcessService with uninitialized fields
+     */
+    public ProcessService() {
+        super();
+        //An explicitly defined constructor is required by the rules
+    }
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //CREATE TASK
@@ -73,9 +80,9 @@ final public class ProcessService extends Service<String[]> {
     public Task<String[]> createTask() {
         ProcessTask task = new ProcessTask(input, key, encrypting, usingV2Process, punctMode, loadingFromFile, nThreads);
 
-//        input = null;
-//        key = null;
-//        nThreads = Integer.MIN_VALUE;
+        input = null;
+        key = null;
+        nThreads = Integer.MIN_VALUE;
 
         return task;
     }

@@ -30,6 +30,7 @@ final public class MainApplication extends Application {
 
         //Show the login screen
         manager.showScreen("login");
+        initialStage.show();
     }
 
 }
