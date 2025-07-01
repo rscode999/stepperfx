@@ -40,8 +40,7 @@ public class ProcessSubtaskDiacritics extends Task<String> {
     @Override
     protected String call() {
         //Constructor check
-        if(inputPiece==null) throw new AssertionError("WRONG CONSTRUCTOR USED");
-
+        if(inputPiece==null) throw new AssertionError("PROCESS SUBTASK DIACRITICS- TESTING CONSTRUCTOR USED FOR OPERATIONS");
         return removeDiacritics(inputPiece);
     }
 

@@ -11,17 +11,20 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Processes user input on a separate thread. Uses ProcessSubtask threads to help with processing. Single-use.<br><br>
+ * Processes the input on a separate thread.<br><br>
  *
- * The output is an array of 3 Strings: {result, formatted key, error messages}.<br>
- * If a user-produced error stops processing, the result and key will be null, with a non-null error message.<br>
- * If the process is cancelled, all three output indices are null.<br>
- * In the case of normal execution, the error message is the only non-null index of the output.
+ * The output is an array of length 4. The indices are: {output, formatted key, error type (from [error].getClass().toString),
+ * error message (from [error].getMessage)}<br>
+ * If operations complete successfully, the output and key will be non-null, with a null error type and message.<br>
+ * If not, the error type and message will be non-null, with the first two indices null.<br><br>
+ *
+ * If the task is cancelled, the return value will have all indices as null.<br><br>
+ *
+ * The output is received with a ValueProperty listener assigned to the Service that deployed the Task.
  */
 public class ProcessTask extends Task<String[]> {
 
@@ -128,141 +131,142 @@ public class ProcessTask extends Task<String[]> {
     /**
      * Returns the output of the Task's processing.<br><br>
      *
-     * The output is an array of length 3. The indices are: {output, formatted key, error message}<br>
-     * If operations complete successfully, the output and key will be non-null, with a null error message.<br>
-     * If not, the error message will be non-null, with the first two indices null.<br><br>
+     * The output is an array of length 4. The indices are: {output, formatted key, error type (from [error].getClass().toString),
+     * error message (from [error].getMessage)}<br>
+     * If operations complete successfully, the output and key will be non-null, with a null error type and message.<br>
+     * If not, the error type and message will be non-null, with the first two indices null.<br><br>
      *
-     * If the task is cancelled, the return value will have all three indices as null.<br><br>
+     * If the task is cancelled, the return value will have all four indices as null.<br><br>
      *
      * The output is received with a ValueProperty listener assigned to the Service that deployed the Task.
      *
      * @return result of transforming the input with the given parameters
-     * @throws Exception if any exception occurs during processing
      */
     @Override
-    protected String[] call() throws Exception {
+    protected String[] call() {
+        try {
 
-        //Constructor check
-        if(input==null || key==null) {
-            throw new AssertionError("WRONG CONSTRUCTOR USED");
-        }
-
-        updateMessage(LOADING_STATE_NAMES[0]);
-
-        //Prevent the user from getting epilepsy
-        for(long s=0; s<400000000L; s++) {
-            if(isCancelled()) {
-                return new String[] {null, null, null};
-            }
-        }
-
-        //Get the input from a file, if chosen. Upon failure, present the error message
-        if(loadingFromFile) {
-            try {
-                input = readFile(input);
-            }
-            catch(FileNotFoundException e) {
-                return new String[] {null, null, e.getMessage()};
-            }
-        }
-        //`input` now contains the text to be loaded
-
-
-        //Make the key
-        byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
-
-        StringBuilder runResult = new StringBuilder(); //Intermediate result
-        for(int run=1; run<=2; run++) { //run 1 -> diacritics workers, run 2 -> main process workers
-
-            updateMessage(LOADING_STATE_NAMES[run]);
-
-            //Bug fix
-            if(nWorkerThreads <= 0) {
-                return new String[] {"", "", null};
+            //Constructor check
+            if (input == null || key == null) {
+                throw new AssertionError("WRONG CONSTRUCTOR USED");
             }
 
-            //Create subtasks and workloads
-            ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
-            String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, StepperFields.BLOCK_LENGTH);
+            updateMessage(LOADING_STATE_NAMES[0]);
 
-            //Assign worker threads. Run 1 -> diacritics workers, run 2 -> main process workers
-            Task<String>[] subtasks = (run==1)
-                    ? new ProcessSubtaskDiacritics[nWorkerThreads]
-                    : new ProcessSubtaskMain[nWorkerThreads];
+            //Prevent the user from getting epilepsy
+            for (long s = 0; s < 400000000L; s++) {
+                if (isCancelled()) {
+                    return new String[]{null, null, null, null};
+                }
+            }
 
-            //Assign work to each subtask and create each subtask
-            int startingSegment = 0;
-            for (int i = 0; i < nWorkerThreads; i++) {
-                subtasks[i] = (run==1)
-                        ? new ProcessSubtaskDiacritics(subtaskWorkloads[i])
-                        : new ProcessSubtaskMain(subtaskWorkloads[i], formattedKey, encrypting, usingV2Process,
+
+            //Get the input from a file, if chosen. Upon failure, present the error message
+            if (loadingFromFile) {
+                try {
+                    input = readFile(input);
+                }
+                catch (FileNotFoundException e) {
+                    return new String[]{null, null, e.getClass().toString(), e.getMessage()};
+                }
+            }
+            //`input` now contains the text to be loaded
+
+
+            //Make the key
+            byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
+
+            StringBuilder runResult = new StringBuilder(); //Intermediate result
+            for (int run = 1; run <= 2; run++) { //run 1 -> diacritics workers, run 2 -> main process workers
+
+                updateMessage(LOADING_STATE_NAMES[run]);
+
+                //Bug fix
+                if (nWorkerThreads <= 0) {
+                    return new String[]{"", "", null, null};
+                }
+
+                //Create subtasks and workloads
+                ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
+                String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, StepperFields.BLOCK_LENGTH);
+
+                //Assign worker threads. Run 1 -> diacritics workers, run 2 -> main process workers
+                Task<String>[] subtasks = (run == 1)
+                        ? new ProcessSubtaskDiacritics[nWorkerThreads]
+                        : new ProcessSubtaskMain[nWorkerThreads];
+
+                //Assign work to each subtask and create each subtask
+                int startingSegment = 0;
+                for (int i = 0; i < nWorkerThreads; i++) {
+                    subtasks[i] = (run == 1)
+                            ? new ProcessSubtaskDiacritics(subtaskWorkloads[i])
+                            : new ProcessSubtaskMain(subtaskWorkloads[i], formattedKey, encrypting, usingV2Process,
                             punctMode, startingSegment);
 
-                //Advance starting segment
-                int charCounts = countAlphaChars(subtaskWorkloads[i]);
-                startingSegment += charCounts / StepperFields.BLOCK_LENGTH;
+                    //Advance starting segment
+                    int charCounts = countAlphaChars(subtaskWorkloads[i]);
+                    startingSegment += charCounts / StepperFields.BLOCK_LENGTH;
 
-                if (isCancelled()) {
-                    return new String[]{null, null, null};
-                }
-            }
-
-            //The subtask workloads are no longer needed now
-            subtaskWorkloads = null;
-            System.gc();
-
-            //Start the subtasks
-            for (Task<String> subtask : subtasks) {
-                executorService.submit(subtask);
-            }
-
-//            System.out.println("Run " + run + " started");
-
-            //Get the results
-            runResult = new StringBuilder(100);
-            for (int s = 0; s < nWorkerThreads; s++) {
-
-                //when the current worker finishes, load its result
-                try {
-                    if (this.isCancelled()) {
-                        for (Task<String> subtask : subtasks) {
-                            subtask.cancel();
-                        }
-                        executorService.shutdownNow();
-                        System.out.println("MULTITHREADED PROCESS CANCELLED");
-                        return new String[]{null, null, null};
-
+                    if (isCancelled()) {
+                        return new String[]{null, null, null, null};
                     }
-
-                    runResult.append(subtasks[s].get());
-                }
-                catch (InterruptedException e) {
-                    return new String[]{null, null, null};
-                }
-                catch (ExecutionException e) {
-                    System.err.println("EXCEPTION THROWN DURING MULTITHREADED STEP");
-                    e.printStackTrace();
-                    System.exit(-1);
                 }
 
+                //The subtask workloads are no longer needed now
+                subtaskWorkloads = null;
+                System.gc();
+
+                //Start the subtasks
+                for (Task<String> subtask : subtasks) {
+                    executorService.submit(subtask);
+                }
+
+
+                //Get the results
+                runResult = new StringBuilder(100);
+                for (int s = 0; s < nWorkerThreads; s++) {
+
+                    //when the current worker finishes, load its result
+                    try {
+                        if (this.isCancelled()) {
+                            for (Task<String> subtask : subtasks) {
+                                subtask.cancel();
+                            }
+                            executorService.shutdownNow();
+//                            System.out.println("MULTITHREADED PROCESS CANCELLED");
+                            return new String[]{null, null, null, null};
+                        }
+
+                        runResult.append(subtasks[s].get());
+                    }
+                    //If cancelled while waiting
+                    catch (InterruptedException e) {
+                        return new String[]{null, null, null, null};
+                    }
+                    //ExecutionExceptions are caught by the outside try/catch
+
+                }
+
+                executorService.shutdown(); //needed to free threads from memory
+
+                //reload the input if run 2 still needs to go
+                if (run == 1) {
+                    input = runResult.toString();
+                    runResult = null;
+                }
             }
-//            System.out.println("Run " + run + " finished");
-            executorService.shutdown(); //needed to free threads from memory
 
-            //reload the input if run 2 still needs to go
-            if(run == 1) {
-                input = runResult.toString();
-                runResult = null;
-            }
+
+            //change the message to "Finalizing..." (which disables the cancel button through the loading controller's listener)
+            updateMessage(LOADING_STATE_NAMES[3]);
+            Thread.sleep(100); //give the FX app thread time to update
+
+            return new String[] {runResult.toString(), createKeyBlocksReverse(formattedKey), null, null};
         }
-
-
-        //change the message to "Finalizing..." (which disables the cancel button)
-        updateMessage(LOADING_STATE_NAMES[3]);
-        Thread.sleep(100); //give the FX app thread time to update
-
-        return new String[] {runResult.toString(), createKeyBlocksReverse(formattedKey), null};
-
+        catch(Throwable t) {
+            t.printStackTrace();
+            return new String[] {null, null, t.getClass().toString(), t.getMessage()};
+        }
     }
 
 
@@ -277,12 +281,14 @@ public class ProcessTask extends Task<String[]> {
 
     /**
      * Returns the amount of English ASCII characters in {@code input}.
-     * If cancelled, returns 0.<br><br>
+     * If cancelled, returns 0.
      *
-     * @param input String to count alphabetic and numeric characters in
+     * @param input String to count alphabetic and numeric characters in. Cannot be null
      * @return number of alphabetic chars in the input
      */
     private int countAlphaChars(String input) {
+        if(input == null) throw new AssertionError("Input cannot be null");
+
         int output = 0;
 
         for(int i=0; i<input.length(); i++) {
@@ -327,8 +333,11 @@ public class ProcessTask extends Task<String[]> {
         if(input==null) {
             throw new AssertionError("Input string cannot be null");
         }
-        if(blocks<=0 || charsPerBlock<=0) {
-            throw new AssertionError("Blocks and characters per block must be positive");
+        if(blocks<=0) {
+            throw new AssertionError("Blocks must be positive");
+        }
+        if(charsPerBlock<=0) {
+            throw new AssertionError("Chars per block must be positive");
         }
 
         //The formatted key will have all lowercase ASCII characters in it
@@ -366,7 +375,6 @@ public class ProcessTask extends Task<String[]> {
             //Add random character to the formatted key
             formattedKey.append((char) currentRandChar);
         }
-//        System.out.println(formattedKey);
 
         //At this point, the formatted key should contain blocks*charsPerBlock characters.
         byte[][] output = new byte[blocks][charsPerBlock];
@@ -523,7 +531,7 @@ public class ProcessTask extends Task<String[]> {
     /**
      * Returns a lowercase version of the input without accent marks or letter variants.<br><br>
      *
-     * Helper to createBlocks
+     * Helper to {@code createKeyBlocks}
      *
      * @param input letter to remove diacritics from
      * @return copy of input without diacritics
@@ -597,11 +605,10 @@ public class ProcessTask extends Task<String[]> {
      * evenly split among the output's indices
      */
     private String[] setWorkerLoads(String text, int threads, int blockLength) {
-
         //Assert preconditions
-        if (text==null || threads<0 || blockLength<=0) {
-            throw new AssertionError("No argument can be null or zero");
-        }
+        if (text==null) throw new AssertionError("Text cannot be null");
+        if(threads<0) throw new AssertionError("Number of threads cannot be negative");
+        if(blockLength<=0) throw new AssertionError("Block length must be positive");
 
         //Return the empty string if threads is 0
         if(threads==0) {

@@ -46,7 +46,7 @@
             </font>
         </Button>
 
-        <Label fx:id="pageDisplay" text="Page 420 of 69" translateX="25">
+        <Label fx:id="pageDisplayText" text="Page 420 of 69" translateX="25">
             <font>
                 <Font name="Trebuchet MS" size="12.0" />
             </font>

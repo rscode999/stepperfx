@@ -11,7 +11,7 @@ import stepperfx.administration.ScreenManager;
 import java.util.Optional;
 
 /**
- * Controller for the user input screen. Responsible for changing text on the input screen and starting the shared Service.<br>
+ * Controller for the user input screen. Responsible for updating the input screen and starting the shared Service.<br>
  * Not responsible for taking the output of the Service or handling the Service's cancellation.
  */
 final public class InputController extends IntegratedController {
@@ -43,8 +43,8 @@ final public class InputController extends IntegratedController {
      *
      * All options except for the first two should be in the format "Threads: {integer on the interval [1, StepperFields.MAX_THREADS]}"
      */
-    final private String[] THREAD_OPTIONS = {"Number of threads: 1", "Custom...", "Threads: 2", "Threads: 4", "Threads: 6",
-            "Threads: 8", "Threads: 12", "Threads: 16", "Threads: 32"};
+    final private String[] THREAD_OPTIONS = {"Number of threads: 1", "Custom...", "Threads: 2", "Threads: 4",
+            "Threads: 8", "Threads: 12", "Threads: 16", "Threads: 24", "Threads: 32"};
 
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,7 +138,7 @@ final public class InputController extends IntegratedController {
         for(int v=0; v<THREAD_OPTIONS.length; v++) {
             if(v>1) {
                 if(!THREAD_OPTIONS[v].startsWith("Threads: ")) {
-                    throw new AssertionError("All thread option elements except for the first two must start with \"Threads: \"");
+                    throw new AssertionError("Thread option index " + v + " must start with \"Threads: \"");
                 }
 
                 String currentElement = THREAD_OPTIONS[v];
@@ -151,7 +151,7 @@ final public class InputController extends IntegratedController {
                     }
                 }
                 catch(NumberFormatException e) {
-                    throw new AssertionError("Thread option element " + v + " (\"" + currentElement + "\") " +
+                    throw new AssertionError("Thread option index " + v + " (\"" + currentElement + "\") " +
                             "must be in the format \"Threads: <integer>\", where <integer> does not have a decimal point");
                 }
             }
@@ -197,18 +197,17 @@ final public class InputController extends IntegratedController {
 
     /**
      * Changes the text input label depending on the user's input preferences.<br>
-     * On change to file input, the input label should say "path to input file". Otherwise,
+     * On change to file input, the input label should say "path to input file" or a similar message. Otherwise,
      * the label should display the appropriate operation input text.
      */
     @FXML
     private void onInputSelectorChange() {
-
         if(inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
             textInput.setPromptText("Example: C:\\Users\\username\\Desktop\\file.txt");
             textInputLabel.setText("Path to input text (*.txt) file");
         }
         else {
-            textInput.setPromptText("Text");
+            textInput.setPromptText("Enter text here");
             textInputLabel.setText("Text");
         }
     }
@@ -235,13 +234,15 @@ final public class InputController extends IntegratedController {
         //Change label text, if file input is not selected
         if(!inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
             textInputLabel.setText("Text");
+            textInput.setPromptText("Enter text here");
         }
     }
 
 
 
     /**
-     * Checks if the new value is "Custom..." If so, displays a dialog and allows the user to enter a new thread value.
+     * Checks if the new value of the thread selector is index 1 ("Custom...").
+     * If so, displays a dialog and allows the user to enter a new thread value.
      */
     @FXML
     private void onThreadSelectorChange() {
@@ -304,7 +305,7 @@ final public class InputController extends IntegratedController {
                         threadSelector.setValue("Threads: " + newThreadCount);
                         return;
                     }
-                    //User input doesn't equal current value: add inputted value to combobox
+                    //User input doesn't equal current value: add inputted value to combo box
                     else if(currentThreadCount > newThreadCount) {
                         threadSelector.getItems().add(i, "Threads: " + newThreadCount);
                         threadSelector.setValue("Threads: " + newThreadCount);

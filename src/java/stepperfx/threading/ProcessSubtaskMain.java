@@ -108,7 +108,7 @@ public class ProcessSubtaskMain extends Task<String> {
     public String call() {
         //Constructor check
         if(textPiece==null || key==null || punctMode<0 || punctMode>2 || startSegment<0) {
-            throw new AssertionError("WRONG CONSTRUCTOR USED");
+            throw new AssertionError("PROCESS SUBTASK MAIN- TESTING CONSTRUCTOR USED FOR OPERATIONS");
         }
 
         //remove spaces (if specified)

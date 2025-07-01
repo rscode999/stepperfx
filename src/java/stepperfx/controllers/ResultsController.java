@@ -17,18 +17,18 @@ import java.util.*;
 final public class ResultsController extends IntegratedController {
 
     /**
-     * Holds the result in divisions
-     */
-    private ArrayList<String> resultPages;
-
-    /**
-     * Holds the index of the current page. Uses 0-based indexing.
+     * Holds the index of the current page in {@code resultPages}. Uses 0-based indexing, so the first page is at index 0.
      */
     private int currentResultPage;
 
+    /**
+     * Holds the result in pages. Each index of this list is one page. The first page is at index 0.
+     */
+    private ArrayList<String> resultPages;
+
 
     /**
-     * Allows the user to copy the entire text to the system clipboard
+     * Allows the user to copy the entire text in {@code resultPages} to the system clipboard
      */
     @FXML
     private Button copyButton;
@@ -49,13 +49,7 @@ final public class ResultsController extends IntegratedController {
      * Shows the current page and total pages to the user
      */
     @FXML
-    private Label pageDisplay;
-
-    /**
-     * Shows the amount of characters displayed per page
-     */
-    @FXML
-    private Label pageLengthDisplay;
+    private Label pageDisplayText;
 
     /**
      * Displays the results of the app's processing
@@ -86,35 +80,41 @@ final public class ResultsController extends IntegratedController {
             //runs the code on the main FX app thread, not a worker thread
             Platform.runLater(() -> {
 
-                //This occurs when the Service is reset
+                //Null new values occur when the Service is reset, so any null results should be ignored
                 if(newValue == null) {
                     return;
                 }
 
-                if(newValue.length != 3) {
-                    throw new AssertionError("Service output's length must be 3. Actual length is " + newValue.length);
+                //Check valid output
+                if(newValue.length != 4) {
+                    throw new AssertionError("Service output's length must be 4. Actual length is " + newValue.length);
                 }
 
                 //Error: display the dialog (dialog creation works on any screen)
-                if(newValue[0]==null && newValue[1]==null && newValue[2]!=null) {
+                if(newValue[0]==null && newValue[1]==null && newValue[2]!=null && newValue[3]!=null) {
 
                     screenManager.showScreen("input");
                     fields.resetService();
 
-                    Dialog<String> dialog = new Dialog<>();
-                    //Setting the title
-                    dialog.setTitle("Error");
-                    ButtonType type = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-                    //Setting the content of the dialog
-                    dialog.setContentText(newValue[2]);
-                    //Adding buttons to the dialog pane
-                    dialog.getDialogPane().getButtonTypes().add(type);
+                    Alert alert = new Alert(Alert.AlertType.WARNING);
 
-                    dialog.showAndWait();
+                    //File loading exception: load with error message
+                    if(newValue[2].equals("class java.io.FileNotFoundException")) {
+                        alert.setTitle("File load error");
+                        alert.setHeaderText("File load error");
+                        alert.setContentText(newValue[3]); //Note: The error message should be trimmed
+                    }
+                    //Any other exception: load with exception's message
+                    else {
+                        alert.setTitle("Thread unhandled exception");
+                        alert.setHeaderText(newValue[2]);
+                        alert.setContentText(newValue[3]);
+                    }
+                    alert.showAndWait();
                 }
 
                 //No error: configure and display results screen
-                else if(newValue[0]!=null && newValue[1]!=null && newValue[2]==null) {
+                else if(newValue[0]!=null && newValue[1]!=null && newValue[2]==null && newValue[3]==null) {
                     resultPages = new ArrayList<>();
 
                     //Divide the result into pages
@@ -130,7 +130,7 @@ final public class ResultsController extends IntegratedController {
 
                     //configure UI variables
                     currentResultPage = 0;
-                    pageDisplay.setText("Page " + (currentResultPage+1) + " of " + resultPages.size());
+                    pageDisplayText.setText("Page " + (currentResultPage+1) + " of " + resultPages.size());
                     pageBackwardButton.setDisable(true);
                     pageForwardButton.setDisable(resultPages.size()<=1);
 
@@ -176,7 +176,7 @@ final public class ResultsController extends IntegratedController {
         clipboard.setContent(content);
 
         copyButton.setDisable(false);
-        pageDisplay.setText("Result copied to clipboard");
+        pageDisplayText.setText("Result copied to clipboard");
     }
 
 
@@ -202,7 +202,7 @@ final public class ResultsController extends IntegratedController {
         pageForwardButton.setDisable(currentResultPage+1 == resultPages.size());
         pageBackwardButton.setDisable(currentResultPage == 0);
 
-        pageDisplay.setText("Page " + (currentResultPage+1) + " of " + resultPages.size());
+        pageDisplayText.setText("Page " + (currentResultPage+1) + " of " + resultPages.size());
         resultArea.setText(resultPages.get(currentResultPage));
     }
 
@@ -216,7 +216,7 @@ final public class ResultsController extends IntegratedController {
         pageForwardButton.setDisable(currentResultPage+1 == resultPages.size());
         pageBackwardButton.setDisable(currentResultPage == 0);
 
-        pageDisplay.setText("Page " + (currentResultPage+1) + " of " + resultPages.size());
+        pageDisplayText.setText("Page " + (currentResultPage+1) + " of " + resultPages.size());
         resultArea.setText(resultPages.get(currentResultPage));
     }
 

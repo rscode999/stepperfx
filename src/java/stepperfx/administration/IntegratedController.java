@@ -4,7 +4,7 @@ package stepperfx.administration;
 import stepperfx.StepperFields;
 
 /**
- * Base class for the formatting project's GUI controllers.
+ * Base class for GUI controllers.
  * Allows for management by a ScreenManager and access to a StepperFields instance
  * shared between controllers.<br><br>
  *
