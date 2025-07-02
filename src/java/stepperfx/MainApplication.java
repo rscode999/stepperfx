@@ -5,7 +5,8 @@ import javafx.stage.Stage;
 import stepperfx.administration.ScreenManager;
 
 /**
- * Responsible for configuring and displaying the app
+ * Responsible for configuring and displaying the app.<br>
+ * For Java 21
  */
 final public class MainApplication extends Application {
 

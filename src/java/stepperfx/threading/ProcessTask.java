@@ -110,7 +110,7 @@ public class ProcessTask extends Task<String[]> {
     }
 
     /**
-     * FOR UNIT TESTS ONLY! Creates a new ProcessTask and loads it with garbage values
+     * FOR UNIT TESTS ONLY! Creates a new ProcessTask and loads it with values against operation preconditions
      */
     public ProcessTask() {
         this.input = null;

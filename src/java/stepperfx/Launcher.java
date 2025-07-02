@@ -3,7 +3,8 @@ package stepperfx;
 import javafx.application.Application;
 
 /**
- * Launches the app. Required for exporting the app as a JAR file.
+ * Launches the app. Required for exporting the app as a JAR file.<br>
+ * For Java 21
  */
 final public class Launcher {
     /**

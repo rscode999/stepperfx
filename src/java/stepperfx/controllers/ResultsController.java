@@ -130,7 +130,10 @@ final public class ResultsController extends IntegratedController {
 
                     //configure UI variables
                     currentResultPage = 0;
-                    pageDisplayText.setText("Page " + (currentResultPage+1) + " of " + resultPages.size());
+                    pageDisplayText.setText("Page " + (currentResultPage+1) + " of " + resultPages.size() +
+                            ", displaying " +
+                            ((StepperFields.RESULT_PAGE_LENGTH==100000) ? "100K" : StepperFields.RESULT_PAGE_LENGTH) +
+                            " characters per page");
                     pageBackwardButton.setDisable(true);
                     pageForwardButton.setDisable(resultPages.size()<=1);
 
