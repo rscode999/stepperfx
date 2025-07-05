@@ -2,17 +2,21 @@
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.effect.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER_LEFT" prefHeight="400" prefWidth="800" spacing="30.0" style="-fx-background-color: #aaaaaa;"
+<?import java.net.URL?>
+<VBox alignment="CENTER_LEFT" prefHeight="400" prefWidth="800" spacing="30.0" styleClass="background-colors"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="stepperfx.controllers.LoginController">
 
     <padding>
         <Insets bottom="70.0" left="70.0" right="70.0" top="70.0" />
     </padding>
+
+    <stylesheets>
+        <URL value="@login-styles.css"/>
+    </stylesheets>
 
     <!-- "hello" label -->
     <Label text="Hello">
@@ -36,8 +40,7 @@
     </PasswordField>
 
     <!-- Enter button -->
-    <Button defaultButton="true" onAction="#login" prefHeight="20.0" prefWidth="80.0"
-            text="Enter" style="-fx-background-color: #ffffff;" >
+    <Button defaultButton="true" onAction="#login" prefHeight="20.0" prefWidth="80.0" text="Enter" >
       <font>
         <Font name="Trebuchet MS" size="14.0" />
       </font>

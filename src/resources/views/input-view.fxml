@@ -5,13 +5,17 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane prefHeight="400" prefWidth="800" style="-fx-background-color: #1e781e;"
+<?import java.net.URL?>
+<BorderPane prefHeight="400" prefWidth="800" styleClass="background-colors"
             xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="stepperfx.controllers.InputController">
    <padding>
       <Insets bottom="30" left="30" right="30" top="30" />
    </padding>
 
+   <stylesheets>
+      <URL value="@main-styles.css"/>
+   </stylesheets>
 
    <!-- TOP -->
    <top>
@@ -33,8 +37,7 @@
          </Label>
 
          <TextArea fx:id="textInput" prefHeight="210.0" prefWidth="200.0" promptText="Enter text here"
-                   style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
-                   wrapText="true">
+                   styleClass="control-colors" wrapText="true">
             <font>
                <Font name="Trebuchet MS" size="12.0" />
             </font>
@@ -44,16 +47,16 @@
          <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="30.0">
 
             <ChoiceBox fx:id="modeSelector" onAction="#onModeSelectorChange" prefWidth="120.0"
-                       style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
+                       styleClass="control-colors"/>
 
             <ChoiceBox fx:id="punctSelector" prefWidth="160.0"
-                       style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
+                       styleClass="control-colors"/>
 
             <ChoiceBox fx:id="inputSelector" onAction="#onInputSelectorChange" prefWidth="130.0"
-                       style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c;" />
+                       styleClass="control-colors"/>
 
             <ComboBox fx:id="threadSelector" onAction="#onThreadSelectorChange" prefWidth="180.0"
-                      style="-fx-background-color: #3c783c; -fx-control-inner-background: #3c783c;" />
+                      styleClass="control-colors"/>
 
          </HBox>
 
@@ -64,8 +67,7 @@
          </Label>
 
          <TextArea fx:id="keyInput" prefHeight="110.0" prefWidth="200.0" promptText="All non-letters will be ignored"
-                   style="-fx-control-inner-background: #3c643c; -fx-background-color: #3c643c; -fx-text-fill: gray;"
-                   wrapText="true">
+                   styleClass="control-colors" wrapText="true">
             <font>
                <Font name="Trebuchet MS" size="12.0" />
             </font>
@@ -75,21 +77,21 @@
          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="40.0">
 
             <Button onAction="#setLoginScreen" cancelButton="true" mnemonicParsing="false"
-                    style="-fx-background-color: #3c643c;" text="Return to login">
+                    styleClass="control-colors" text="Return to login">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>
             </Button>
 
             <Button fx:id="startButton" onAction="#startProcess" defaultButton="true" mnemonicParsing="false"
-                    prefWidth="180.0" style="-fx-background-color: #3c643c;" text="Start Forward Process">
+                    prefWidth="180.0" styleClass="control-colors" text="Start Forward Process">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>
             </Button>
 
             <CheckBox fx:id="v2Selector" mnemonicParsing="false"
-                      style="-fx-control-inner-background: #3c643c; -fx-border-color: #3c643c;" text="Version 2">
+                      styleClass="background-colors" text="Version 2">
                <font>
                   <Font name="Trebuchet MS" size="12.0" />
                </font>

@@ -48,7 +48,7 @@ final public class StepperFields {
     /**
      * Maximum number of characters that are displayed on a result page. Must be positive
      */
-    final public static int RESULT_PAGE_LENGTH = 100000;
+    final public static int RESULT_PAGE_LENGTH = 2;
 
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////

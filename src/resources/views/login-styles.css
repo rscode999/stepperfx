@@ -1,0 +1,20 @@
+/*
+Stylesheet for the login and login-reject screens
+*/
+
+//top level components
+.background-colors {
+    -fx-control-inner-background: #aaaaaa;
+    -fx-background-color: #aaaaaa;
+}
+
+
+
+.button {
+    -fx-background-color: white;
+    -fx-text-fill: #323232;
+}
+
+.button:hover {
+    -fx-background-color: #e6e6e6;
+}

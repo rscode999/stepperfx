@@ -3,24 +3,26 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
+<?import java.net.URL?>
 
-
-<VBox alignment="CENTER" prefHeight="400" prefWidth="800" spacing="30.0"
-      style="-fx-background-color: #aaaaaa;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+<VBox alignment="CENTER" prefHeight="400" prefWidth="800" spacing="30.0" styleClass="background-colors"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="stepperfx.controllers.LoginRejectController">
-   <children>
 
-      <Label text="Incorrect password">
-         <font>
-            <Font name="Trebuchet MS" size="25" />
-         </font>
-      </Label>
+   <stylesheets>
+      <URL value="@login-styles.css"/>
+   </stylesheets>
 
-      <Button onAction="#closeApp" mnemonicParsing="false" text="Close App">
-         <font>
-            <Font size="15.0" />
-         </font>
-      </Button>
+   <Label text="Incorrect password">
+      <font>
+         <Font name="Trebuchet MS" size="25"/>
+      </font>
+   </Label>
 
-   </children>
+   <Button onAction="#closeApp" mnemonicParsing="false" text="Close App">
+      <font>
+         <Font name="Trebuchet MS" size="15.0"/>
+      </font>
+   </Button>
+
 </VBox>

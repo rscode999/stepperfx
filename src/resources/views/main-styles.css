@@ -1,0 +1,68 @@
+/*
+Stylesheet for the input, loading, and results screens
+*/
+
+//top level components
+.background-colors {
+    -fx-control-inner-background: #1e781e;
+    -fx-background-color: #1e781e;
+}
+
+
+//control components
+.control-colors {
+    -fx-control-inner-background: #3c643c;
+    -fx-background-color: #3c643c;
+}
+
+
+//control components (slightly different colors)
+.control-accent-colors {
+    -fx-control-inner-background: #3c843c;
+    -fx-background-color: #3c843c;
+}
+
+
+
+.button {
+    -fx-text-fill: #323232;
+}
+
+.button:hover {
+    -fx-background-color: #3c6e3c;
+}
+
+
+.check-box *.box {
+    -fx-background-color: #3c643c;
+}
+
+//check mark
+.check-box:selected .mark {
+    -fx-background-color: #1e781e;
+}
+
+
+
+//text color of choice box
+.choice-box .label {
+  -fx-text-fill: #323232;
+}
+
+
+
+//text color of combo box
+.combo-box .list-cell {
+  -fx-text-fill: #323232;
+}
+
+//text color of combo box (when opened)
+.combo-box .list-view .list-cell {
+  -fx-text-fill: #323232;
+}
+
+
+
+.text-area {
+    -fx-text-fill: gray;
+}

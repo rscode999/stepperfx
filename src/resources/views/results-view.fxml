@@ -5,13 +5,18 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox prefHeight="400.0" prefWidth="800.0" spacing="15.0" style="-fx-background-color: #3c783c;"
+<?import java.net.URL?>
+<VBox prefHeight="400.0" prefWidth="800.0" spacing="15.0" styleClass="background-colors"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="stepperfx.controllers.ResultsController">
 
     <padding>
         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
     </padding>
+
+    <stylesheets>
+        <URL value="@main-styles.css"/>
+    </stylesheets>
 
     <Label text="Result">
         <font>
@@ -20,27 +25,26 @@
     </Label>
 
     <TextArea fx:id="resultArea" editable="false" prefHeight="230.0" prefWidth="200.0"
-              style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
-              translateY="-10.0" wrapText="true" />
+              styleClass="control-colors" translateY="-10.0" wrapText="true" />
 
     <HBox alignment="CENTER_LEFT" prefHeight="60.0" prefWidth="200.0" spacing="15" translateY="-10">
 
         <Button fx:id="pageBackwardButton" onAction="#setPreviousPage" mnemonicParsing="false" prefWidth="120.0"
-                style="-fx-background-color: #3c843c;" text="&lt;&lt;&lt; Previous Page">
+                styleClass="control-accent-colors"  text="&lt;&lt;&lt; Previous Page">
             <font>
                 <Font name="Trebuchet MS" size="12.0" />
             </font>
         </Button>
 
         <Button fx:id="pageForwardButton" onAction="#setNextPage" mnemonicParsing="false" prefWidth="120.0"
-                style="-fx-background-color: #3c843c;" text="Next Page &gt;&gt;&gt;">
+                styleClass="control-accent-colors" text="Next Page &gt;&gt;&gt;">
            <font>
                <Font name="Trebuchet MS" size="12.0" />
            </font>
         </Button>
 
         <Button fx:id="copyButton" onAction="#copyResult" mnemonicParsing="false"
-                style="-fx-background-color: #3c843c;" text="Copy Result">
+                styleClass="control-accent-colors"  text="Copy Result">
             <font>
                 <Font name="Trebuchet MS" size="12.0" />
             </font>
@@ -61,11 +65,11 @@
     </Label>
 
     <TextArea fx:id="keyArea" editable="false" prefHeight="120" prefWidth="200.0"
-              style="-fx-background-color: #3c643c; -fx-control-inner-background: #3c643c; -fx-text-fill: gray;"
+              styleClass="control-colors"
               translateY="-10.0" wrapText="true" />
 
     <Button defaultButton="true" onAction="#setLoginScreen" mnemonicParsing="false"
-            style="-fx-background-color: #3c943c;" text="Return to Login">
+            styleClass="control-accent-colors"  text="Return to Login">
       <font>
          <Font name="Trebuchet MS" size="14.0" />
       </font>
