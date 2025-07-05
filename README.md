@@ -1,11 +1,11 @@
 # StepperFX
 ##### Implementation of the Stepper algorithm using the JavaFX framework  
-  
-  
+
 First large-scale project using JavaFX. 
 Enables users to take input either through text or with an input .txt file.  
 Users can select an arbitrary number of worker threads to do the operations.  
-This program supports both normal and enhanced (version 2) processes.
+This program supports both normal and enhanced (version 2) processes.  
+For Java 21+
 
 ### Project Structure
 

@@ -65,7 +65,7 @@ final public class ScreenManager {
             throw new AssertionError("Name cannot be null");
         }
         if(screenMap.containsKey(name)) {
-            throw new AssertionError("Duplicate screen names not allowed");
+            throw new AssertionError("The screen name \"" + name + "\" cannot match any other screen names");
         }
         if(fxmlPath==null) {
             throw new AssertionError("FXML path cannot be null");

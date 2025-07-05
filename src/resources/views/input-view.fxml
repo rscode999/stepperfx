@@ -74,7 +74,7 @@
          <!-- Bottom "Enter Button" Area -->
          <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="40.0">
 
-            <Button cancelButton="true" mnemonicParsing="false" onAction="#setLoginScreen"
+            <Button onAction="#setLoginScreen" cancelButton="true" mnemonicParsing="false"
                     style="-fx-background-color: #3c643c;" text="Return to login">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
