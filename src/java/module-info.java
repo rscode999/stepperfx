@@ -3,10 +3,11 @@ module test.stepperfx {
     requires javafx.fxml;
     requires jdk.compiler;
 
-
     opens stepperfx to javafx.fxml;
     exports stepperfx;
+    exports stepperfx.administration;
     exports stepperfx.controllers;
-    opens stepperfx.controllers to javafx.fxml;
     exports stepperfx.threading;
+    opens stepperfx.controllers to javafx.fxml;
+
 }

@@ -1,7 +1,7 @@
 package stepperfx.controllers;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import stepperfx.StepperFields;
@@ -15,7 +15,7 @@ import stepperfx.threading.ProcessTask;
 final public class LoadingController extends IntegratedController {
 
     /**
-     * Cancels the ongoing process when clicked
+     * Cancels the ongoing process when clicked. Disabled when the Service sends its output to the app.
      */
     @FXML
     private Button cancelButton;
@@ -28,12 +28,17 @@ final public class LoadingController extends IntegratedController {
 
     /**
      * Sets and configures the fields of this controller
-     * @param manager ScreenManager controlling screen transitions
+     *
+     * @param manager ScreenManager for screen changes
+     * @param sceneGraphRoot root of the controller's scene graph
      * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, StepperFields fields) {
+    public void initializeController(ScreenManager manager, Parent sceneGraphRoot, StepperFields fields) {
+        assertInitializeController(manager, sceneGraphRoot, fields);
+
         this.screenManager = manager;
+        this.sceneGraphRoot = sceneGraphRoot;
         this.fields = fields;
 
         fields.addServiceMessageListener((obs, oldValue, newValue) -> {
@@ -41,7 +46,7 @@ final public class LoadingController extends IntegratedController {
             loadStatus.setText(newValue);
 
             //Disable the cancel button when a cancel operation is impossible
-            cancelButton.setDisable(newValue.equals(ProcessTask.LOADING_STATE_NAMES[3]));
+            cancelButton.setDisable(newValue.equals(ProcessTask.LOADING_STATE_NAMES[4]));
         });
     }
 

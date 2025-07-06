@@ -1,3 +1,4 @@
+out/
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -8,7 +9,6 @@ target/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
-out/
 *.iws
 *.iml
 *.ipr
@@ -41,3 +41,4 @@ build/
 ### Specifics ###
 reference/
 input.txt
+output.txt

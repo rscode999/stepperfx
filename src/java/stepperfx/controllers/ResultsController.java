@@ -2,9 +2,12 @@ package stepperfx.controllers;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
@@ -65,14 +68,32 @@ final public class ResultsController extends IntegratedController {
 
 
     /**
-     * Sets the app's fields. Also attaches a value listener to the app's shared Service to load the Service's output.
+     * Sets the app's fields.<br>
+     * Attaches a value listener to the app's shared Service to load the Service's output.<br>
+     * Attaches an event filter to the scene graph root to check for key presses.
+     *
      * @param manager ScreenManager for screen changes
+     * @param sceneGraphRoot root of the scene graph managed by the controller
      * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, StepperFields fields) {
+    public void initializeController(ScreenManager manager, Parent sceneGraphRoot, StepperFields fields) {
+        assertInitializeController(manager, sceneGraphRoot, fields);
         this.fields = fields;
+        this.sceneGraphRoot = sceneGraphRoot;
         this.screenManager = manager;
+
+        //Configure key shortcuts
+        sceneGraphRoot.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+
+            //Move between pages with arrow keys
+            if (KeyCode.RIGHT.equals(event.getCode()) || KeyCode.UP.equals(event.getCode())) {
+                setNextPage();
+            }
+            else if(KeyCode.LEFT.equals(event.getCode()) || KeyCode.DOWN.equals(event.getCode())) {
+                setPreviousPage();
+            }
+        });
 
         //Attach value listener to the service to handle its output
         fields.addServiceValueListener((obs, oldValue, newValue) -> {
@@ -130,8 +151,7 @@ final public class ResultsController extends IntegratedController {
 
                     //configure UI variables
                     currentResultPage = 0;
-                    pageDisplayText.setText("Page " + (currentResultPage+1) + " of " + resultPages.size() +
-                            ", displaying " +
+                    pageDisplayText.setText("Page " + (currentResultPage+1) + " of " + resultPages.size() + ", displaying " +
                             ((StepperFields.RESULT_PAGE_LENGTH==100000) ? "100K" : StepperFields.RESULT_PAGE_LENGTH) +
                             " characters per page");
                     pageBackwardButton.setDisable(true);
@@ -150,12 +170,13 @@ final public class ResultsController extends IntegratedController {
                 }
             });
         });
+
+        assertInitializeController(manager, sceneGraphRoot, fields);
     }
 
 
 
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
     /**
      * Copies the output to the system clipboard
@@ -197,10 +218,15 @@ final public class ResultsController extends IntegratedController {
 
 
     /**
-     * Reconfigures the UI to display the next page of result text
+     * Reconfigures the UI to display the next page of result text.<br>
+     * If the current result page equals the result page list's size (i.e. the last page is displayed), does nothing.
      */
     @FXML
     private void setNextPage() {
+        if(currentResultPage+1 == resultPages.size()) {
+            return;
+        }
+
         currentResultPage++;
         pageForwardButton.setDisable(currentResultPage+1 == resultPages.size());
         pageBackwardButton.setDisable(currentResultPage == 0);
@@ -211,10 +237,15 @@ final public class ResultsController extends IntegratedController {
 
 
     /**
-     * Reconfigures the UI to display the previous page of result text
+     * Reconfigures the UI to display the previous page of result text.<br>
+     * If the current result page equals 0 (i.e. the first page is displayed), does nothing.
      */
     @FXML
     private void setPreviousPage() {
+        if(currentResultPage == 0) {
+            return;
+        }
+
         currentResultPage--;
         pageForwardButton.setDisable(currentResultPage+1 == resultPages.size());
         pageBackwardButton.setDisable(currentResultPage == 0);

@@ -1,7 +1,6 @@
 package stepperfx;
 
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Worker;
 import stepperfx.threading.ProcessService;
 
@@ -166,13 +165,13 @@ final public class StepperFields {
     /**
      * Assigns {@code listener} as a value property listener on the app's Service.<br><br>
      *
-     * Value format: String array of length 3 containing {result, formatted key, error message}<br>
+     * Value format: String array of length 4 containing {result, formatted key, error type, error message}<br>
      * Possible configurations:<br>
-     * - Result and key non-null, error message null: process completed successfully<br>
-     * - Result and key null, error message non-null: process stopped with error<br>
-     * - Result, key, and error message null: process was cancelled<br>
+     * - Result and key non-null, error type and message null: process completed successfully<br>
+     * - Result and key null, error type message non-null: process stopped with error<br>
+     * - All indices null: process was cancelled<br>
      * - Entire output is null: should be ignored<br>
-     * If any other value is produced, there is a bug.
+     * No other value should be produced. Any assigned listener should check for illegal values.
      *
      * @param listener listener to assign
      */

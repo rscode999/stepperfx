@@ -3,6 +3,7 @@ package stepperfx.controllers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
@@ -126,14 +127,17 @@ final public class InputController extends IntegratedController {
 
 
     /**
-     * Initializes the controller with {@code manager} and {@code fields}.<br>
-     * Also sets GUI elements. Assigns a listener to clear the text inputs upon successful operations.
+     * Initializes the controller with {@code manager}, {@code sceneGraphRoot}, and {@code fields}.<br>
+     * Sets GUI elements. Assigns a listener to clear the text inputs upon successful operations.
      *
-     * @param manager the ScreenManager responsible for the controller
-     * @param fields reference to shared fields between controllers
+     * @param manager ScreenManager for screen changes
+     * @param sceneGraphRoot root of the controller's scene graph
+     * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, StepperFields fields) {
+    public void initializeController(ScreenManager manager, Parent sceneGraphRoot, StepperFields fields) {
+        assertInitializeController(manager, sceneGraphRoot, fields);
+
         //Check thread option formatting
         for(int v=0; v<THREAD_OPTIONS.length; v++) {
             if(v>1) {
@@ -159,6 +163,7 @@ final public class InputController extends IntegratedController {
 
         //Initialize controller's fields
         this.screenManager = manager;
+        this.sceneGraphRoot = sceneGraphRoot;
         this.fields = fields;
 
         //Set choice boxes and combo box. Then select their first option
@@ -184,6 +189,7 @@ final public class InputController extends IntegratedController {
             }
         });
 
+        assertInitializeController(manager, sceneGraphRoot, fields);
     }
 
 

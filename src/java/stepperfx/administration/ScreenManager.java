@@ -11,6 +11,7 @@ import java.util.*;
 
 import stepperfx.StepperFields;
 
+
 /**
  * Centralized manager for screen transitions.<br><br>
  *
@@ -83,15 +84,15 @@ final public class ScreenManager {
         //Load the FXML file (specifically the file's graph's root) from the path
         FXMLLoader loader = new FXMLLoader(resource);
 
-        Parent root = loader.load(); //This line throws an IOException
+        Parent sceneGraphRoot = loader.load(); //This line throws an IOException
 
         //Put the root into the map
-        screenMap.put(name, root);
+        screenMap.put(name, sceneGraphRoot);
 
         //Assign this ScreenManager object to manage the FXML's controller and pass shared fields into the controller
         Object controller = loader.getController();
         if(controller instanceof IntegratedController) {
-            ((IntegratedController) controller).initializeController(this, fields);
+            ((IntegratedController) controller).initializeController(this, sceneGraphRoot, fields);
         }
         else {
             throw new IOException("FXML controller must be a subclass of IntegratedController");
@@ -99,10 +100,9 @@ final public class ScreenManager {
 
         // If you want to use the same Scene and just swap roots
         if (primaryStage.getScene() == null) {
-            primaryStage.setScene(new Scene(root));
+            primaryStage.setScene(new Scene(sceneGraphRoot));
         }
     }
-
 
 
     /**
@@ -128,13 +128,16 @@ final public class ScreenManager {
 
     /**
      * Sets the ScreenController's stage with a screen whose name is {@code name}.
-     * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
+     * @param name name of the screen. Cannot be null. Must be the name of a screen managed by this ScreenManager
      */
     public void showScreen(String name) {
+        if(name == null) {
+            throw new AssertionError("Screen name cannot be null");
+        }
 
         //Check that the manager actually contains the screen
        if(!screenMap.containsKey(name)) {
-           throw new AssertionError("The screen \"" + name + "\" is not tracked by this manager");
+           throw new AssertionError("The screen \"" + name + "\" is not tracked by the manager");
        }
 
         //Replace the root of the existing Scene
@@ -145,7 +148,7 @@ final public class ScreenManager {
             primaryStage.getScene().setRoot(screenMap.get(name));
         }
 
-       primaryStage.sizeToScene(); //Adjust window size to fit new content
+        primaryStage.sizeToScene(); //Adjust window size to fit new content
        primaryStage.show();
     }
 

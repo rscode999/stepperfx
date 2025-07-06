@@ -33,11 +33,15 @@ public class ProcessTask extends Task<String[]> {
      * Progression through the states starts at index 0, then index 1, and so on
      */
     public final static String[] LOADING_STATE_NAMES =
-            new String[] {"Loading input...", "Formatting...", "Executing...", "Finalizing..."};
+            new String[] {"Loading input...", "Formatting...", "Executing...", "Writing to file...", "Finalizing..."};
 
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * True if using version 2 processes, false otherwise
+     */
+    private boolean doingV2Process;
 
     /**
      * True if the service is encrypting, false if the service is decrypting
@@ -55,11 +59,6 @@ public class ProcessTask extends Task<String[]> {
     private String key;
 
     /**
-     * Whether the service's task will load its input from a file
-     */
-    private boolean loadingFromFile;
-
-    /**
      * Number of threads to use during processing
      */
     private int nWorkerThreads;
@@ -74,9 +73,9 @@ public class ProcessTask extends Task<String[]> {
     private byte punctMode;
 
     /**
-     * True if using version 2 processes, false otherwise
+     * Whether the service's task will load its input from a file
      */
-    private boolean usingV2Process;
+    private boolean usingFileInput;
 
 
     /**
@@ -85,14 +84,14 @@ public class ProcessTask extends Task<String[]> {
      * @param input input text to process, or a filepath to load from. Cannot be null
      * @param key key to process the input with. Cannot be null
      * @param encrypting true if the service encrypts, false if the service decrypts
-     * @param usingV2Process true if using enhanced (v2) processes, false otherwise
+     * @param doingV2Process true if using enhanced (v2) processes, false otherwise
      * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
      *                  2 if the task processes the input with all punctuation
-     * @param loadingFromFile whether to load input from a file
+     * @param usingFileInput whether to load input from a file
      * @param nWorkerThreads number of threads to use during processing. Must be on the interval [0, StepperFields.MAX_THREADS]
      */
-    public ProcessTask(String input, String key, boolean encrypting, boolean usingV2Process,
-                       byte punctMode, boolean loadingFromFile, int nWorkerThreads) {
+    public ProcessTask(String input, String key, boolean encrypting, boolean doingV2Process,
+                       byte punctMode, boolean usingFileInput, int nWorkerThreads) {
         if(input==null) throw new AssertionError("Input cannot be null");
         if(key==null) throw new AssertionError("Key cannot be null");
         if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on the interval [0,2]- received " + punctMode);
@@ -103,8 +102,8 @@ public class ProcessTask extends Task<String[]> {
         this.input = input;
         this.key = key;
         this.encrypting = encrypting;
-        this.usingV2Process = usingV2Process;
-        this.loadingFromFile = loadingFromFile;
+        this.doingV2Process = doingV2Process;
+        this.usingFileInput = usingFileInput;
         this.punctMode = punctMode;
         this.nWorkerThreads = nWorkerThreads;
     }
@@ -116,8 +115,8 @@ public class ProcessTask extends Task<String[]> {
         this.input = null;
         this.key = null;
         this.encrypting = false;
-        this.usingV2Process = false;
-        this.loadingFromFile = false;
+        this.doingV2Process = false;
+        this.usingFileInput = false;
         this.punctMode = -127;
         this.nWorkerThreads = -1;
     }
@@ -162,7 +161,7 @@ public class ProcessTask extends Task<String[]> {
 
 
             //Get the input from a file, if chosen. Upon failure, present the error message
-            if (loadingFromFile) {
+            if (usingFileInput) {
                 try {
                     input = readFile(input);
                 }
@@ -200,7 +199,7 @@ public class ProcessTask extends Task<String[]> {
                 for (int i = 0; i < nWorkerThreads; i++) {
                     subtasks[i] = (run == 1)
                             ? new ProcessSubtaskDiacritics(subtaskWorkloads[i])
-                            : new ProcessSubtaskMain(subtaskWorkloads[i], formattedKey, encrypting, usingV2Process,
+                            : new ProcessSubtaskMain(subtaskWorkloads[i], formattedKey, encrypting, doingV2Process,
                             punctMode, startingSegment);
 
                     //Advance starting segment
@@ -256,9 +255,8 @@ public class ProcessTask extends Task<String[]> {
                 }
             }
 
-
             //change the message to "Finalizing..." (which disables the cancel button through the loading controller's listener)
-            updateMessage(LOADING_STATE_NAMES[3]);
+            updateMessage(LOADING_STATE_NAMES[4]);
             Thread.sleep(100); //give the FX app thread time to update
 
             return new String[] {runResult.toString(), createKeyBlocksReverse(formattedKey), null, null};
@@ -415,7 +413,7 @@ public class ProcessTask extends Task<String[]> {
             //append each value in the block to the output
             for(int c=0; c<input[b].length; c++) {
                 if((int)input[b][c]<0 || (int)input[b][c]>25) {
-                    throw new AssertionError("Index [" + b + "][" + c + "] ( " + input[b][c] + ") must be on the interval [0, 25]");
+                    throw new AssertionError("Index [" + b + "][" + c + "] (value: " + input[b][c] + ") must be on the interval [0, 25]");
                 }
 
                 output.append((char)(input[b][c] + 97));
@@ -462,9 +460,9 @@ public class ProcessTask extends Task<String[]> {
      * throws a FileNotFoundException.<br>
      *
      * @param filepath name of the input file. Can't be null
-     * @return contents from the given input filename, or the empty string if the Boss is cancelled
+     * @return contents from the given input filename, or the empty string if the task is cancelled
      * @throws FileNotFoundException if the file can't be read or the filename lacks the ".txt" extension.
-     * Displays a descriptive error message, which is used in the main App, if thrown.
+     * Displays a descriptive error message, which is displayed to the user, if thrown.
      */
     private String readFile(String filepath) throws FileNotFoundException {
         if(filepath==null) {
@@ -570,18 +568,6 @@ public class ProcessTask extends Task<String[]> {
         }
 
         return charReplacement;
-    }
-
-    /**
-     * Returns a lowercase version of the input without accent marks or letter variants.<br><br>
-     *
-     * FOR UNIT TESTING ONLY!
-     *
-     * @param input letter to remove diacritics from
-     * @return copy of input without diacritics
-     */
-    public char removeDiacritics_Testing(char input) {
-        return removeDiacritics(input);
     }
 
 
@@ -749,68 +735,64 @@ public class ProcessTask extends Task<String[]> {
 
 
     /**
-     * EXPERIMENTAL
+     * May be useful later.
      * @param filepath filepath to write to. Cannot be null. If not the empty string, must end in ".txt"
      * @param contents what to write to the file. Cannot be null
      * @param doingDryRun true if checking if the file exists, false if writing to the file
      * @throws FileNotFoundException if the file write fails
      */
     private void writeFile(String filepath, String contents, boolean doingDryRun) throws FileNotFoundException {
-        if(filepath==null) {
+        if (filepath == null) {
             throw new AssertionError("Filepath cannot be null");
         }
-        if(contents == null) {
+        if (contents == null) {
             throw new AssertionError("Contents cannot be null");
         }
 
         File inputFile;
 
         //Create file from default or the top text input
-        if(filepath.isEmpty()) {
+        if (filepath.isEmpty()) {
             inputFile = new File(StepperFields.DEFAULT_INPUT_FILENAME);
-        }
-        else {
+        } else {
             inputFile = new File(filepath);
         }
 
         //Check if the input file ends in .txt
-        if(inputFile.getName().length()<=3 || !inputFile.getName().endsWith(".txt")) {
+        if (inputFile.getName().length() <= 3 || !inputFile.getName().endsWith(".txt")) {
             throw new AssertionError("The input file must have a .txt extension");
         }
 
         try {
-           FileWriter writer = new FileWriter(inputFile);
-           if(doingDryRun) {
-               return;
-           }
-           //Write an empty string to clear the file
-           writer.write("");
+            FileWriter writer = new FileWriter(inputFile);
+            if (doingDryRun) {
+                return;
+            }
+            //Write an empty string to clear the file
+            writer.write("");
 
-           writer = new FileWriter(inputFile, true);
+            writer = new FileWriter(inputFile, true);
 
-           //Write 50000 characters at a time
+            //Write 100,000 characters at a time
             int startIndex = 0;
-            int endIndex = 50000;
-            while(endIndex < contents.length()) {
-                if(isCancelled()) {
+            int endIndex = 100000;
+            while (endIndex < contents.length()) {
+                if (isCancelled()) {
                     return;
                 }
 
                 writer.write(contents.substring(startIndex, endIndex));
 
-                startIndex += 50000;
-                endIndex += 50000;
+                startIndex += 100000;
+                endIndex += 100000;
             }
             writer.write(contents.substring(startIndex));
 
 
-           writer.close();
-           System.out.println("WRITE FILE: Successfully wrote to the file.");
+            writer.close();
+            System.out.println("WRITE FILE: Successfully wrote to the file.");
+        } catch (IOException e) {
+            throw new FileNotFoundException("error during file write");
         }
-        catch (IOException e) {
-            throw new FileNotFoundException("An error occurred.");
-        }
-
-
     }
 }
