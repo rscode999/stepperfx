@@ -3,8 +3,14 @@ package stepperfx.controllers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
@@ -340,6 +346,78 @@ final public class InputController extends IntegratedController {
         screenManager.showScreen("login");
         textInput.setText("");
         keyInput.setText("");
+    }
+
+
+    /**
+     * Displays the settings popup and takes input from it
+     */
+    @FXML
+    private void showSettingsPopup() {
+        //Creating a dialog
+        Dialog<String[]> settingsPopup = new Dialog<>();
+        //Setting the title
+        settingsPopup.setTitle("Dialog");
+
+        //Setting Cancel and OK button, with their functionality
+        ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType enterButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        settingsPopup.getDialogPane().getButtonTypes().add(cancelButtonType);
+        settingsPopup.getDialogPane().getButtonTypes().add(enterButtonType);
+
+
+        //Dialog's title
+        Label title = new Label("Settings");
+        title.translateYProperty().setValue(-5);
+        title.fontProperty().setValue(new Font("Trebuchet MS", 15));
+
+        //Top text input label
+        Label topInputLabel = new Label("Number of blocks");
+        topInputLabel.translateYProperty().setValue(10);
+        topInputLabel.fontProperty().setValue(new Font("Trebuchet MS", 10));
+
+        //Top text input
+        TextField topInput = new TextField();
+
+        //Bottom text input label
+        Label bottomInputLabel = new Label("Block length");
+        bottomInputLabel.translateYProperty().setValue(10);
+        bottomInputLabel.fontProperty().setValue(new Font("Trebuchet MS", 10));
+
+        //Bottom text input label
+        TextField bottomInput = new TextField();
+
+        //Content container
+        VBox settingsPopupContents = new VBox(title, topInputLabel, topInput, bottomInputLabel, bottomInput);
+        settingsPopupContents.setSpacing(15);
+
+        //Load and show pane
+        settingsPopup.getDialogPane().setContent(settingsPopupContents);
+
+        settingsPopup.setResultConverter(buttonType -> {
+            if(buttonType == enterButtonType) {
+                return new String[] {topInput.getText(), bottomInput.getText()};
+            }
+            return null;
+        });
+
+        Optional<String[]> userInput = settingsPopup.showAndWait();
+        userInput.ifPresent(input -> {
+            int newBlockCount;
+            int newBlockLength;
+
+            try {
+                newBlockCount = Integer.parseInt(input[0]);
+                newBlockLength = Integer.parseInt(input[1]);
+            }
+            catch(NumberFormatException e) {
+                System.out.println("error");
+                return;
+            }
+
+            System.out.println(newBlockCount);
+            System.out.println(newBlockLength);
+        });
     }
 
 

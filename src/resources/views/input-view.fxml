@@ -36,7 +36,7 @@
             </font>
          </Label>
 
-         <TextArea fx:id="textInput" prefHeight="210.0" prefWidth="200.0" promptText="Enter text here"
+         <TextArea fx:id="textInput" prefHeight="190" prefWidth="200.0" promptText="Enter text here"
                    styleClass="control-colors" wrapText="true">
             <font>
                <Font name="Trebuchet MS" size="12.0" />
@@ -74,28 +74,35 @@
          </TextArea>
 
          <!-- Bottom "Enter Button" Area -->
-         <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="40.0">
+         <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="30">
 
-            <Button onAction="#setLoginScreen" cancelButton="true" mnemonicParsing="false"
+            <CheckBox fx:id="v2Selector" mnemonicParsing="false"
+                      styleClass="background-colors" text="Version 2" >
+               <font>
+                  <Font name="Trebuchet MS" size="12.0" />
+               </font>
+            </CheckBox>
+
+            <Button fx:id="startButton" onAction="#startProcess" defaultButton="true" mnemonicParsing="false"
+                    prefWidth="170" styleClass="control-colors" text="Start Forward Process">
+               <font>
+                  <Font name="Trebuchet MS" size="14.0" />
+               </font>
+            </Button>
+
+            <Button onAction="#showSettingsPopup" defaultButton="true" mnemonicParsing="false"
+                    prefWidth="120.0" styleClass="control-colors" text="Settings">
+               <font>
+                  <Font name="Trebuchet MS" size="14.0" />
+               </font>
+            </Button>
+
+            <Button onAction="#setLoginScreen" cancelButton="true" mnemonicParsing="false" prefWidth="150"
                     styleClass="control-colors" text="Return to login">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>
             </Button>
-
-            <Button fx:id="startButton" onAction="#startProcess" defaultButton="true" mnemonicParsing="false"
-                    prefWidth="180.0" styleClass="control-colors" text="Start Forward Process">
-               <font>
-                  <Font name="Trebuchet MS" size="14.0" />
-               </font>
-            </Button>
-
-            <CheckBox fx:id="v2Selector" mnemonicParsing="false"
-                      styleClass="background-colors" text="Version 2">
-               <font>
-                  <Font name="Trebuchet MS" size="12.0" />
-               </font>
-            </CheckBox>
 
          </HBox>
 

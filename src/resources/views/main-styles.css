@@ -46,6 +46,7 @@ Stylesheet for the input, loading, and results screens
 
 //text color of choice box
 .choice-box .label {
+  -fx-font-family: "System";
   -fx-text-fill: #323232;
 }
 
