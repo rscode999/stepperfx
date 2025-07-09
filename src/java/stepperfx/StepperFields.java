@@ -4,8 +4,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
 import stepperfx.threading.ProcessService;
 
-import java.util.Arrays;
-
 /**
  * Contains fields shared between the application's controllers.
  * One of the fields is a javafx.concurrent.Service used to do operations.
@@ -15,14 +13,14 @@ final public class StepperFields {
     /**
      * Number of blocks in the key. Must be positive.
      */
-    final public static int BLOCK_COUNT = 6;
+    final public static int DEFAULT_BLOCK_COUNT = 6;
 
     /**
      * Number of characters in each key block. Must be positive.<br><br>
      *
      * Highly recommended to be relatively prime with {@code BLOCK_COUNT}.
      */
-    final public static int BLOCK_LENGTH = 25;
+    final public static int DEFAULT_BLOCK_LENGTH = 25;
 
     /**
      * Filename for the input file if none is given. Cannot be null. Must end in ".txt"
@@ -64,7 +62,15 @@ final public class StepperFields {
      */
     private final ProcessService service;
 
+    /**
+     * EXPERIMENTAL
+     */
+    private static int blockCount = DEFAULT_BLOCK_COUNT;
 
+    /**
+     * EXPERIMENTAL
+     */
+    private static int blockLength = DEFAULT_BLOCK_LENGTH;
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -88,13 +94,13 @@ final public class StepperFields {
      * Throws an AssertionError if any constant's invariants are broken
      */
     private void assertConstantInvariants() {
-        if(BLOCK_COUNT<=0) throw new AssertionError("Block count must be positive");
-        if(BLOCK_LENGTH<=0) throw new AssertionError("Block length must be positive");
+        if(DEFAULT_BLOCK_COUNT <=0) throw new AssertionError("Block count must be positive");
+        if(DEFAULT_BLOCK_LENGTH <=0) throw new AssertionError("Block length must be positive");
         if(DEFAULT_INPUT_FILENAME==null || DEFAULT_INPUT_FILENAME.length()<4 || !DEFAULT_INPUT_FILENAME.endsWith(".txt"))
             throw new AssertionError("Default input filename must end in \".txt\"");
         if(DEFAULT_OUTPUT_FILENAME==null || DEFAULT_OUTPUT_FILENAME.length()<4 || !DEFAULT_OUTPUT_FILENAME.endsWith(".txt"))
             throw new AssertionError("Default output filename must end in \".txt\"");
-        if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length!=BLOCK_COUNT)
+        if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length!= DEFAULT_BLOCK_COUNT)
             throw new AssertionError("Key block increment length must equal BLOCK_COUNT");
         if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
         if(RESULT_PAGE_LENGTH<1) throw new AssertionError("Result page length must be positive");
@@ -104,7 +110,7 @@ final public class StepperFields {
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
-    //GETTERS
+    //GETTERS, SETTERS
 
 
     /**
@@ -121,6 +127,41 @@ final public class StepperFields {
         return KEY_BLOCK_INCREMENTS[index];
     }
 
+    /**
+     * Returns the current block count stored by the shared fields
+     * @return block count
+     */
+    public static int blockCount() {
+        return blockCount;
+    }
+
+    /**
+     * Sets the current block count to {@code newBlockCount}.
+     * @param newBlockCount block count to change to. Must be on the interval [1, 100]
+     */
+    public static void setBlockCount(int newBlockCount) {
+        if(newBlockCount<=0 || newBlockCount>100)
+            throw new AssertionError("New block count must be on the interval [1,100]");
+        blockCount = newBlockCount;
+    }
+
+    /**
+     * Returns the current block length stored by the shared fields
+     * @return block length
+     */
+    public static int blockLength() {
+        return blockLength;
+    }
+
+    /**
+     * Sets the current block length to {@code newBlockLength}.
+     * @param newBlockLength value to set to. Must be on the interval [1, 100]
+     */
+    public static void setBlockLength(int newBlockLength) {
+        if(newBlockLength<=0 || newBlockLength>100)
+            throw new AssertionError("New block length must be on the interval [1,100]");
+        blockLength = newBlockLength;
+    }
 
     /**
      * Returns the user's stored login credentials

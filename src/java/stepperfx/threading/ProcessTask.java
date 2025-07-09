@@ -143,6 +143,7 @@ public class ProcessTask extends Task<String[]> {
      */
     @Override
     protected String[] call() {
+        //Entire execution is in a try-catch to prevent silent errors
         try {
 
             //Constructor check
@@ -173,7 +174,7 @@ public class ProcessTask extends Task<String[]> {
 
 
             //Make the key
-            byte[][] formattedKey = createKeyBlocks(key, StepperFields.BLOCK_COUNT, StepperFields.BLOCK_LENGTH);
+            byte[][] formattedKey = createKeyBlocks(key, StepperFields.blockCount(), StepperFields.blockLength());
 
             StringBuilder runResult = new StringBuilder(); //Intermediate result
             for (int run = 1; run <= 2; run++) { //run 1 -> diacritics workers, run 2 -> main process workers
@@ -187,7 +188,7 @@ public class ProcessTask extends Task<String[]> {
 
                 //Create subtasks and workloads
                 ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
-                String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, StepperFields.BLOCK_LENGTH);
+                String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, StepperFields.blockLength());
 
                 //Assign worker threads. Run 1 -> diacritics workers, run 2 -> main process workers
                 Task<String>[] subtasks = (run == 1)
@@ -204,7 +205,7 @@ public class ProcessTask extends Task<String[]> {
 
                     //Advance starting segment
                     int charCounts = countAlphaChars(subtaskWorkloads[i]);
-                    startingSegment += charCounts / StepperFields.BLOCK_LENGTH;
+                    startingSegment += charCounts / StepperFields.blockLength();
 
                     if (isCancelled()) {
                         return new String[]{null, null, null, null};
@@ -262,6 +263,7 @@ public class ProcessTask extends Task<String[]> {
             return new String[] {runResult.toString(), createKeyBlocksReverse(formattedKey), null, null};
         }
         catch(Throwable t) {
+            System.err.println("Exception thrown in ProcessTask");
             t.printStackTrace();
             return new String[] {null, null, t.getClass().toString(), t.getMessage()};
         }
@@ -388,6 +390,32 @@ public class ProcessTask extends Task<String[]> {
         return output;
     }
 
+    /**
+     * Returns a byte[][] array with `blocks` indices, each with `charsPerBlock` characters,
+     * containing the text from `input` as numerical values.<br><br>
+     *
+     * -Numerical values: a=0, b=1, c=2... z=25. A=0, B=1, C=2... Z=25. Note: uppercase letters are the same as lowercase letters<br>
+     *
+     * -Before the input can be processed, removeDiacritics must be called on each character of the input.<br>
+     *
+     * -All non-letters (any character that is not an English ASCII letter after removeDiacritics is called) are to be ignored.<br>
+     *
+     * -If `input` contains less than `blocks`*`charsPerBlock` English ASCII letters, any character not filled by `input`
+     * becomes a random value on the interval [0,25]. If `input` contains more than `blocks`*`charsPerBlock` English ASCII letters,
+     * any character past index `blocks`*`charsPerBlock` in the input is ignored.<br><br>
+     *
+     * FOR UNIT TESTING ONLY!!!
+     *
+     * @param input the input text. Can't be null
+     * @param blocks number of indices in the output array. Must be positive
+     * @param charsPerBlock number of indices in each of the output's subarrays. Must be positive
+     * @return `blocks` by `charsPerBlock` byte[][] array loaded with text from `input`
+     */
+    public byte[][] createKeyBlocks_Testing(String input, int blocks, int charsPerBlock) {
+        return createKeyBlocks(input, blocks, charsPerBlock);
+    }
+
+
 
     /**
      * Returns a string representation of the input byte array.<br><br>
@@ -421,32 +449,6 @@ public class ProcessTask extends Task<String[]> {
         }
 
         return output.toString();
-    }
-
-
-    /**
-     * Returns a byte[][] array with `blocks` indices, each with `charsPerBlock` characters,
-     * containing the text from `input` as numerical values.<br><br>
-     *
-     * -Numerical values: a=0, b=1, c=2... z=25. A=0, B=1, C=2... Z=25. Note: uppercase letters are the same as lowercase letters<br>
-     *
-     * -Before the input can be processed, removeDiacritics must be called on each character of the input.<br>
-     *
-     * -All non-letters (any character that is not an English ASCII letter after removeDiacritics is called) are to be ignored.<br>
-     *
-     * -If `input` contains less than `blocks`*`charsPerBlock` English ASCII letters, any character not filled by `input`
-     * becomes a random value on the interval [0,25]. If `input` contains more than `blocks`*`charsPerBlock` English ASCII letters,
-     * any character past index `blocks`*`charsPerBlock` in the input is ignored.<br><br>
-     *
-     * FOR UNIT TESTING ONLY!!!
-     *
-     * @param input the input text. Can't be null
-     * @param blocks number of indices in the output array. Must be positive
-     * @param charsPerBlock number of indices in each of the output's subarrays. Must be positive
-     * @return `blocks` by `charsPerBlock` byte[][] array loaded with text from `input`
-     */
-    public byte[][] createKeyBlocks_Testing(String input, int blocks, int charsPerBlock) {
-        return createKeyBlocks(input, blocks, charsPerBlock);
     }
 
 

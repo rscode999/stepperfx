@@ -179,9 +179,9 @@ public class ProcessSubtaskMain extends Task<String> {
         //Check text contents: all alphabetic lowercase ASCII characters (done during decr. process)
 
         //Check key contents: all indices on [0,25]
-        for(int a=0; a<key.length; a++) {
-            for(int i=0; i<key[a].length; i++) {
-                if(key[a][i]<0 || key[a][i]>25) {
+        for (byte[] bytes : key) {
+            for (byte aByte : bytes) {
+                if (aByte < 0 || aByte > 25) {
                     throw new AssertionError("All key indices must be on the interval [0,25]");
                 }
             }
@@ -196,26 +196,25 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
 
         //Configure block positions
-        byte[] keyBlockPositions=setKeyBlockPositions((long)startSegment * StepperFields.BLOCK_LENGTH + text.length());
+        byte[] keyBlockPositions=setKeyBlockPositions((long)startSegment * key[0].length + text.length(),
+                key.length, key[0].length);
         StringBuilder output = new StringBuilder(text.length());
 
         int currentChar=0;
 
-        byte[] currentKeyBlockPositions=new byte[StepperFields.BLOCK_COUNT];
-        for(int s=0; s<currentKeyBlockPositions.length; s++) {
-            currentKeyBlockPositions[s]=keyBlockPositions[s];
-        }
+        byte[] currentKeyBlockPositions=new byte[key.length];
+        System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
 
-        for(int m = 0; m<(text.length() % StepperFields.BLOCK_LENGTH); m++) {
+        for(int m = 0; m<(text.length() % key[0].length); m++) {
             for(int a=0; a<currentKeyBlockPositions.length; a++) {
                 currentKeyBlockPositions[a]++;
-                if(currentKeyBlockPositions[a] >= StepperFields.BLOCK_LENGTH) {
+                if(currentKeyBlockPositions[a] >= key[0].length) {
                     currentKeyBlockPositions[a]=0;
                 }
             }
         }
 
-        for(int t = text.length()-1; t>=text.length()-(text.length() % StepperFields.BLOCK_LENGTH); t--) {
+        for(int t = text.length()-1; t>=text.length()-(text.length() % key[0].length); t--) {
             if(isCancelled()) {
                 return "";
             }
@@ -223,7 +222,7 @@ public class ProcessSubtaskMain extends Task<String> {
             for(int d=0; d<currentKeyBlockPositions.length; d++) {
                 currentKeyBlockPositions[d]--;
                 if(currentKeyBlockPositions[d] < 0) {
-                    currentKeyBlockPositions[d] = StepperFields.BLOCK_LENGTH-1;
+                    currentKeyBlockPositions[d] = (byte) (key[0].length - 1);
                 }
             }
 
@@ -244,7 +243,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
         }
 
-        for(int seg = text.length()-(text.length() % StepperFields.BLOCK_LENGTH)-1; seg >= 0; seg -= StepperFields.BLOCK_LENGTH) {
+        for(int seg = text.length()-(text.length() % key[0].length)-1; seg >= 0; seg -= key[0].length) {
             if(isCancelled()) {
                 return "";
             }
@@ -255,23 +254,21 @@ public class ProcessSubtaskMain extends Task<String> {
 
                 if(keyBlockPositions[m]<0) {
                     for(int r=0; r<=m; r++) {
-                        keyBlockPositions[m]= StepperFields.BLOCK_LENGTH-1;
+                        keyBlockPositions[m]= (byte) (key[0].length - 1);
                     }
                     keyBlockPositions[m+1]--;
 
                 }
             }
 
-            for(int s=0; s<currentKeyBlockPositions.length; s++) {
-                currentKeyBlockPositions[s]=keyBlockPositions[s];
-            }
+            System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
 
-            for(int t = seg; t>seg - StepperFields.BLOCK_LENGTH; t--) {
+            for(int t = seg; t>seg - key[0].length; t--) {
 
                 for(int d=0; d<currentKeyBlockPositions.length; d++) {
                     currentKeyBlockPositions[d]--;
                     if(currentKeyBlockPositions[d] < 0) {
-                        currentKeyBlockPositions[d]= StepperFields.BLOCK_LENGTH-1;
+                        currentKeyBlockPositions[d ]= (byte) (key[0].length - 1);
                     }
                 }
 
@@ -351,20 +348,21 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
 
         //Configure positions
-        byte[] keyBlockBasePositions=initializeKeyBlockPositions(startingSegment + text.length()/StepperFields.BLOCK_LENGTH);
+        byte[] keyBlockBasePositions = initializeKeyBlockPositions(startingSegment + text.length() / key[0].length, 
+                key.length, key[0].length);
 
         StringBuilder output = new StringBuilder(text.length());
 
         int currentChar=0;
-        int currentBlock = (startingSegment + text.length()/StepperFields.BLOCK_LENGTH);
+        int currentBlock = (startingSegment + text.length() / key[0].length);
 
-        byte[] keyBlockReadPositions=new byte[StepperFields.BLOCK_COUNT];
+        byte[] keyBlockReadPositions=new byte[key.length];
         System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
-        for(int m = 0; m<(text.length() % StepperFields.BLOCK_LENGTH); m++) {
+        for(int m = 0; m<(text.length() % key[0].length); m++) {
             for(int a=0; a<keyBlockReadPositions.length; a++) {
                 keyBlockReadPositions[a]++;
-                if(keyBlockReadPositions[a] >= StepperFields.BLOCK_LENGTH) {
+                if(keyBlockReadPositions[a] >= key[0].length) {
                     keyBlockReadPositions[a]=0;
                 }
             }
@@ -374,12 +372,12 @@ public class ProcessSubtaskMain extends Task<String> {
             return "";
         }
 
-        for(int t = text.length()-1; t>=text.length()-(text.length() % StepperFields.BLOCK_LENGTH); t--) {
+        for(int t = text.length()-1; t>=text.length()-(text.length() % key[0].length); t--) {
 
             for(int d=0; d<keyBlockReadPositions.length; d++) {
                 keyBlockReadPositions[d] -= 1;
                 if(keyBlockReadPositions[d] < 0) {
-                    keyBlockReadPositions[d] = StepperFields.BLOCK_LENGTH-1;
+                    keyBlockReadPositions[d] = (byte) (key[0].length - 1);
                 }
             }
 
@@ -396,14 +394,14 @@ public class ProcessSubtaskMain extends Task<String> {
         }
 
 
-        for(int seg = text.length()-(text.length() % StepperFields.BLOCK_LENGTH)-1; seg>=0; seg-=StepperFields.BLOCK_LENGTH) {
+        for(int seg = text.length()-(text.length() % key[0].length)-1; seg>=0; seg-=key[0].length) {
             if(isCancelled()) {
                 return "";
             }
 
             currentBlock--;
-            if((currentBlock+1) % StepperFields.BLOCK_LENGTH==0) {
-                keyBlockBasePositions = setKeyBlockPositions(currentBlock);
+            if((currentBlock+1) % key[0].length==0) {
+                keyBlockBasePositions = setKeyBlockPositions(currentBlock, key.length, key[0].length);
             }
 
 
@@ -411,18 +409,18 @@ public class ProcessSubtaskMain extends Task<String> {
                 keyBlockBasePositions[m] -= StepperFields.getKeyBlockIncrementIndex(m);
 
                 if(keyBlockBasePositions[m]<0) {
-                    keyBlockBasePositions[m] += StepperFields.BLOCK_LENGTH;
+                    keyBlockBasePositions[m] += (byte) key[0].length;
                 }
             }
 
             System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
-            for(int t = seg; t > seg - StepperFields.BLOCK_LENGTH; t--) {
+            for(int t = seg; t > seg - key[0].length; t--) {
 
                 for(int d=0; d<keyBlockReadPositions.length; d++) {
                     keyBlockReadPositions[d]--;
                     if(keyBlockReadPositions[d] < 0) {
-                        keyBlockReadPositions[d]= StepperFields.BLOCK_LENGTH-1;
+                        keyBlockReadPositions[d]= (byte) (key[0].length - 1);
                     }
                 }
 
@@ -536,9 +534,9 @@ public class ProcessSubtaskMain extends Task<String> {
         }
 
         //Check key contents: all indices on [0,25]
-        for(int a=0; a<key.length; a++) {
-            for(int i=0; i<key[a].length; i++) {
-                if(key[a][i]<0 || key[a][i]>25) {
+        for (byte[] blocks : key) {
+            for (byte aByte : blocks) {
+                if (aByte < 0 || aByte > 25) {
                     throw new AssertionError("All key indices must be on the interval [0,25]");
                 }
             }
@@ -553,25 +551,22 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
         //Start the process
 
-        byte[] keyBlockPositions = setKeyBlockPositions((long)startSegment * (long)StepperFields.BLOCK_LENGTH);
-        byte[] currentKeyBlockPositions = new byte[StepperFields.BLOCK_COUNT];
-        for(int s=0; s<currentKeyBlockPositions.length; s++) {
-            currentKeyBlockPositions[s] = keyBlockPositions[s];
-        }
+        byte[] keyBlockPositions = setKeyBlockPositions((long)startSegment * (long)key[0].length,
+                key.length, key[0].length);
+        byte[] currentKeyBlockPositions = new byte[key.length];
+        System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
 
         StringBuilder output = new StringBuilder(text.length());
         int currentChar=0;
 
-        for(int seg = 0; seg <= text.length()- StepperFields.BLOCK_LENGTH; seg += StepperFields.BLOCK_LENGTH) {
+        for(int seg = 0; seg <= text.length()- key[0].length; seg += key[0].length) {
             if(isCancelled()) {
                 return "";
             }
 
-            for(int pos=0; pos<currentKeyBlockPositions.length; pos++) {
-                currentKeyBlockPositions[pos] = keyBlockPositions[pos];
-            }
+            System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
 
-            for(int t = seg; t<(seg + StepperFields.BLOCK_LENGTH); t++) {
+            for(int t = seg; t<(seg + key[0].length); t++) {
 
                 currentChar=(int)text.charAt(t) - 97;
 
@@ -583,7 +578,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
                 for(int a=0; a<currentKeyBlockPositions.length; a++) {
                     currentKeyBlockPositions[a]++;
-                    if(currentKeyBlockPositions[a] >= StepperFields.BLOCK_LENGTH) {
+                    if(currentKeyBlockPositions[a] >= key[0].length) {
                         currentKeyBlockPositions[a]=0;
                     }
                 }
@@ -593,7 +588,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
             for(int m=0; m<keyBlockPositions.length-1; m++) {
 
-                if(keyBlockPositions[m] >= StepperFields.BLOCK_LENGTH) {
+                if(keyBlockPositions[m] >= key[0].length) {
 
                     for(int r=0; r<=m; r++) {
                         keyBlockPositions[r]=0;
@@ -603,20 +598,18 @@ public class ProcessSubtaskMain extends Task<String> {
 
             }
 
-            if(keyBlockPositions[keyBlockPositions.length-1] >= StepperFields.BLOCK_LENGTH) {
+            if(keyBlockPositions[keyBlockPositions.length-1] >= key[0].length) {
                 Arrays.fill(keyBlockPositions, (byte)0);
             }
 
         }
 
-        for(int pos=0; pos<currentKeyBlockPositions.length; pos++) {
-            currentKeyBlockPositions[pos] = keyBlockPositions[pos];
-        }
+        System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
         if(isCancelled()) {
             return "";
         }
 
-        for(int t = text.length()-(text.length() % StepperFields.BLOCK_LENGTH); t<text.length(); t++) {
+        for(int t = text.length()-(text.length() % key[0].length); t<text.length(); t++) {
 
             currentChar=(int)text.charAt(t) - 97;
 
@@ -628,7 +621,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
             for(int a=0; a<currentKeyBlockPositions.length; a++) {
                 currentKeyBlockPositions[a]++;
-                if(currentKeyBlockPositions[a] >= StepperFields.BLOCK_LENGTH) {
+                if(currentKeyBlockPositions[a] >= key[0].length) {
                     currentKeyBlockPositions[a]=0;
                 }
             }
@@ -689,9 +682,9 @@ public class ProcessSubtaskMain extends Task<String> {
 
         // ////////////////////////
         //Start the process
-
-        byte[] keyBlockBasePositions = initializeKeyBlockPositions(startingSegment);
-        byte[] keyBlockReadPositions = new byte[StepperFields.BLOCK_COUNT];
+        
+        byte[] keyBlockBasePositions = initializeKeyBlockPositions(startingSegment, key.length, key[0].length);
+        byte[] keyBlockReadPositions = new byte[key.length];
         System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
 
@@ -699,14 +692,14 @@ public class ProcessSubtaskMain extends Task<String> {
         int currentChar=0;
         int blocksEncrypted = startingSegment;
 
-        for(int seg = 0; seg <= (text.length() - StepperFields.BLOCK_LENGTH); seg += StepperFields.BLOCK_LENGTH) {
+        for(int seg = 0; seg <= (text.length() - key[0].length); seg += key[0].length) {
             if(isCancelled()) {
                 return "";
             }
 
             System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
-            for(int t = seg; t<(seg + StepperFields.BLOCK_LENGTH); t++) {
+            for(int t = seg; t<(seg + key[0].length); t++) {
 
                 currentChar=(int)text.charAt(t) - 97;
 
@@ -718,18 +711,18 @@ public class ProcessSubtaskMain extends Task<String> {
 
                 for(int a=0; a<keyBlockReadPositions.length; a++) {
                     keyBlockReadPositions[a]++;
-                    if(keyBlockReadPositions[a] >= StepperFields.BLOCK_LENGTH) {
+                    if(keyBlockReadPositions[a] >= key[0].length) {
                         keyBlockReadPositions[a]=0;
                     }
                 }
             }
 
             for(int r=0; r<keyBlockBasePositions.length; r++) {
-                keyBlockBasePositions[r] = (byte) ((keyBlockBasePositions[r] + StepperFields.getKeyBlockIncrementIndex(r)) % StepperFields.BLOCK_LENGTH);
+                keyBlockBasePositions[r] = (byte) ((keyBlockBasePositions[r] + StepperFields.getKeyBlockIncrementIndex(r)) % key[0].length);
             }
 
-            if((blocksEncrypted+1) % StepperFields.BLOCK_LENGTH == 0) {
-                keyBlockBasePositions = setKeyBlockPositions(blocksEncrypted+2);
+            if((blocksEncrypted+1) % key[0].length == 0) {
+                keyBlockBasePositions = setKeyBlockPositions(blocksEncrypted+2, key.length, key[0].length);
             }
 
             blocksEncrypted++;
@@ -741,7 +734,7 @@ public class ProcessSubtaskMain extends Task<String> {
             return "";
         }
 
-        for(int t = text.length()-(text.length() % StepperFields.BLOCK_LENGTH); t<text.length(); t++) {
+        for(int t = text.length()-(text.length() % key[0].length); t<text.length(); t++) {
 
             currentChar=(int)text.charAt(t) - 97;
 
@@ -753,7 +746,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
             for(int a=0; a<keyBlockReadPositions.length; a++) {
                 keyBlockReadPositions[a]++;
-                if(keyBlockReadPositions[a] >= StepperFields.BLOCK_LENGTH) {
+                if(keyBlockReadPositions[a] >= key[0].length) {
                     keyBlockReadPositions[a]=0;
                 }
             }
@@ -863,18 +856,20 @@ public class ProcessSubtaskMain extends Task<String> {
      * Helper to the operation functions.
      *
      * @param segments number of blocks encrypted so far, non-negative
+     * @param blockCount number of blocks in the key
+     * @param blockLength length of each block in the key
      * @return key block positions after encrypting {@code segments} segments
      */
-    private byte[] initializeKeyBlockPositions(long segments) {
+    private byte[] initializeKeyBlockPositions(long segments, int blockCount, int blockLength) {
         assert segments >= 0;
 
-        byte[] output = setKeyBlockPositions(segments);
+        byte[] output = setKeyBlockPositions(segments, blockCount, blockLength);
 
         //Simulate moving through the remainder of the blocks
-        for(int b = 0; b < segments%StepperFields.BLOCK_LENGTH; b++) {
+        for(int b = 0; b < segments % blockLength; b++) {
             //Increment each index of the output
             for(int i=0; i<output.length; i++) {
-                output[i] = (byte) ((output[i] + StepperFields.getKeyBlockIncrementIndex(i)) % StepperFields.BLOCK_LENGTH);
+                output[i] = (byte) ((output[i] + StepperFields.getKeyBlockIncrementIndex(i)) % blockLength);
             }
         }
 
@@ -1066,44 +1061,47 @@ public class ProcessSubtaskMain extends Task<String> {
 
 
     /**
-     * Returns the key block positions for the given text length.<br><br>
+     * Returns the unenhanced (v1) key block positions for the given text length,
+     * number of blocks, and length of each block.<br><br>
      *
      * Important note: this method uses text length, not the number of blocks that are in the text.<br><br>
      *
      * Helper to the operation functions.
      *
      * @param textLength length of text. Must be at least 0
-     * @return key block positions
+     * @param blockCount number of key blocks used. Must be positive
+     * @param blockLength number of characters in each key block. Must be positive
+     * @return key block positions for the given length, block count, and block length
      */
-    private byte[] setKeyBlockPositions(long textLength) {
-        //Check text length: must be non-negative
-        if(textLength < 0) throw new AssertionError("Text length cannot be negative");
-
+    private byte[] setKeyBlockPositions(long textLength, int blockCount, int blockLength) {
+        //Check parameters
+        if(textLength < 0) throw new AssertionError("Text length cannot be negative, instead received " + textLength);
+        if(blockCount < 0) throw new AssertionError("Block count must be positive, instead received " + blockCount);
+        if(blockLength < 0) throw new AssertionError("Block length must be positive, instead received " + blockLength);
+        
         //Set the output array, assign all empty space to 0
-        byte[] result = new byte[StepperFields.BLOCK_COUNT];
+        byte[] result = new byte[blockCount];
 
         long quotient=textLength;
         double decimalPortion=0;
 
         //Eliminate block spill-overs.
-        quotient = quotient % ((long)Math.pow(StepperFields.BLOCK_LENGTH, StepperFields.BLOCK_COUNT));
+        quotient = quotient % ((long)Math.pow(blockLength, blockCount+1));
 
         //Divide quotient and take only the portion to the left of the decimal point
-        quotient = quotient / StepperFields.BLOCK_LENGTH;
+        quotient = quotient / blockLength;
 
 
-        //Much like converting a base-10 number to a base-BLOCK_LENGTH number
-        //The lowest value digits end up on the right side.
-        for(int i=result.length-1; i>=0; i--) {
+        for(int i = result.length-1; i >= 0; i--) {
 
             //Divide quotient and take only the portion to the right of the decimal point
-            decimalPortion = (double)quotient / StepperFields.BLOCK_LENGTH - quotient / StepperFields.BLOCK_LENGTH;
+            decimalPortion = (double)quotient / blockLength - quotient / blockLength;
             //Divide quotient and keep only the portion to the left of the decimal point
-            quotient = quotient / (long) StepperFields.BLOCK_LENGTH;
+            quotient = quotient / (long) blockLength;
 
 
             //Convert the decimal portion to a digit and add to the result
-            result[i] = (byte)(Math.round(decimalPortion * StepperFields.BLOCK_LENGTH));
+            result[i] = (byte)(Math.round(decimalPortion * blockLength));
 
             if(quotient <= 0) {
                 break;
@@ -1119,19 +1117,22 @@ public class ProcessSubtaskMain extends Task<String> {
 
         return output;
     }
-
+    
     /**
-     * Returns the key block positions for the given text length.<br><br>
+     * Returns the unenhanced (v1) key block positions for the given text length,
+     * number of blocks, and length of each block.<br><br>
      *
      * Important note: this method uses text length, not the number of blocks that are in the text.<br><br>
      *
      * FOR TESTING PURPOSES ONLY!
      *
      * @param textLength length of text. Must be at least 0
-     * @return key block positions
+     * @param blockCount number of key blocks used
+     * @param blockLength number of characters in each key block
+     * @return key block positions for the given length, block count, and block length
      */
-    public byte[] setKeyBlockPositions_Testing(long textLength) {
-        return setKeyBlockPositions(textLength);
+    public byte[] setKeyBlockPositions_Testing(long textLength, int blockCount, int blockLength) {
+        return setKeyBlockPositions(textLength, blockCount, blockLength);
     }
 
 }
