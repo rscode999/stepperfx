@@ -1,9 +1,10 @@
 package stepperfx.threading;
 
 import javafx.concurrent.Task;
-import stepperfx.StepperFields;
 
 import java.util.Arrays;
+
+import static stepperfx.StepperFields.getKeyBlockIncrementIndex;
 
 /**
  * Performs part of the work of a ProcessTask
@@ -28,7 +29,7 @@ public class ProcessSubtaskMain extends Task<String> {
     /**
      * Allowed values: 0 if including punctuation, 1 if excluding spaces, 2 if alphabetic characters only
      */
-    final private byte punctMode;
+    final private int punctMode;
 
     /**
      * The segment number in the Boss's input string. Can't be negative
@@ -52,23 +53,23 @@ public class ProcessSubtaskMain extends Task<String> {
      * @param startSegment text segment to start processing the input. Cannot be negative
      */
     public ProcessSubtaskMain(String textPiece, byte[][] key, boolean encrypting, boolean usingV2Process,
-                              byte punctMode, int startSegment) {
+                              int punctMode, int startSegment) {
 
         if(textPiece==null) throw new AssertionError("Input text cannot be null");
         if(key==null) throw new AssertionError("Key cannot be null");
-        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on the interval [0,2]");
-        if(startSegment<0) throw new AssertionError("Start segment cannot be negative");
+        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on the interval [0,2]- instead received " + punctMode);
+        if(startSegment<0) throw new AssertionError("Start segment cannot be negative- instead received " + startSegment);
 
         this.textPiece = textPiece;
 
         //Make a deep copy of the key
-        if(key[0]==null) throw new AssertionError("All indices in the key cannot be null");
+        if(key[0]==null) throw new AssertionError("Key array at index 0 cannot be null");
         this.key = new byte[key.length][key[0].length];
         for(int a=0; a<key.length; a++) {
-            if(key[a]==null) throw new AssertionError("All indices in the key cannot be null");
+            if(key[a]==null) throw new AssertionError("Key array at index " + a + " cannot be null");
 
             for(int i=0; i<key[0].length; i++) {
-                if(key[a][i]<0 || key[a][i]>25) throw new AssertionError("All indices in the key must be on the interval [0,25]");
+                if(key[a][i]<0 || key[a][i]>25) throw new AssertionError("Key value [" + a + "][" + i + "] must be on the interval [0,25]- instead received " + key[a][i]);
                 this.key[a][i] = key[a][i];
             }
         }
@@ -105,7 +106,7 @@ public class ProcessSubtaskMain extends Task<String> {
      * Processes the subtask's inputs, returning an output.
      * @return the output of processing
      */
-    public String call() {
+    protected String call() {
         //Constructor check
         if(textPiece==null || key==null || punctMode<0 || punctMode>2 || startSegment<0) {
             throw new AssertionError("PROCESS SUBTASK MAIN- TESTING CONSTRUCTOR USED FOR OPERATIONS");
@@ -356,10 +357,10 @@ public class ProcessSubtaskMain extends Task<String> {
         int currentChar=0;
         int currentBlock = (startingSegment + text.length() / key[0].length);
 
-        byte[] keyBlockReadPositions=new byte[key.length];
+        byte[] keyBlockReadPositions = new byte[key.length];
         System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
-        for(int m = 0; m<(text.length() % key[0].length); m++) {
+        for(int m = 0; m < (text.length() % key[0].length); m++) {
             for(int a=0; a<keyBlockReadPositions.length; a++) {
                 keyBlockReadPositions[a]++;
                 if(keyBlockReadPositions[a] >= key[0].length) {
@@ -372,7 +373,7 @@ public class ProcessSubtaskMain extends Task<String> {
             return "";
         }
 
-        for(int t = text.length()-1; t>=text.length()-(text.length() % key[0].length); t--) {
+        for(int t = text.length()-1; t >= text.length()-(text.length() % key[0].length); t--) {
 
             for(int d=0; d<keyBlockReadPositions.length; d++) {
                 keyBlockReadPositions[d] -= 1;
@@ -382,7 +383,7 @@ public class ProcessSubtaskMain extends Task<String> {
             }
 
             currentChar=text.charAt(t) - 97;
-            for(int k=keyBlockReadPositions.length-1; k>=0; k--) {
+            for(int k = keyBlockReadPositions.length-1; k >= 0; k--) {
                 currentChar = (currentChar - key[k][keyBlockReadPositions[k]]) % 26;
                 if(currentChar < 0) {
                     currentChar += 26;
@@ -394,7 +395,7 @@ public class ProcessSubtaskMain extends Task<String> {
         }
 
 
-        for(int seg = text.length()-(text.length() % key[0].length)-1; seg>=0; seg-=key[0].length) {
+        for(int seg = text.length()-(text.length() % key[0].length)-1; seg >= 0; seg -= key[0].length) {
             if(isCancelled()) {
                 return "";
             }
@@ -406,7 +407,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
 
             for(int m=0; m<keyBlockBasePositions.length; m++) {
-                keyBlockBasePositions[m] -= StepperFields.getKeyBlockIncrementIndex(m);
+                keyBlockBasePositions[m] -= getKeyBlockIncrementIndex(m);
 
                 if(keyBlockBasePositions[m]<0) {
                     keyBlockBasePositions[m] += (byte) key[0].length;
@@ -464,16 +465,16 @@ public class ProcessSubtaskMain extends Task<String> {
         }
 
         int decrKey = 0;
-        for(byte[] block : key) {
-            if(block==null) {
+        for(byte[] b : key) {
+            if(b==null) {
                 throw new AssertionError("All blocks in the key cannot be null");
             }
 
-            for(byte letter : block) {
-                if(letter<0 || letter>25) {
+            for(byte i : b) {
+                if(i<0 || i>25) {
                     throw new AssertionError("All indices in the key must be on the interval [0, 25]");
                 }
-                decrKey += letter;
+                decrKey += i;
             }
         }
 
@@ -718,7 +719,7 @@ public class ProcessSubtaskMain extends Task<String> {
             }
 
             for(int r=0; r<keyBlockBasePositions.length; r++) {
-                keyBlockBasePositions[r] = (byte) ((keyBlockBasePositions[r] + StepperFields.getKeyBlockIncrementIndex(r)) % key[0].length);
+                keyBlockBasePositions[r] = (byte) ((keyBlockBasePositions[r] + getKeyBlockIncrementIndex(r)) % key[0].length);
             }
 
             if((blocksEncrypted+1) % key[0].length == 0) {
@@ -758,8 +759,8 @@ public class ProcessSubtaskMain extends Task<String> {
 
     /**
      * Returns a copy of {@code input}, but with numbers encrypted using {@code key}.<br><br>
-     *
      * Any non-number is unchanged in the output.
+     *
      * @param input the input text segment. Cannot be null
      * @param key key to encrypt with. Cannot be null. All indices must be on the interval [0, 25]
      * @return copy of input, but with numbers encrypted
@@ -771,16 +772,16 @@ public class ProcessSubtaskMain extends Task<String> {
         }
 
         int decrKey = 0;
-        for(byte[] block : key) {
-            if(block==null) {
+        for(byte[] b : key) {
+            if(b==null) {
                 throw new AssertionError("All blocks in the key cannot be null");
             }
 
-            for(byte letter : block) {
-                if(letter<0 || letter>25) {
+            for(byte i : b) {
+                if(i<0 || i>25) {
                     throw new AssertionError("All indices in the key must be on the interval [0, 25]");
                 }
-                decrKey += letter;
+                decrKey += i;
             }
         }
         decrKey = decrKey % 26;
@@ -869,7 +870,7 @@ public class ProcessSubtaskMain extends Task<String> {
         for(int b = 0; b < segments % blockLength; b++) {
             //Increment each index of the output
             for(int i=0; i<output.length; i++) {
-                output[i] = (byte) ((output[i] + StepperFields.getKeyBlockIncrementIndex(i)) % blockLength);
+                output[i] = (byte) ((output[i] + getKeyBlockIncrementIndex(i)) % blockLength);
             }
         }
 
@@ -1075,9 +1076,9 @@ public class ProcessSubtaskMain extends Task<String> {
      */
     private byte[] setKeyBlockPositions(long textLength, int blockCount, int blockLength) {
         //Check parameters
-        if(textLength < 0) throw new AssertionError("Text length cannot be negative, instead received " + textLength);
-        if(blockCount < 0) throw new AssertionError("Block count must be positive, instead received " + blockCount);
-        if(blockLength < 0) throw new AssertionError("Block length must be positive, instead received " + blockLength);
+        if(textLength < 0) throw new AssertionError("Text length cannot be negative- instead received " + textLength);
+        if(blockCount <= 0) throw new AssertionError("Block count must be positive- instead received " + blockCount);
+        if(blockLength <= 0) throw new AssertionError("Block length must be positive- instead received " + blockLength);
         
         //Set the output array, assign all empty space to 0
         byte[] result = new byte[blockCount];
@@ -1098,7 +1099,6 @@ public class ProcessSubtaskMain extends Task<String> {
             decimalPortion = (double)quotient / blockLength - quotient / blockLength;
             //Divide quotient and keep only the portion to the left of the decimal point
             quotient = quotient / (long) blockLength;
-
 
             //Convert the decimal portion to a digit and add to the result
             result[i] = (byte)(Math.round(decimalPortion * blockLength));

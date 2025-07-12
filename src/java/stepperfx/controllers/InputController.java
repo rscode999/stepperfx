@@ -3,14 +3,10 @@ package stepperfx.controllers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
@@ -435,7 +431,7 @@ final public class InputController extends IntegratedController {
         boolean encrypting = !modeSelector.getValue().equals(MODE_OPTIONS[2]);
 
         //Set punctuation mode
-        byte punctMode = 0;
+        int punctMode = 0;
         if (punctSelector.getValue().equals(PUNCT_OPTIONS[3])) {
             punctMode = 2;
         }
@@ -460,13 +456,14 @@ final public class InputController extends IntegratedController {
             substr = substr.substring(9);
             threadCount = Integer.parseInt(substr);
         }
-        if(fields.loginCredentials() != 0) {
+        if(fields.getLoginCredentials() != 0) {
             threadCount = 0;
         }
 
-
         fields.startService(textInput.getText().strip(), keyInput.getText().strip(), encrypting, v2Selector.isSelected(),
-                punctMode, loadingFromFile, threadCount);
+                fields.getBlockCount(), fields.getBlockLength(),
+                punctMode,
+                loadingFromFile, threadCount);
 
     }
 }

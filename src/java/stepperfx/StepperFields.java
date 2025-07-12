@@ -38,6 +38,16 @@ final public class StepperFields {
     final private static byte[] KEY_BLOCK_INCREMENTS = {2,3,5,7,11,13};
 
     /**
+     * Maximum amount of key blocks possible. Must be positive.
+     */
+    final public static int MAX_BLOCK_COUNT = 100;
+
+    /**
+     * Maximum length of each key block. Must be positive.
+     */
+    final public static int MAX_BLOCK_LENGTH = 100;
+
+    /**
      * The maximum amount of threads that the app can use. Must be at least 1
      */
     final public static int MAX_THREADS = 999;
@@ -65,12 +75,12 @@ final public class StepperFields {
     /**
      * EXPERIMENTAL
      */
-    private static int blockCount = DEFAULT_BLOCK_COUNT;
+    private byte blockCount = DEFAULT_BLOCK_COUNT;
 
     /**
      * EXPERIMENTAL
      */
-    private static int blockLength = DEFAULT_BLOCK_LENGTH;
+    private byte blockLength = DEFAULT_BLOCK_LENGTH;
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -102,6 +112,8 @@ final public class StepperFields {
             throw new AssertionError("Default output filename must end in \".txt\"");
         if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length!= DEFAULT_BLOCK_COUNT)
             throw new AssertionError("Key block increment length must equal BLOCK_COUNT");
+        if(MAX_BLOCK_COUNT <= 0) throw new AssertionError("Max block count must be positive");
+        if(MAX_BLOCK_LENGTH <= 0) throw new AssertionError("Max block length must be positive");
         if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
         if(RESULT_PAGE_LENGTH<1) throw new AssertionError("Result page length must be positive");
     }
@@ -114,15 +126,15 @@ final public class StepperFields {
 
 
     /**
-     * Returns the value at index {@code index} of the key block increments
-     * @param index index to retrieve
-     * @return index of block increments
+     * Returns the value at index {@code index} of the app's key block increments array.
+     * @param index index to retrieve in the key block increments
+     * @return value at specified index of the increments array
      * @throws ArrayIndexOutOfBoundsException if the index is outside the array's range
      */
     public static byte getKeyBlockIncrementIndex(int index) {
         if(index<0 || index>=KEY_BLOCK_INCREMENTS.length) {
             throw new ArrayIndexOutOfBoundsException("The given index ( " + index +
-                    ") must be in the interval [0, " + (KEY_BLOCK_INCREMENTS.length-1) + "]");
+                    ") must be in the interval [0, " + (KEY_BLOCK_INCREMENTS.length-1) + "]- instead received " + index);
         }
         return KEY_BLOCK_INCREMENTS[index];
     }
@@ -131,7 +143,7 @@ final public class StepperFields {
      * Returns the current block count stored by the shared fields
      * @return block count
      */
-    public static int blockCount() {
+    public byte getBlockCount() {
         return blockCount;
     }
 
@@ -139,7 +151,7 @@ final public class StepperFields {
      * Sets the current block count to {@code newBlockCount}.
      * @param newBlockCount block count to change to. Must be on the interval [1, 100]
      */
-    public static void setBlockCount(int newBlockCount) {
+    public void setBlockCount(byte newBlockCount) {
         if(newBlockCount<=0 || newBlockCount>100)
             throw new AssertionError("New block count must be on the interval [1,100]");
         blockCount = newBlockCount;
@@ -149,7 +161,7 @@ final public class StepperFields {
      * Returns the current block length stored by the shared fields
      * @return block length
      */
-    public static int blockLength() {
+    public byte getBlockLength() {
         return blockLength;
     }
 
@@ -157,7 +169,7 @@ final public class StepperFields {
      * Sets the current block length to {@code newBlockLength}.
      * @param newBlockLength value to set to. Must be on the interval [1, 100]
      */
-    public static void setBlockLength(int newBlockLength) {
+    public void setBlockLength(byte newBlockLength) {
         if(newBlockLength<=0 || newBlockLength>100)
             throw new AssertionError("New block length must be on the interval [1,100]");
         blockLength = newBlockLength;
@@ -167,7 +179,7 @@ final public class StepperFields {
      * Returns the user's stored login credentials
      * @return login credentials
      */
-    public int loginCredentials() {
+    public int getLoginCredentials() {
         return loginCredentials;
     }
 
@@ -238,22 +250,33 @@ final public class StepperFields {
      * @param key key for processing the input. Cannot be null
      * @param encrypting true if the service will encrypt, false if the service will decrypt
      * @param usingV2Process true if using enhanced (v2) processes, false otherwise
+     * @param blockCount number of blocks to use. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_COUNT}]
+     * @param blockLength number of characters in each block to use. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_LENGTH}]
      * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
      *                  2 if the task processes the input with all punctuation
      * @param loadingFromFile true if loading input from a separate file, false otherwise
-     * @param nThreads number of threads to use during processing. Must be on the interval [0, MAX_THREADS]
+     * @param nThreads number of threads to use during processing. Must be on the interval [0, {@code StepperFields.MAX_THREADS}]
      * @throws IllegalStateException if the service is not ready to be run
      */
-    public void startService(String input, String key, boolean encrypting, boolean usingV2Process, byte punctMode,
+    public void startService(String input, String key, boolean encrypting, boolean usingV2Process,
+                             int blockCount, int blockLength,
+                             int punctMode,
                              boolean loadingFromFile, int nThreads) {
 
         if(input == null) throw new AssertionError("Input cannot be null");
         if(key==null) throw new AssertionError("Key cannot be null");
-        if(nThreads<0 || nThreads>MAX_THREADS) throw new AssertionError("Number of threads (" + nThreads + ")" +
+        if(blockCount<=0 || blockCount>MAX_BLOCK_COUNT) throw new AssertionError("Block count (value: " + blockCount + ") must be on the interval [1, " + MAX_BLOCK_COUNT + "]");
+        if(blockLength<=0 || blockLength>MAX_BLOCK_COUNT) throw new AssertionError("Block length (value: " + blockLength + ") must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
+        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode (value: " + punctMode + ") must be 0, 1, or 2");
+        if(nThreads<0 || nThreads>MAX_THREADS) throw new AssertionError("Number of threads (value: " + nThreads + ")" +
                 " must be on the interval [0, " + MAX_THREADS + "]");
 
         if(service.getState() == Worker.State.READY) {
-            service.initializeService(input, key, encrypting, usingV2Process, punctMode, loadingFromFile, nThreads);
+            service.initializeService(input, key, encrypting, usingV2Process,
+                    blockCount, blockLength,
+                    punctMode,
+                    loadingFromFile, nThreads);
+
             service.start();
         }
         else {

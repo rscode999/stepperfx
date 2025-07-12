@@ -2,6 +2,7 @@ package stepperfx.threading;
 
 import javafx.concurrent.Task;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Worker thread that removes diacritics and non-ASCII numbers from its given input
@@ -64,12 +65,15 @@ public class ProcessSubtaskDiacritics extends Task<String> {
                 '2', '3', '4', '5', '6', '7', '8', '9', '-'};
 
         HashMap<Character, Character> charMap = new HashMap<>(accentedChars.length);
+        HashSet<Character> accentedCharSet = new HashSet<>(56);
 
-        //load the map
+        //load the map and checking set
         for(int a=0; a<accentedChars.length; a++) {
             //assign each character in the current accented char string as a key to map the corresponding replacement char
+            //load each accented char into the checking set
             for(int r=0; r<accentedChars[a].length(); r++) {
                 charMap.put(accentedChars[a].charAt(r), replacementChars[a]);
+                accentedCharSet.add(accentedChars[a].charAt(r));
             }
         }
 
@@ -83,8 +87,8 @@ public class ProcessSubtaskDiacritics extends Task<String> {
             //lowercase the character
             currentChar = Character.toLowerCase(input.charAt(i));
 
-            //check if the character is in the map: if so, convert it
-            if(charMap.containsKey(currentChar)) {
+            //check if the character is tracked by the map (i.e. it's in the accented char set): if so, convert it
+            if(accentedCharSet.contains(currentChar)) {
                 currentChar = charMap.get(currentChar);
             }
 
@@ -94,8 +98,6 @@ public class ProcessSubtaskDiacritics extends Task<String> {
             if(isCancelled()) {
                 return "";
             }
-
-            updateProgress(i, input.length());
         }
 
         return output.toString();

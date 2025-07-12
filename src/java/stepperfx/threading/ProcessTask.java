@@ -14,6 +14,8 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static stepperfx.StepperFields.*;
+
 /**
  * Processes the input on a separate thread.<br><br>
  *
@@ -37,6 +39,16 @@ public class ProcessTask extends Task<String[]> {
 
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Number of blocks to use in processes
+     */
+    private int blockCount;
+
+    /**
+     * Number of characters per block to use in processes
+     */
+    private int blockLength;
 
     /**
      * True if using version 2 processes, false otherwise
@@ -70,7 +82,7 @@ public class ProcessTask extends Task<String[]> {
      *
      * No other value is allowed.
      */
-    private byte punctMode;
+    private int punctMode;
 
     /**
      * Whether the service's task will load its input from a file
@@ -85,16 +97,25 @@ public class ProcessTask extends Task<String[]> {
      * @param key key to process the input with. Cannot be null
      * @param encrypting true if the service encrypts, false if the service decrypts
      * @param doingV2Process true if using enhanced (v2) processes, false otherwise
+     * @param blocks number of blocks to use. Must be positive
+     * @param charsPerBlock number of characters in each block to use. Must be positive
      * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
      *                  2 if the task processes the input with all punctuation
      * @param usingFileInput whether to load input from a file
      * @param nWorkerThreads number of threads to use during processing. Must be on the interval [0, StepperFields.MAX_THREADS]
      */
     public ProcessTask(String input, String key, boolean encrypting, boolean doingV2Process,
-                       byte punctMode, boolean usingFileInput, int nWorkerThreads) {
+                       int blocks, int charsPerBlock,
+                       int punctMode, boolean usingFileInput, int nWorkerThreads) {
+
         if(input==null) throw new AssertionError("Input cannot be null");
         if(key==null) throw new AssertionError("Key cannot be null");
-        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on the interval [0,2]- received " + punctMode);
+        if(blocks<=0 || blocks>MAX_BLOCK_COUNT) throw new AssertionError("Blocks must be on the interval" +
+                " [1, " + MAX_BLOCK_COUNT + "]- received " + blocks);
+        if(charsPerBlock<=0 || charsPerBlock>MAX_BLOCK_LENGTH) throw new AssertionError("Chars per block " +
+                "must be on the interval [1, " + MAX_BLOCK_LENGTH + "]- received " + charsPerBlock);
+        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on " +
+                "the interval [0,2]- received " + punctMode);
         if(nWorkerThreads<0 || nWorkerThreads>StepperFields.MAX_THREADS)
             throw new AssertionError("Number of worker threads must be on the interval [0, " + StepperFields.MAX_THREADS
             + "]- received " + nWorkerThreads);
@@ -103,8 +124,10 @@ public class ProcessTask extends Task<String[]> {
         this.key = key;
         this.encrypting = encrypting;
         this.doingV2Process = doingV2Process;
-        this.usingFileInput = usingFileInput;
+        this.blockCount = blocks;
+        this.blockLength = charsPerBlock;
         this.punctMode = punctMode;
+        this.usingFileInput = usingFileInput;
         this.nWorkerThreads = nWorkerThreads;
     }
 
@@ -116,6 +139,8 @@ public class ProcessTask extends Task<String[]> {
         this.key = null;
         this.encrypting = false;
         this.doingV2Process = false;
+        this.blockCount = -1;
+        this.blockLength = -1;
         this.usingFileInput = false;
         this.punctMode = -127;
         this.nWorkerThreads = -1;
@@ -174,7 +199,7 @@ public class ProcessTask extends Task<String[]> {
 
 
             //Make the key
-            byte[][] formattedKey = createKeyBlocks(key, StepperFields.blockCount(), StepperFields.blockLength());
+            byte[][] formattedKey = createKeyBlocks(key, blockCount, blockLength);
 
             StringBuilder runResult = new StringBuilder(); //Intermediate result
             for (int run = 1; run <= 2; run++) { //run 1 -> diacritics workers, run 2 -> main process workers
@@ -188,7 +213,7 @@ public class ProcessTask extends Task<String[]> {
 
                 //Create subtasks and workloads
                 ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
-                String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, StepperFields.blockLength());
+                String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, blockLength);
 
                 //Assign worker threads. Run 1 -> diacritics workers, run 2 -> main process workers
                 Task<String>[] subtasks = (run == 1)
@@ -205,7 +230,7 @@ public class ProcessTask extends Task<String[]> {
 
                     //Advance starting segment
                     int charCounts = countAlphaChars(subtaskWorkloads[i]);
-                    startingSegment += charCounts / StepperFields.blockLength();
+                    startingSegment += charCounts / (int)blockLength;
 
                     if (isCancelled()) {
                         return new String[]{null, null, null, null};
@@ -475,7 +500,7 @@ public class ProcessTask extends Task<String[]> {
 
         //Create file from default or the top text input
         if(filepath.isEmpty()) {
-            inputFile = new File(StepperFields.DEFAULT_INPUT_FILENAME);
+            inputFile = new File(DEFAULT_INPUT_FILENAME);
         }
         else {
             inputFile = new File(filepath);
@@ -755,7 +780,7 @@ public class ProcessTask extends Task<String[]> {
 
         //Create file from default or the top text input
         if (filepath.isEmpty()) {
-            inputFile = new File(StepperFields.DEFAULT_INPUT_FILENAME);
+            inputFile = new File(DEFAULT_INPUT_FILENAME);
         } else {
             inputFile = new File(filepath);
         }
