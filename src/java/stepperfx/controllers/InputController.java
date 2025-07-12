@@ -2,6 +2,7 @@ package stepperfx.controllers;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
@@ -11,7 +12,12 @@ import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
 
+import javax.swing.*;
+import java.util.Arrays;
 import java.util.Optional;
+
+import static stepperfx.StepperFields.MAX_BLOCK_COUNT;
+import static stepperfx.StepperFields.MAX_BLOCK_LENGTH;
 
 /**
  * Controller for the user input screen. Responsible for updating the input screen and starting the shared Service.<br>
@@ -351,69 +357,128 @@ final public class InputController extends IntegratedController {
     @FXML
     private void showSettingsPopup() {
         //Creating a dialog
-        Dialog<String[]> settingsPopup = new Dialog<>();
+        Dialog<Integer[]> settingsPopup = new Dialog<>();
         //Setting the title
-        settingsPopup.setTitle("Dialog");
-
-        //Setting Cancel and OK button, with their functionality
-        ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType enterButtonType = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        settingsPopup.getDialogPane().getButtonTypes().add(cancelButtonType);
-        settingsPopup.getDialogPane().getButtonTypes().add(enterButtonType);
+        settingsPopup.setTitle("Key Settings");
 
 
         //Dialog's title
-        Label title = new Label("Settings");
+        Label title = new Label("Key Settings");
         title.translateYProperty().setValue(-5);
         title.fontProperty().setValue(new Font("Trebuchet MS", 15));
 
         //Top text input label
-        Label topInputLabel = new Label("Number of blocks");
-        topInputLabel.translateYProperty().setValue(10);
-        topInputLabel.fontProperty().setValue(new Font("Trebuchet MS", 10));
+        Label blockCountInputLabel = new Label("Enter number of blocks");
+        blockCountInputLabel.translateYProperty().setValue(10);
+        blockCountInputLabel.fontProperty().setValue(new Font("Trebuchet MS", 10));
+
+        //Sublabel
+        Label blockCountLabel = new Label("Current number of blocks: " + fields.getBlockCount());
+        blockCountLabel.fontProperty().setValue(new Font("Trebuchet MS", 9));
 
         //Top text input
-        TextField topInput = new TextField();
+        TextField blockCountInput = new TextField();
 
         //Bottom text input label
-        Label bottomInputLabel = new Label("Block length");
-        bottomInputLabel.translateYProperty().setValue(10);
-        bottomInputLabel.fontProperty().setValue(new Font("Trebuchet MS", 10));
+        Label blockLengthInputLabel = new Label("Enter block length");
+        blockLengthInputLabel.translateYProperty().setValue(10);
+        blockLengthInputLabel.fontProperty().setValue(new Font("Trebuchet MS", 10));
+
+        Label blockLengthLabel = new Label("Current block length: " + fields.getBlockLength());
+        blockLengthLabel.fontProperty().setValue(new Font("Trebuchet MS", 9));
 
         //Bottom text input label
-        TextField bottomInput = new TextField();
+        TextField blockLengthInput = new TextField();
+
+        //Warning text
+        Label errorText = new Label(" ");
+        errorText.fontProperty().setValue(new Font("Trebuchet MS", 8));
+        errorText.setWrapText(true);
+
+        //"Apply Changes" (enter) and "Done" (close) buttons
+        ButtonType enterButtonType = new ButtonType("Apply Changes", ButtonBar.ButtonData.APPLY);
+        ButtonType doneButtonType = new ButtonType("Done", ButtonBar.ButtonData.CANCEL_CLOSE);
+        settingsPopup.getDialogPane().getButtonTypes().addAll(doneButtonType, enterButtonType);
+
 
         //Content container
-        VBox settingsPopupContents = new VBox(title, topInputLabel, topInput, bottomInputLabel, bottomInput);
+        VBox settingsPopupContents = new VBox(title, blockCountInputLabel, blockCountLabel, blockCountInput,
+                blockLengthInputLabel, blockLengthLabel, blockLengthInput, errorText);
         settingsPopupContents.setSpacing(15);
+        settingsPopupContents.setPrefSize(200, 200);
+
+
+        final Button applyChangesButton = (Button) settingsPopup.getDialogPane().lookupButton(enterButtonType);
+        //Do error checking on the inputs
+        applyChangesButton.addEventFilter(ActionEvent.ACTION,
+        event -> {
+                // Check whether some conditions are fulfilled
+                if (blockCountInput.getText().isEmpty() || blockLengthInput.getText().isEmpty()) {
+                    errorText.setText("Inputs cannot be empty");
+                    //Consume the event so the dialog doesn't close
+                    event.consume();
+                    return;
+                }
+
+                // Do integer check
+                int topInputInt = -1;
+                int bottomInputInt = -1;
+                try {
+                    topInputInt = (int)Float.parseFloat(blockCountInput.getText());
+                }
+                catch(NumberFormatException e) {
+                    errorText.setText("Number of blocks must be an integer");
+                    event.consume();
+                    return;
+                }
+                try {
+                    bottomInputInt = (int)Float.parseFloat(blockLengthInput.getText());
+                }
+                catch(NumberFormatException e) {
+                    errorText.setText("Block length must be an integer");
+                    event.consume();
+                    return;
+                }
+
+                //Do bounds check
+                if(topInputInt<=0 || topInputInt>MAX_BLOCK_COUNT) {
+                    errorText.setText("Number of blocks must be between 1 and " + MAX_BLOCK_COUNT);
+                    event.consume();
+                    return;
+                }
+                if(bottomInputInt<=0 || bottomInputInt>MAX_BLOCK_COUNT) {
+                    errorText.setText("Block length must be between 1 and " + MAX_BLOCK_LENGTH);
+                    event.consume();
+                    return;
+                }
+
+        });
 
         //Load and show pane
         settingsPopup.getDialogPane().setContent(settingsPopupContents);
 
+        //Set result retriever
         settingsPopup.setResultConverter(buttonType -> {
+
             if(buttonType == enterButtonType) {
-                return new String[] {topInput.getText(), bottomInput.getText()};
+                //Load the input into format
+                int topInputInt = (int)Float.parseFloat(blockCountInput.getText());
+                int bottomInputInt = (int)Float.parseFloat(blockLengthInput.getText());
+                return new Integer[]{topInputInt, bottomInputInt};
             }
             return null;
         });
 
-        Optional<String[]> userInput = settingsPopup.showAndWait();
-        userInput.ifPresent(input -> {
-            int newBlockCount;
-            int newBlockLength;
+        //Get and process the input (it's already known to be valid)
+        Optional<Integer[]> rawUserInput = settingsPopup.showAndWait();
+        if(rawUserInput.isPresent()) {
+            Integer[] userInput = rawUserInput.get();
+            fields.setBlockCount(userInput[0]);
+            fields.setBlockLength(userInput[1]);
 
-            try {
-                newBlockCount = Integer.parseInt(input[0]);
-                newBlockLength = Integer.parseInt(input[1]);
-            }
-            catch(NumberFormatException e) {
-                System.out.println("error");
-                return;
-            }
-
-            System.out.println(newBlockCount);
-            System.out.println(newBlockLength);
-        });
+            //Reopen the popup (really ghetto but it works)
+            showSettingsPopup();
+        }
     }
 
 

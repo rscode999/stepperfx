@@ -75,12 +75,12 @@ final public class StepperFields {
     /**
      * EXPERIMENTAL
      */
-    private byte blockCount = DEFAULT_BLOCK_COUNT;
+    private int blockCount = DEFAULT_BLOCK_COUNT;
 
     /**
      * EXPERIMENTAL
      */
-    private byte blockLength = DEFAULT_BLOCK_LENGTH;
+    private int blockLength = DEFAULT_BLOCK_LENGTH;
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -143,7 +143,7 @@ final public class StepperFields {
      * Returns the current block count stored by the shared fields
      * @return block count
      */
-    public byte getBlockCount() {
+    public int getBlockCount() {
         return blockCount;
     }
 
@@ -151,7 +151,7 @@ final public class StepperFields {
      * Sets the current block count to {@code newBlockCount}.
      * @param newBlockCount block count to change to. Must be on the interval [1, 100]
      */
-    public void setBlockCount(byte newBlockCount) {
+    public void setBlockCount(int newBlockCount) {
         if(newBlockCount<=0 || newBlockCount>100)
             throw new AssertionError("New block count must be on the interval [1,100]");
         blockCount = newBlockCount;
@@ -161,7 +161,7 @@ final public class StepperFields {
      * Returns the current block length stored by the shared fields
      * @return block length
      */
-    public byte getBlockLength() {
+    public int getBlockLength() {
         return blockLength;
     }
 
@@ -169,7 +169,7 @@ final public class StepperFields {
      * Sets the current block length to {@code newBlockLength}.
      * @param newBlockLength value to set to. Must be on the interval [1, 100]
      */
-    public void setBlockLength(byte newBlockLength) {
+    public void setBlockLength(int newBlockLength) {
         if(newBlockLength<=0 || newBlockLength>100)
             throw new AssertionError("New block length must be on the interval [1,100]");
         blockLength = newBlockLength;
