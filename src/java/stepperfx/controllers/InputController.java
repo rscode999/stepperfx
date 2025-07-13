@@ -12,12 +12,9 @@ import stepperfx.StepperFields;
 import stepperfx.administration.IntegratedController;
 import stepperfx.administration.ScreenManager;
 
-import javax.swing.*;
-import java.util.Arrays;
+
 import java.util.Optional;
 
-import static stepperfx.StepperFields.MAX_BLOCK_COUNT;
-import static stepperfx.StepperFields.MAX_BLOCK_LENGTH;
 
 /**
  * Controller for the user input screen. Responsible for updating the input screen and starting the shared Service.<br>
@@ -421,10 +418,10 @@ final public class InputController extends IntegratedController {
                 }
 
                 // Do integer check
-                int topInputInt = -1;
-                int bottomInputInt = -1;
+                int userBlockCount = -1;
+                int userBlockLength = -1;
                 try {
-                    topInputInt = (int)Float.parseFloat(blockCountInput.getText());
+                    userBlockCount = (int)Float.parseFloat(blockCountInput.getText());
                 }
                 catch(NumberFormatException e) {
                     errorText.setText("Number of blocks must be an integer");
@@ -432,7 +429,7 @@ final public class InputController extends IntegratedController {
                     return;
                 }
                 try {
-                    bottomInputInt = (int)Float.parseFloat(blockLengthInput.getText());
+                    userBlockLength = (int)Float.parseFloat(blockLengthInput.getText());
                 }
                 catch(NumberFormatException e) {
                     errorText.setText("Block length must be an integer");
@@ -441,13 +438,13 @@ final public class InputController extends IntegratedController {
                 }
 
                 //Do bounds check
-                if(topInputInt<=0 || topInputInt>MAX_BLOCK_COUNT) {
-                    errorText.setText("Number of blocks must be between 1 and " + MAX_BLOCK_COUNT);
+                if(userBlockCount<=0 || userBlockCount>StepperFields.MAX_BLOCK_COUNT) {
+                    errorText.setText("Number of blocks must be between 1 and " + StepperFields.MAX_BLOCK_COUNT);
                     event.consume();
                     return;
                 }
-                if(bottomInputInt<=0 || bottomInputInt>MAX_BLOCK_COUNT) {
-                    errorText.setText("Block length must be between 1 and " + MAX_BLOCK_LENGTH);
+                if(userBlockLength<=0 || userBlockLength>StepperFields.MAX_BLOCK_LENGTH) {
+                    errorText.setText("Block length must be between 1 and " + StepperFields.MAX_BLOCK_LENGTH);
                     event.consume();
                     return;
                 }

@@ -394,7 +394,6 @@ public class ProcessSubtaskMain extends Task<String> {
 
         }
 
-
         for(int seg = text.length()-(text.length() % key[0].length)-1; seg >= 0; seg -= key[0].length) {
             if(isCancelled()) {
                 return "";
@@ -407,7 +406,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
 
             for(int m=0; m<keyBlockBasePositions.length; m++) {
-                keyBlockBasePositions[m] -= getKeyBlockIncrementIndex(m);
+                keyBlockBasePositions[m] -= (byte)(getKeyBlockIncrementIndex(m) % key[0].length);
 
                 if(keyBlockBasePositions[m]<0) {
                     keyBlockBasePositions[m] += (byte) key[0].length;
@@ -837,12 +836,7 @@ public class ProcessSubtaskMain extends Task<String> {
                 nonAlphas[i]=(char)0;
             }
         }
-      /*
-      for(int i=0; i<nonAlphas.length; i++) {
-        System.out.print((int)nonAlphas[i] + " ");
-      }
-      System.out.println();
-      */
+
         return nonAlphas;
     }
 
@@ -862,7 +856,7 @@ public class ProcessSubtaskMain extends Task<String> {
      * @return key block positions after encrypting {@code segments} segments
      */
     private byte[] initializeKeyBlockPositions(long segments, int blockCount, int blockLength) {
-        assert segments >= 0;
+        if(segments<0) throw new AssertionError("Segments cannot be negative- received " + segments);
 
         byte[] output = setKeyBlockPositions(segments, blockCount, blockLength);
 

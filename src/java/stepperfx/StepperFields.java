@@ -18,7 +18,7 @@ final public class StepperFields {
     /**
      * Number of characters in each key block. Must be positive.<br><br>
      *
-     * Highly recommended to be relatively prime with {@code BLOCK_COUNT}.
+     * Highly recommended to be relatively prime with {@code DEFAULT_BLOCK_COUNT}.
      */
     final public static int DEFAULT_BLOCK_LENGTH = 25;
 
@@ -33,14 +33,15 @@ final public class StepperFields {
     final public static String DEFAULT_OUTPUT_FILENAME = "output.txt";
 
     /**
-     * Amount to shift during v2 processes. Cannot be null. Length must equal BLOCK_COUNT
+     * Amount to shift during v2 processes, accessed using a getter method. Cannot be null. Length must be at least DEFAULT_BLOCK_COUNT
      */
-    final private static byte[] KEY_BLOCK_INCREMENTS = {2,3,5,7,11,13};
+    final private static byte[] KEY_BLOCK_INCREMENTS = {2,3,5,7,11,13,17,19,23,29};
 
     /**
-     * Maximum amount of key blocks possible. Must be positive.
+     * Maximum amount of key blocks possible. Must be positive.<br>
+     * Its value, {@code KEY_BLOCK_INCREMENTS.length}, is currently equal to 10.
      */
-    final public static int MAX_BLOCK_COUNT = 100;
+    final public static int MAX_BLOCK_COUNT = KEY_BLOCK_INCREMENTS.length;
 
     /**
      * Maximum length of each key block. Must be positive.
@@ -73,14 +74,19 @@ final public class StepperFields {
     private final ProcessService service;
 
     /**
-     * EXPERIMENTAL
+     * Current number of blocks specified by the user. Cannot exceed {@code KEY_BLOCK_INCREMENTS.length}.
      */
     private int blockCount = DEFAULT_BLOCK_COUNT;
 
     /**
-     * EXPERIMENTAL
+     * Current number of characters per block specified by the user
      */
     private int blockLength = DEFAULT_BLOCK_LENGTH;
+
+    /**
+     * Current number of characters per block specified by the user. For use with static methods.
+     */
+    private static int blockCountStatic = DEFAULT_BLOCK_COUNT;
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -110,8 +116,8 @@ final public class StepperFields {
             throw new AssertionError("Default input filename must end in \".txt\"");
         if(DEFAULT_OUTPUT_FILENAME==null || DEFAULT_OUTPUT_FILENAME.length()<4 || !DEFAULT_OUTPUT_FILENAME.endsWith(".txt"))
             throw new AssertionError("Default output filename must end in \".txt\"");
-        if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length!= DEFAULT_BLOCK_COUNT)
-            throw new AssertionError("Key block increment length must equal BLOCK_COUNT");
+        if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length < DEFAULT_BLOCK_COUNT)
+            throw new AssertionError("Key block increment length must be at least BLOCK_COUNT");
         if(MAX_BLOCK_COUNT <= 0) throw new AssertionError("Max block count must be positive");
         if(MAX_BLOCK_LENGTH <= 0) throw new AssertionError("Max block length must be positive");
         if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
@@ -126,18 +132,26 @@ final public class StepperFields {
 
 
     /**
-     * Returns the value at index {@code index} of the app's key block increments array.
+     * Returns the value at index {@code index} of the app's key block increments array.<br><br>
+     *
+     * If {@code index} is at least {@code {fieldsName}.getBlockCount()}, a warning is printed to System.err.
+     *
      * @param index index to retrieve in the key block increments
      * @return value at specified index of the increments array
      * @throws ArrayIndexOutOfBoundsException if the index is outside the array's range
      */
     public static byte getKeyBlockIncrementIndex(int index) {
         if(index<0 || index>=KEY_BLOCK_INCREMENTS.length) {
-            throw new ArrayIndexOutOfBoundsException("The given index ( " + index +
-                    ") must be in the interval [0, " + (KEY_BLOCK_INCREMENTS.length-1) + "]- instead received " + index);
+            throw new ArrayIndexOutOfBoundsException("The given index (value=" + index +
+                    ") must be on the interval [0, " + (KEY_BLOCK_INCREMENTS.length-1) + "]- instead received " + index);
         }
+        if(index >= blockCountStatic) {
+            System.err.println("WARNING: Index of key block increments (value=" + index + ") should be on the interval [0, " + (blockCountStatic-1) + "]");
+        }
+
         return KEY_BLOCK_INCREMENTS[index];
     }
+
 
     /**
      * Returns the current block count stored by the shared fields
@@ -149,12 +163,13 @@ final public class StepperFields {
 
     /**
      * Sets the current block count to {@code newBlockCount}.
-     * @param newBlockCount block count to change to. Must be on the interval [1, 100]
+     * @param newBlockCount block count to change to.  Must be on the interval [1, {@code StepperFields.getKeyBlockIncrementLength()}]
      */
     public void setBlockCount(int newBlockCount) {
-        if(newBlockCount<=0 || newBlockCount>100)
-            throw new AssertionError("New block count must be on the interval [1,100]");
+        if(newBlockCount<=0 || newBlockCount>KEY_BLOCK_INCREMENTS.length)
+            throw new AssertionError("New block count must be on the interval [1," + KEY_BLOCK_INCREMENTS.length + "]");
         blockCount = newBlockCount;
+        blockCountStatic = newBlockCount;
     }
 
     /**
@@ -167,13 +182,14 @@ final public class StepperFields {
 
     /**
      * Sets the current block length to {@code newBlockLength}.
-     * @param newBlockLength value to set to. Must be on the interval [1, 100]
+     * @param newBlockLength value to set to. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_LENGTH}]
      */
     public void setBlockLength(int newBlockLength) {
-        if(newBlockLength<=0 || newBlockLength>100)
-            throw new AssertionError("New block length must be on the interval [1,100]");
+      if(newBlockLength<=0 || newBlockLength>MAX_BLOCK_LENGTH)
+          throw new AssertionError("New block length must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
         blockLength = newBlockLength;
     }
+
 
     /**
      * Returns the user's stored login credentials
@@ -266,7 +282,7 @@ final public class StepperFields {
         if(input == null) throw new AssertionError("Input cannot be null");
         if(key==null) throw new AssertionError("Key cannot be null");
         if(blockCount<=0 || blockCount>MAX_BLOCK_COUNT) throw new AssertionError("Block count (value: " + blockCount + ") must be on the interval [1, " + MAX_BLOCK_COUNT + "]");
-        if(blockLength<=0 || blockLength>MAX_BLOCK_COUNT) throw new AssertionError("Block length (value: " + blockLength + ") must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
+        if(blockLength<=0 || blockLength>MAX_BLOCK_LENGTH) throw new AssertionError("Block length (value: " + blockLength + ") must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
         if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode (value: " + punctMode + ") must be 0, 1, or 2");
         if(nThreads<0 || nThreads>MAX_THREADS) throw new AssertionError("Number of threads (value: " + nThreads + ")" +
                 " must be on the interval [0, " + MAX_THREADS + "]");
