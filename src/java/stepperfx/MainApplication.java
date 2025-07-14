@@ -2,7 +2,7 @@ package stepperfx;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import stepperfx.administration.ScreenManager;
+import stepperfx.integrated_gui.ScreenManager;
 
 /**
  * Responsible for configuring and displaying the app.<br>

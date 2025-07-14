@@ -9,8 +9,8 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import stepperfx.StepperFields;
-import stepperfx.administration.IntegratedController;
-import stepperfx.administration.ScreenManager;
+import stepperfx.integrated_gui.IntegratedController;
+import stepperfx.integrated_gui.ScreenManager;
 
 import java.util.*;
 

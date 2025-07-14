@@ -197,20 +197,20 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
 
         //Configure block positions
-        byte[] keyBlockPositions=setKeyBlockPositions((long)startSegment * key[0].length + text.length(),
+        byte[] keyBlockBasePositions=setKeyBlockPositions((long)startSegment * key[0].length + text.length(),
                 key.length, key[0].length);
         StringBuilder output = new StringBuilder(text.length());
 
         int currentChar=0;
 
-        byte[] currentKeyBlockPositions=new byte[key.length];
-        System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
+        byte[] keyBlockReadPositions = new byte[key.length];
+        System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
         for(int m = 0; m<(text.length() % key[0].length); m++) {
-            for(int a=0; a<currentKeyBlockPositions.length; a++) {
-                currentKeyBlockPositions[a]++;
-                if(currentKeyBlockPositions[a] >= key[0].length) {
-                    currentKeyBlockPositions[a]=0;
+            for(int a=0; a<keyBlockReadPositions.length; a++) {
+                keyBlockReadPositions[a]++;
+                if(keyBlockReadPositions[a] >= key[0].length) {
+                    keyBlockReadPositions[a]=0;
                 }
             }
         }
@@ -220,10 +220,10 @@ public class ProcessSubtaskMain extends Task<String> {
                 return "";
             }
 
-            for(int d=0; d<currentKeyBlockPositions.length; d++) {
-                currentKeyBlockPositions[d]--;
-                if(currentKeyBlockPositions[d] < 0) {
-                    currentKeyBlockPositions[d] = (byte) (key[0].length - 1);
+            for(int d=0; d<keyBlockReadPositions.length; d++) {
+                keyBlockReadPositions[d]--;
+                if(keyBlockReadPositions[d] < 0) {
+                    keyBlockReadPositions[d] = (byte) (key[0].length - 1);
                 }
             }
 
@@ -233,8 +233,8 @@ public class ProcessSubtaskMain extends Task<String> {
 
             currentChar=text.charAt(t) - 97;
 
-            for(int k=currentKeyBlockPositions.length-1; k>=0; k--) {
-                currentChar = (currentChar - key[k][currentKeyBlockPositions[k]]) % 26;
+            for(int k=keyBlockReadPositions.length-1; k>=0; k--) {
+                currentChar = (currentChar - key[k][keyBlockReadPositions[k]]) % 26;
                 if(currentChar < 0) {
                     currentChar += 26;
                 }
@@ -249,27 +249,31 @@ public class ProcessSubtaskMain extends Task<String> {
                 return "";
             }
 
-            keyBlockPositions[0]--;
 
-            for(int m=0; m<keyBlockPositions.length-1; m++) {
+            keyBlockBasePositions[0]--;
 
-                if(keyBlockPositions[m]<0) {
+            for(int m=0; m<keyBlockBasePositions.length-1; m++) {
+
+                if(keyBlockBasePositions[m]<0) {
                     for(int r=0; r<=m; r++) {
-                        keyBlockPositions[m]= (byte) (key[0].length - 1);
+                        keyBlockBasePositions[m] = (byte) (key[0].length - 1);
                     }
-                    keyBlockPositions[m+1]--;
-
+                    keyBlockBasePositions[m+1]--;
                 }
             }
 
-            System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
+            if(keyBlockBasePositions[keyBlockBasePositions.length - 1] < 0) {
+                Arrays.fill(keyBlockBasePositions, (byte)(key[0].length-1));
+            }
 
-            for(int t = seg; t>seg - key[0].length; t--) {
 
-                for(int d=0; d<currentKeyBlockPositions.length; d++) {
-                    currentKeyBlockPositions[d]--;
-                    if(currentKeyBlockPositions[d] < 0) {
-                        currentKeyBlockPositions[d ]= (byte) (key[0].length - 1);
+            System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
+            for(int t = seg; t > seg - key[0].length; t--) {
+
+                for(int d=0; d<keyBlockReadPositions.length; d++) {
+                    keyBlockReadPositions[d]--;
+                    if(keyBlockReadPositions[d] < 0) {
+                        keyBlockReadPositions[d]= (byte) (key[0].length - 1);
                     }
                 }
 
@@ -278,10 +282,8 @@ public class ProcessSubtaskMain extends Task<String> {
                 }
 
                 currentChar=(int)text.charAt(t) - 97;
-
-                for(int k=currentKeyBlockPositions.length-1; k>=0; k--) {
-
-                    currentChar = (currentChar - key[k][currentKeyBlockPositions[k]]) % 26;
+                for(int k=keyBlockReadPositions.length-1; k>=0; k--) {
+                    currentChar = (currentChar - key[k][keyBlockReadPositions[k]]) % 26;
                     if(currentChar < 0) {
                         currentChar += 26;
                     }
@@ -349,7 +351,7 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
 
         //Configure positions
-        byte[] keyBlockBasePositions = initializeKeyBlockPositions(startingSegment + text.length() / key[0].length, 
+        byte[] keyBlockBasePositions = initializeKeyBlockPositions2(startingSegment + text.length() / key[0].length,
                 key.length, key[0].length);
 
         StringBuilder output = new StringBuilder(text.length());
@@ -448,22 +450,22 @@ public class ProcessSubtaskMain extends Task<String> {
 
 
     /**
-     * Returns a copy of {@code input} with its numbers decrypted using {@code key}.<br><br>
+     * Returns a copy of {@code textNonAlphas} with its numbers decrypted using {@code key}.<br><br>
      *
      * Any non-number is unchanged in the output.
-     * @param input input array containing some numbers
+     * @param textNonAlphas input array containing non-alphabetic characters in the text
      * @param key key to decrypt with. Cannot be null. All indices must be on the interval [0,25]
      * @return copy of {@code input} with numbers decrypted
      */
-    private char[] decryptNumbers(char[] input, byte[][] key) {
-        if(input==null) {
-            throw new AssertionError("Input cannot be null");
+    private char[] decryptNumbers(char[] textNonAlphas, byte[][] key) {
+        if(textNonAlphas==null) {
+            throw new AssertionError("Text non-alphas cannot be null");
         }
         if(key==null) {
             throw new AssertionError("Key cannot be null");
         }
 
-        int decrKey = 0;
+        int dKey = 0;
         for(byte[] b : key) {
             if(b==null) {
                 throw new AssertionError("All blocks in the key cannot be null");
@@ -471,22 +473,22 @@ public class ProcessSubtaskMain extends Task<String> {
 
             for(byte i : b) {
                 if(i<0 || i>25) {
-                    throw new AssertionError("All indices in the key must be on the interval [0, 25]");
+                    throw new AssertionError("All indices in the key must be on the interval [0, 25]- received " + i);
                 }
-                decrKey += i;
+                dKey += i;
             }
         }
 
-        decrKey = decrKey % 26;
+        dKey = dKey % 26;
 
-        char[] output = new char[input.length];
-        for(int i=0; i<input.length; i++) {
-            if(!((int)input[i]>=48 && (int)input[i]<=57)) {
-                output[i] = input[i];
+        char[] output = new char[textNonAlphas.length];
+        for(int i=0; i<textNonAlphas.length; i++) {
+            if(!((int)textNonAlphas[i]>=48 && (int)textNonAlphas[i]<=57)) {
+                output[i] = textNonAlphas[i];
             }
             else {
-                int newChar = (int)input[i] - 48;
-                newChar = (newChar - (byte)decrKey) % 10;
+                int newChar = (int)textNonAlphas[i] - 48;
+                newChar = (newChar - dKey) % 10;
                 if(newChar < 0) {
                     newChar += 10;
                 }
@@ -535,8 +537,8 @@ public class ProcessSubtaskMain extends Task<String> {
 
         //Check key contents: all indices on [0,25]
         for (byte[] blocks : key) {
-            for (byte aByte : blocks) {
-                if (aByte < 0 || aByte > 25) {
+            for (byte k : blocks) {
+                if (k < 0 || k > 25) {
                     throw new AssertionError("All key indices must be on the interval [0,25]");
                 }
             }
@@ -551,10 +553,10 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
         //Start the process
 
-        byte[] keyBlockPositions = setKeyBlockPositions((long)startSegment * (long)key[0].length,
+        byte[] keyBlockBasePositions = setKeyBlockPositions((long)startSegment * (long)key[0].length,
                 key.length, key[0].length);
-        byte[] currentKeyBlockPositions = new byte[key.length];
-        System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
+        byte[] keyBlockReadPositions = new byte[key.length];
+        System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
         StringBuilder output = new StringBuilder(text.length());
         int currentChar=0;
@@ -564,47 +566,45 @@ public class ProcessSubtaskMain extends Task<String> {
                 return "";
             }
 
-            System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
+            System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
             for(int t = seg; t<(seg + key[0].length); t++) {
 
                 currentChar=(int)text.charAt(t) - 97;
 
-                for(int k=0; k<currentKeyBlockPositions.length; k++) {
-                    currentChar = (currentChar + key[k][currentKeyBlockPositions[k]]) % 26;
+                for(int k=0; k<keyBlockReadPositions.length; k++) {
+                    currentChar = (currentChar + key[k][keyBlockReadPositions[k]]) % 26;
                 }
 
                 output.append((char)(currentChar+97));
 
-                for(int a=0; a<currentKeyBlockPositions.length; a++) {
-                    currentKeyBlockPositions[a]++;
-                    if(currentKeyBlockPositions[a] >= key[0].length) {
-                        currentKeyBlockPositions[a]=0;
+                for(int a=0; a<keyBlockReadPositions.length; a++) {
+                    keyBlockReadPositions[a]++;
+                    if(keyBlockReadPositions[a] >= key[0].length) {
+                        keyBlockReadPositions[a]=0;
                     }
                 }
             }
 
-            keyBlockPositions[0]++;
+            keyBlockBasePositions[0]++;
 
-            for(int m=0; m<keyBlockPositions.length-1; m++) {
+            for(int m=0; m<keyBlockBasePositions.length-1; m++) {
 
-                if(keyBlockPositions[m] >= key[0].length) {
+                if(keyBlockBasePositions[m] >= key[0].length) {
 
                     for(int r=0; r<=m; r++) {
-                        keyBlockPositions[r]=0;
+                        keyBlockBasePositions[r]=0;
                     }
-                    keyBlockPositions[m+1]++;
+                    keyBlockBasePositions[m+1]++;
                 }
-
             }
-
-            if(keyBlockPositions[keyBlockPositions.length-1] >= key[0].length) {
-                Arrays.fill(keyBlockPositions, (byte)0);
+            if(keyBlockBasePositions[keyBlockBasePositions.length-1] >= key[0].length) {
+                Arrays.fill(keyBlockBasePositions, (byte)0);
             }
 
         }
 
-        System.arraycopy(keyBlockPositions, 0, currentKeyBlockPositions, 0, currentKeyBlockPositions.length);
+        System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
         if(isCancelled()) {
             return "";
         }
@@ -613,16 +613,16 @@ public class ProcessSubtaskMain extends Task<String> {
 
             currentChar=(int)text.charAt(t) - 97;
 
-            for(int k=0; k<currentKeyBlockPositions.length; k++) {
-                currentChar = (currentChar + key[k][currentKeyBlockPositions[k]]) % 26;
+            for(int k=0; k<keyBlockReadPositions.length; k++) {
+                currentChar = (currentChar + key[k][keyBlockReadPositions[k]]) % 26;
             }
 
             output.append((char)(currentChar+97));
 
-            for(int a=0; a<currentKeyBlockPositions.length; a++) {
-                currentKeyBlockPositions[a]++;
-                if(currentKeyBlockPositions[a] >= key[0].length) {
-                    currentKeyBlockPositions[a]=0;
+            for(int a=0; a<keyBlockReadPositions.length; a++) {
+                keyBlockReadPositions[a]++;
+                if(keyBlockReadPositions[a] >= key[0].length) {
+                    keyBlockReadPositions[a]=0;
                 }
             }
         }
@@ -683,7 +683,7 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
         //Start the process
         
-        byte[] keyBlockBasePositions = initializeKeyBlockPositions(startingSegment, key.length, key[0].length);
+        byte[] keyBlockBasePositions = initializeKeyBlockPositions2(startingSegment, key.length, key[0].length);
         byte[] keyBlockReadPositions = new byte[key.length];
         System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
@@ -757,20 +757,20 @@ public class ProcessSubtaskMain extends Task<String> {
 
 
     /**
-     * Returns a copy of {@code input}, but with numbers encrypted using {@code key}.<br><br>
+     * Returns a copy of {@code textNonAlphas}, but with numbers encrypted using {@code key}.<br><br>
      * Any non-number is unchanged in the output.
      *
-     * @param input the input text segment. Cannot be null
+     * @param textNonAlphas array of non-alphabetic characters in the text. Cannot be null
      * @param key key to encrypt with. Cannot be null. All indices must be on the interval [0, 25]
      * @return copy of input, but with numbers encrypted
      */
-    private char[] encryptNumbers(char[] input, byte[][] key) {
-        if(input == null) throw new AssertionError("Input cannot be null");
+    private char[] encryptNumbers(char[] textNonAlphas, byte[][] key) {
+        if(textNonAlphas == null) throw new AssertionError("Text non-alphas cannot be null");
         if(key==null) {
             throw new AssertionError("Key cannot be null");
         }
 
-        int decrKey = 0;
+        int eKey = 0;
         for(byte[] b : key) {
             if(b==null) {
                 throw new AssertionError("All blocks in the key cannot be null");
@@ -778,21 +778,21 @@ public class ProcessSubtaskMain extends Task<String> {
 
             for(byte i : b) {
                 if(i<0 || i>25) {
-                    throw new AssertionError("All indices in the key must be on the interval [0, 25]");
+                    throw new AssertionError("All indices in the key must be on the interval [0, 25]- received " + i);
                 }
-                decrKey += i;
+                eKey += i;
             }
         }
-        decrKey = decrKey % 26;
+        eKey = eKey % 26;
 
-        char[] output = new char[input.length];
-        for(int i=0; i<input.length; i++) {
-            if(input[i]<48 || input[i]>57) {
-                output[i] = input[i];
+        char[] output = new char[textNonAlphas.length];
+        for(int i=0; i<textNonAlphas.length; i++) {
+            if(textNonAlphas[i]<48 || textNonAlphas[i]>57) {
+                output[i] = textNonAlphas[i];
             }
             else {
-                int newChar = (int)input[i] - 48;
-                newChar = (newChar + (int)decrKey) % 10;
+                int newChar = (int)textNonAlphas[i] - 48;
+                newChar = (newChar + eKey) % 10;
                 output[i] = (char)(newChar + 48);
             }
         }
@@ -842,21 +842,23 @@ public class ProcessSubtaskMain extends Task<String> {
 
 
     /**
-     * Returns an array of bytes representing the key block positions at the end of encryption,
+     * Returns an array of bytes representing the key block positions at the end of version 2 encryption,
      * if the input had {@code segments} segments<br><br>
      *
      * {@code segments} should equal the number of segments before the starting position.<br>
-     * Example: if {@code segments}  equals 4, the output would be the block positions just after encrypting 4 segments.<br><br>
+     * Example: if {@code segments} equals 4, the output would be the block positions just after encrypting 4 segments.<br><br>
      *
-     * Helper to the operation functions.
+     * Helper to the v2 operation functions.
      *
-     * @param segments number of blocks encrypted so far, non-negative
-     * @param blockCount number of blocks in the key
-     * @param blockLength length of each block in the key
+     * @param segments number of blocks encrypted. Must be non-negative
+     * @param blockCount number of blocks in the key. Must be positive.
+     * @param blockLength length of each block in the key. Must be positive.
      * @return key block positions after encrypting {@code segments} segments
      */
-    private byte[] initializeKeyBlockPositions(long segments, int blockCount, int blockLength) {
+    private byte[] initializeKeyBlockPositions2(long segments, int blockCount, int blockLength) {
         if(segments<0) throw new AssertionError("Segments cannot be negative- received " + segments);
+        if(blockCount<=0) throw new AssertionError("Block count must be positive- received " + blockCount);
+        if(blockLength<=0) throw new AssertionError("Block length must be positive- received " + blockLength);
 
         byte[] output = setKeyBlockPositions(segments, blockCount, blockLength);
 
@@ -895,8 +897,8 @@ public class ProcessSubtaskMain extends Task<String> {
      *
      * Undoes the separation of characters in {@code removeNonAlphas}.
      *
-     * @param text input text without non-alphabetic characters
-     * @param nonAlphas array containing locations of non-alphabetic characters
+     * @param text input text without non-alphabetic characters. Cannot be null
+     * @param nonAlphas array containing locations of non-alphabetic characters. Cannot be null
      * @param reinsertingPunctuation whether to include punctuation in the output;
      *                            if false, the function reinserts numbers only
      * @return version of text with non-alphabetic characters in their places
@@ -995,7 +997,8 @@ public class ProcessSubtaskMain extends Task<String> {
      * Returns a version of {@code text} without non-alphabetic characters.
      * The text returned is converted to lowercase.<br><br>
      *
-     * WARNING! Not to be confused with removeNonAlnums! This method removes all non-letters, including numbers!
+     * WARNING! Not to be confused with {@code removeNonAlnums}!
+     * {@code removeNonAlphas} removes all non-letters, including numbers!
      *
      * @param text original input. Can't be null
      * @return lowercased text without non-alphabetic characters
@@ -1028,7 +1031,8 @@ public class ProcessSubtaskMain extends Task<String> {
     /**
      * Returns a copy of {@code input}, but with spaces removed.<br><br>
      *
-     * Any space between two letters is to be removed. All other spaces are to remain in the output.
+     * Any space between two letters is removed. All other spaces are to remain in the output.
+     * A letter is any character returned by the {@code Character.isAlphabetic} method.
      *
      * @param input text to remove spaces from. Cannot be null
      * @return copy of input without spaces

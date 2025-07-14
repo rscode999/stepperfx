@@ -1,4 +1,4 @@
-package stepperfx.administration;
+package stepperfx.integrated_gui;
 
 
 import javafx.scene.Parent;

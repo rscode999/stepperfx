@@ -2,7 +2,7 @@ package stepperfx.controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
-import stepperfx.administration.IntegratedController;
+import stepperfx.integrated_gui.IntegratedController;
 
 
 /**

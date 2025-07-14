@@ -9,8 +9,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import stepperfx.StepperFields;
-import stepperfx.administration.IntegratedController;
-import stepperfx.administration.ScreenManager;
+import stepperfx.integrated_gui.IntegratedController;
+import stepperfx.integrated_gui.ScreenManager;
 
 
 import java.util.Optional;
