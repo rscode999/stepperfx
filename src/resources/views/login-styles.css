@@ -4,8 +4,8 @@ Stylesheet for the login and login-reject screens
 
 //top level components
 .background-colors {
-    -fx-control-inner-background: #aaaaaa;
     -fx-background-color: #aaaaaa;
+    -fx-control-inner-background: #aaaaaa;
 }
 
 

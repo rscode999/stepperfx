@@ -83,7 +83,7 @@
                </font>
             </CheckBox>
 
-            <Button fx:id="startButton" onAction="#startProcess" defaultButton="true" mnemonicParsing="false"
+            <Button fx:id="startButton" onAction="#startProcess" mnemonicParsing="false"
                     prefWidth="170" styleClass="control-colors" text="Start Forward Process">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
@@ -97,7 +97,7 @@
                </font>
             </Button>
 
-            <Button onAction="#setLoginScreen" cancelButton="true" mnemonicParsing="false" prefWidth="150"
+            <Button onAction="#setLoginScreen" defaultButton="true" mnemonicParsing="false" prefWidth="150"
                     styleClass="control-colors" text="Return to login">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />

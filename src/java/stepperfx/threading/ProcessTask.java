@@ -32,7 +32,9 @@ public class ProcessTask extends Task<String[]> {
 
     /**
      * Names for each of the possible loading states that the task can be in.
-     * Progression through the states starts at index 0, then index 1, and so on
+     * Progression through the states starts at index 0, then index 1, and so on.<br><br>
+     *
+     * Index 3 ("Writing to file...") is currently not used.
      */
     public final static String[] LOADING_STATE_NAMES =
             new String[] {"Loading input...", "Formatting...", "Executing...", "Writing to file...", "Finalizing..."};
@@ -179,10 +181,11 @@ public class ProcessTask extends Task<String[]> {
             updateMessage(LOADING_STATE_NAMES[0]);
 
             //Prevent the user from getting epilepsy
-            for (long s = 0; s < 400000000L; s++) {
-                if (isCancelled()) {
-                    return new String[]{null, null, null, null};
-                }
+            try {
+                Thread.sleep(150);
+            }
+            catch(InterruptedException e) {
+                return new String[] {null, null, null, null};
             }
 
 
@@ -258,7 +261,6 @@ public class ProcessTask extends Task<String[]> {
                                 subtask.cancel();
                             }
                             executorService.shutdownNow();
-//                            System.out.println("MULTITHREADED PROCESS CANCELLED");
                             return new String[]{null, null, null, null};
                         }
 
@@ -285,7 +287,7 @@ public class ProcessTask extends Task<String[]> {
             updateMessage(LOADING_STATE_NAMES[4]);
             Thread.sleep(100); //give the FX app thread time to update
 
-            return new String[] {runResult.toString(), createKeyBlocksReverse(formattedKey), null, null};
+            return new String[] {runResult.toString().strip(), createKeyBlocksReverse(formattedKey), null, null};
         }
         catch(Throwable t) {
             System.err.println("Exception thrown in ProcessTask");

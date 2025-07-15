@@ -1,4 +1,4 @@
-package stepperfx.integrated_gui;
+package stepperfx.screen_management;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

@@ -9,8 +9,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import stepperfx.StepperFields;
-import stepperfx.integrated_gui.IntegratedController;
-import stepperfx.integrated_gui.ScreenManager;
+import stepperfx.screen_management.IntegratedController;
+import stepperfx.screen_management.ScreenManager;
 
 
 import java.util.Optional;
@@ -356,7 +356,7 @@ final public class InputController extends IntegratedController {
         //Creating a dialog
         Dialog<Integer[]> settingsPopup = new Dialog<>();
         //Setting the title
-        settingsPopup.setTitle("Key Settings");
+        settingsPopup.setTitle("Settings");
 
 
         //Dialog's title
@@ -394,7 +394,7 @@ final public class InputController extends IntegratedController {
 
         //"Apply Changes" (enter) and "Done" (close) buttons
         ButtonType enterButtonType = new ButtonType("Apply Changes", ButtonBar.ButtonData.APPLY);
-        ButtonType doneButtonType = new ButtonType("Done", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType doneButtonType = new ButtonType("Exit Settings", ButtonBar.ButtonData.CANCEL_CLOSE);
         settingsPopup.getDialogPane().getButtonTypes().addAll(doneButtonType, enterButtonType);
 
 
@@ -409,15 +409,21 @@ final public class InputController extends IntegratedController {
         //Do error checking on the inputs
         applyChangesButton.addEventFilter(ActionEvent.ACTION,
         event -> {
-                // Check whether some conditions are fulfilled
-                if (blockCountInput.getText().isEmpty() || blockLengthInput.getText().isEmpty()) {
-                    errorText.setText("Inputs cannot be empty");
+                // Check empty inputs
+                if (blockCountInput.getText().isEmpty()) {
+                    errorText.setText("Block count input cannot be empty");
                     //Consume the event so the dialog doesn't close
                     event.consume();
                     return;
                 }
+                if (blockLengthInput.getText().isEmpty()) {
+                    errorText.setText("Block length input cannot be empty");
+                    event.consume();
+                    return;
+                }
 
-                // Do integer check
+
+            // Do integer check
                 int userBlockCount = -1;
                 int userBlockLength = -1;
                 try {

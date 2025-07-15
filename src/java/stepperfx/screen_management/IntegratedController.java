@@ -1,4 +1,4 @@
-package stepperfx.integrated_gui;
+package stepperfx.screen_management;
 
 
 import javafx.scene.Parent;
@@ -52,7 +52,7 @@ public class IntegratedController {
 
     /**
      * Throws an AssertionError if any inputs break {@code initializeController}'s preconditions.<br><br>
-     * Use when a subclass overrides {@code initializeController}.
+     * Call manually when a subclass overrides {@code initializeController}.
      * @param manager ScreenManager to check
      * @param sceneGraphRoot Parent to check
      * @param fields StepperFields to check
@@ -75,7 +75,8 @@ public class IntegratedController {
     //METHODS
 
     /**
-     * Loads the controller with {@code manager}, {@code sceneGraphRoot}, and {@code fields}.<br><br>
+     * Loads the controller with {@code manager}, {@code sceneGraphRoot}, and {@code fields}.<br>
+     * Serves as the controller's de facto constructor.<br><br>
      *
      * A ScreenManager uses this method to initialize newly added controllers.<br><br>
      *

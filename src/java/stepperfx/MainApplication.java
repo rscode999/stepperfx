@@ -2,7 +2,7 @@ package stepperfx;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import stepperfx.integrated_gui.ScreenManager;
+import stepperfx.screen_management.ScreenManager;
 
 /**
  * Responsible for configuring and displaying the app.<br>
@@ -34,4 +34,12 @@ final public class MainApplication extends Application {
         initialStage.show();
     }
 
+
+    /**
+     * Launches the app.
+     * @param args Java Virtual Machine arguments
+     */
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

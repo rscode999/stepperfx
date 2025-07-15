@@ -1,7 +1,7 @@
 package stepperfx.controllers;
 
 import javafx.fxml.FXML;
-import stepperfx.integrated_gui.IntegratedController;
+import stepperfx.screen_management.IntegratedController;
 
 final public class LoginRejectController extends IntegratedController {
 

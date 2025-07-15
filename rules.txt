@@ -8,6 +8,7 @@ As a friendly reminder, failure to follow the rules means I will hunt you down a
 Table of contents:
 -Docstring Rules
 -FXML Rules
+-CSS Rules
 -Method Rules
 -Class Structure Rules
 -Final Remarks
@@ -123,6 +124,19 @@ Lines may wrap if the options are shorter than 80 characters.
 Example:
 <ExampleObject option1=... option2=... option3=... option4=... option5=...
     option6=... option7=... option8=... />
+
+
+
+
+
+CSS Rules
+
+Custom style classes should appear at the top of the CSS file, in alphabetical order by class name.
+Below is 3-4 blank lines.
+Preset style classes for GUI components (i.e. Button, CheckBox) should appear below the custom style classes and blank lines, in alphabetical order by class name.
+
+All style components inside a CSS entry should appear in alphabetical order.
+
 
 
 

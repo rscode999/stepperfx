@@ -4,22 +4,22 @@ Stylesheet for the input, loading, and results screens
 
 //top level components
 .background-colors {
-    -fx-control-inner-background: #1e781e;
     -fx-background-color: #1e781e;
+    -fx-control-inner-background: #1e781e;
 }
 
 
 //control components
 .control-colors {
-    -fx-control-inner-background: #3c643c;
     -fx-background-color: #3c643c;
+    -fx-control-inner-background: #3c643c;
 }
 
 
 //control components (slightly different colors)
 .control-accent-colors {
-    -fx-control-inner-background: #3c843c;
     -fx-background-color: #3c843c;
+    -fx-control-inner-background: #3c843c;
 }
 
 
