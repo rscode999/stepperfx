@@ -15,6 +15,9 @@ import stepperfx.StepperFields;
 /**
  * Centralized manager for screen transitions.<br><br>
  *
+ * A {@code ScreenManager} can load new screens until the {@code finishLoading} method is called.<br>
+ * Afterward, the manager can change screens, and can no longer load new screens.<br><br>
+ *
  * The {@code IntegratedController} class uses a {@code ScreenManager} to change the displayed screen.
  */
 final public class ScreenManager {
@@ -25,12 +28,20 @@ final public class ScreenManager {
     private final Stage primaryStage;
 
     /**
+     *
+     */
+    private HashSet<String> loadedFxmlPaths;
+
+    /**
      * Stores root nodes of the ScreenController's FXML files.
      * Keys, assigned during the {@code addScreen} method, are the screen's names
      */
-    private final Map<String, Parent> screenMap;
+    private final HashMap<String, Parent> screenMap;
 
 
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //CONSTRUCTOR
 
     /**
      * Initializes the ScreenManager with a stage.
@@ -39,13 +50,19 @@ final public class ScreenManager {
     public ScreenManager(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        //Initialize the map
+        //Initialize the map and path set
+        loadedFxmlPaths = new HashSet<>(10);
         screenMap = new HashMap<>();
     }
 
 
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //METHODS
+
+
     /**
-     * Adds a FXML file dictating a scene at path {@code fxmlPath},
+     * Adds a FXML file (controlled by an {@code IntegratedController}) dictating a scene at path {@code fxmlPath},
      * giving it the name {@code name} and loading it with the shared fields {@code fields}.<br><br>
      *
      * Paths to FXMLs are relative to the directory marked as the `resources` root.<br>
@@ -53,13 +70,15 @@ final public class ScreenManager {
      * assumes that the resources root is `resources`.<br>
      * Important: Load paths must begin with a slash.<br><br>
      *
-     * Passing an invalid FXML path causes an IOException. If the FXML's controller is not an instance
-     * of {@code IntegratedController}, throws IOException.
+     * Adding a screen after calling {@code finishLoading}, causes an IllegalStateException.<br>
+     * Passing an invalid FXML path causes an IOException.
      *
      * @param name associated name of the FXML file. Cannot be null. Must not match any other screen names tracked by this ScreenManager
-     * @param fxmlPath path to FXML file, relative to the project's resources root. Cannot be null
+     * @param fxmlPath path to FXML file, relative to the project's resources root. Cannot be null.
+     *                 Cannot match any previously loaded filepath. Associated controller must be an IntegratedController.
      * @param fields shared fields to load into the controller of the scene. Cannot be null
-     * @throws IOException if the FXML file path is invalid, or if the FXML controller is not an IntegratedController
+     * @throws IllegalStateException if a load is attempted after the manager has finished loading screens
+     * @throws IOException if the given FXML file path is invalid
      */
     public void addScreen(String name, String fxmlPath, StepperFields fields) throws IOException {
         if(name==null) {
@@ -74,6 +93,17 @@ final public class ScreenManager {
         if(fields==null) {
             throw new AssertionError("Fields cannot be null");
         }
+
+        //Check if the manager is done
+        if(loadedFxmlPaths == null) {
+            throw new IllegalStateException("Cannot load new screens after the manager finishes loading");
+        }
+
+        //Check if the filepath has been loaded before
+        if(loadedFxmlPaths.contains(fxmlPath)) {
+            throw new AssertionError("The file at \"" + fxmlPath + "\" has already been loaded by the manager");
+        }
+
 
         URL resource = getClass().getResource(fxmlPath);
         //Check if no null
@@ -95,14 +125,27 @@ final public class ScreenManager {
             ((IntegratedController) controller).initializeController(this, sceneGraphRoot, fields);
         }
         else {
-            throw new IOException("FXML controller must be a subclass of IntegratedController");
+            throw new AssertionError("FXML controller must be a subclass of IntegratedController");
         }
 
         // If you want to use the same Scene and just swap roots
         if (primaryStage.getScene() == null) {
             primaryStage.setScene(new Scene(sceneGraphRoot));
         }
+
+        //Add to the loaded set
+        loadedFxmlPaths.add(fxmlPath);
     }
+
+
+
+    /**
+     * Prevents the {@code ScreenManager} from loading any more screens, enabling screen changing to occur.
+     */
+    public void finishLoading() {
+        loadedFxmlPaths = null;
+    }
+
 
 
     /**
@@ -127,8 +170,9 @@ final public class ScreenManager {
 
 
     /**
-     * Sets the ScreenController's stage with a screen whose name is {@code name}.
+     * Sets the ScreenManager's stage with a screen whose name is {@code name}.
      * @param name name of the screen. Cannot be null. Must be the name of a screen managed by this ScreenManager
+     * @throws IllegalStateException if the manager is not finished loading screens
      */
     public void showScreen(String name) {
         if(name == null) {
@@ -139,6 +183,11 @@ final public class ScreenManager {
        if(!screenMap.containsKey(name)) {
            throw new AssertionError("The screen \"" + name + "\" is not tracked by the manager");
        }
+
+       //Check if the manager is loadable, i.e. the loaded FXML path set is not null
+        if(loadedFxmlPaths != null) {
+            throw new IllegalStateException("Cannot show new screens before the manager finishes loading. Call finishLoading() to allow screen changing.");
+        }
 
         //Replace the root of the existing Scene
         if (primaryStage.getScene() == null) {

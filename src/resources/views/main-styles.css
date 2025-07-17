@@ -1,11 +1,11 @@
 /*
-Stylesheet for the input, loading, and results screens
+Stylesheet for the input, loading, and results screens. Includes styles for popups at the bottom.
 */
 
 //top level components
 .background-colors {
-    -fx-background-color: #1e781e;
-    -fx-control-inner-background: #1e781e;
+    -fx-background-color: #1e691e;
+    -fx-control-inner-background: #1e691e;
 }
 
 
@@ -39,7 +39,7 @@ Stylesheet for the input, loading, and results screens
 
 //check mark
 .check-box:selected .mark {
-    -fx-background-color: #1e781e;
+    -fx-background-color: #505050;
 }
 
 
@@ -64,6 +64,57 @@ Stylesheet for the input, loading, and results screens
 
 
 
+
 .text-area {
-    -fx-text-fill: gray;
+    -fx-faint-focus-color: #3c673c;
+    -fx-focus-color: #3c673c;
+    -fx-text-fill: #6e6e6e;
+}
+
+
+
+
+
+//For dialogs
+
+/* Header */
+.dialog:header *.header-panel {
+    -fx-background-color: #64851e;
+}
+.dialog:header *.header-panel *.label {
+    -fx-fill: #1e691e;
+    -fx-font-family: "Trebuchet MS";
+    -fx-font-size: 18px;
+    -fx-pref-height: 50;
+}
+
+/* Label text */
+.dialog > *.label.content {
+    -fx-font-family: "Trebuchet MS";
+    -fx-font-size: 14px;
+    -fx-font-weight: 100;
+}
+
+/* Middle background */
+.dialog {
+    -fx-background-color: #64751e;
+}
+
+/* Button bar */
+.dialog > *.button-bar > *.container {
+    -fx-background-color: #64751e;
+}
+
+/* Button */
+.dialog .button {
+    -fx-background-color: #64851e;
+    -fx-text-fill: black;
+}
+.dialog .button:hover {
+    -fx-background-color: #64651e;
+}
+
+.dialog .text-field {
+    -fx-background-color: #64851e;
+    -fx-text-fill: black;
 }

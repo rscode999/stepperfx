@@ -117,21 +117,14 @@ final public class ResultsController extends IntegratedController {
                     screenManager.showScreen("input");
                     fields.resetService();
 
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-
                     //File loading exception: load with error message
                     if(newValue[2].equals("class java.io.FileNotFoundException")) {
-                        alert.setTitle("File load error");
-                        alert.setHeaderText("File load error");
-                        alert.setContentText(newValue[3]); //Note: The error message should be trimmed
+                        Dialogs.showAlertDialog("File load error", "File load error", newValue[3]);
                     }
                     //Any other exception: load with exception's message
                     else {
-                        alert.setTitle("Thread unhandled exception");
-                        alert.setHeaderText(newValue[2]);
-                        alert.setContentText(newValue[3]);
+                        Dialogs.showAlertDialog("Thread unhandled exception", newValue[2], newValue[3]);
                     }
-                    alert.showAndWait();
                 }
 
                 //No error: configure and display results screen

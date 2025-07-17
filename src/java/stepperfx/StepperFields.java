@@ -2,10 +2,14 @@ package stepperfx;
 
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
+import javafx.scene.control.Alert;
+import javafx.scene.control.DialogPane;
 import stepperfx.threading.ProcessService;
 
+import java.net.URL;
+
 /**
- * Contains fields shared between the application's controllers.
+ * Contains methods and fields shared between the application's controllers.
  * One of the fields is a javafx.concurrent.Service used to do operations.
  */
 final public class StepperFields {
@@ -222,6 +226,7 @@ final public class StepperFields {
     }
 
 
+
     /**
      * Assigns {@code listener} as a progress property listener on the app's Service.
      * @param listener listener to assign
@@ -229,6 +234,7 @@ final public class StepperFields {
     public void addServiceProgressListener(ChangeListener<? super Number> listener) {
         service.progressProperty().addListener(listener);
     }
+
 
 
     /**
@@ -249,6 +255,7 @@ final public class StepperFields {
     }
 
 
+
     /**
      * Sets the app's Service to its READY state, preparing it to be run again.<br><br>
      * This method works when the Service is in any state.
@@ -256,6 +263,8 @@ final public class StepperFields {
     public void resetService() {
         service.reset();
     }
+
+
 
 
     /**
@@ -300,6 +309,7 @@ final public class StepperFields {
                     "Reset the Service before starting it.");
         }
     }
+
 
 
     /**

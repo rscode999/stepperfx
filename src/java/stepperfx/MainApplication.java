@@ -26,6 +26,7 @@ final public class MainApplication extends Application {
         manager.addScreen("input", "/views/input-view.fxml", fields);
         manager.addScreen("loading", "/views/loading-view.fxml", fields);
         manager.addScreen("results", "/views/results-view.fxml", fields);
+        manager.finishLoading();
 
         initialStage.setTitle("StepperFX");
 

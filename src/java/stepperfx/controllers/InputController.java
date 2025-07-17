@@ -12,7 +12,6 @@ import stepperfx.StepperFields;
 import stepperfx.screen_management.IntegratedController;
 import stepperfx.screen_management.ScreenManager;
 
-
 import java.util.Optional;
 
 
@@ -203,6 +202,13 @@ final public class InputController extends IntegratedController {
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //HELPERS
+
+
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //METHODS
 
 
@@ -262,14 +268,9 @@ final public class InputController extends IntegratedController {
             final String ERROR_TITLE = "Invalid input";
             final String ERROR_HEADER = "Invalid number of threads";
 
-            //Create the dialog
-            TextInputDialog dialog = new TextInputDialog();
-            dialog.setTitle("Custom thread input");
-            dialog.setHeaderText("Enter number of threads");
-            dialog.setContentText("Example: if your computer has 4 cores,\nuse 4 threads to use all the cores");
-
-
-            Optional<String> userInput = dialog.showAndWait();
+            //Get result from a dialog
+            Optional<String> userInput = Dialogs.showTextDialog("Custom thread input", "Enter number of threads",
+                    "Example: if your computer has 4 cores,\nuse 4 threads to use all the cores");
             if(userInput.isPresent()) {
 
                 //Take the user input as an integer
@@ -280,23 +281,15 @@ final public class InputController extends IntegratedController {
                 //Not a number: show error dialog
                 catch(NumberFormatException e) {
                     threadSelector.getSelectionModel().selectFirst();
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle(ERROR_TITLE);
-                    alert.setHeaderText(ERROR_HEADER);
-                    alert.setContentText("Number of threads must be an integer");
-                    alert.showAndWait();
+                    Dialogs.showAlertDialog(ERROR_TITLE, ERROR_HEADER, "The input must be an integer");
                     return;
                 }
 
                 //Invalid number of threads: show dialog
                 if(newThreadCount<1 || newThreadCount>StepperFields.MAX_THREADS) {
                     threadSelector.getSelectionModel().selectFirst();
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setTitle(ERROR_TITLE);
-                    alert.setHeaderText(ERROR_HEADER);
-                    alert.setContentText("Number of threads must be an integer\n" +
-                            "between 1 and " + StepperFields.MAX_THREADS);
-                    alert.showAndWait();
+                    Dialogs.showAlertDialog("Error", "Invalid number of threads",
+                            "Number of threads must be an integer\nbetween 1 and " + StepperFields.MAX_THREADS);
                     return;
                 }
 
@@ -516,7 +509,7 @@ final public class InputController extends IntegratedController {
             threadCount = 1;
         }
         else if (threadSelector.getValue().equals(THREAD_OPTIONS[1])) {
-            throw new IllegalArgumentException("Invalid thread selector option- Cannot choose \"Custom...\"");
+            throw new AssertionError("Invalid thread selector option- Cannot choose \"Custom...\"");
         }
         else {
             //Remove the "Threads: " part of the string

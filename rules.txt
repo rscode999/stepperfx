@@ -135,7 +135,7 @@ Custom style classes should appear at the top of the CSS file, in alphabetical o
 Below is 3-4 blank lines.
 Preset style classes for GUI components (i.e. Button, CheckBox) should appear below the custom style classes and blank lines, in alphabetical order by class name.
 
-All style components inside a CSS entry should appear in alphabetical order.
+All style components inside a CSS entry should appear in some logical order, most often alphabetical order.
 
 
 
@@ -157,7 +157,7 @@ deep copy of the input. (Strings do not need to have defensive copies)
 
 
 Class Structure Rules
-Classes must match the template below. The number of comment lines is important.
+Classes must match the template below. The number of comment lines may vary- longer classes require more comment lines
 
 /**
  * Docstring that conforms to the Docstring Rules
@@ -189,7 +189,7 @@ Classes must match the template below. The number of comment lines is important.
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    If the class is short (~100 lines or shorter), there may be two lines of comment slashes instead of four lines.
+    //CONSTRUCTOR
 
 
     Class constructor(s). If the class has multiple constructors, the most frequently used constructors are first.
@@ -197,16 +197,31 @@ Classes must match the template below. The number of comment lines is important.
         Exception: subclasses do not need explicitly defined constructors if the superclass has one.
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //HELPERS
 
-    Getter and setter methods, utility methods (i.e. toString)
+    Any private helper methods that other class methods may use.
+    All must have docstrings and be organized in alphabetical order by method name.
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //GETTERS AND SETTERS
+
+    Getter and setter methods, utility methods (i.e. toString)
+    For any encapsulated field, the field's getter method must come before the setter method.
+    All must have docstrings and be organized in alphabetical order by the name of the field manipulated.
+    Example:
+    public void getA()...
+    public void setA()...
+    public void getB()...
+    public void setB()...
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //METHODS
 
 
     Additional non-main methods
         All additional methods should be in alphabetical order by the method's name.
 
-        Private helper methods may go immediately below the parent method.
+        Private helper methods for a single method may go immediately below the parent method.
         They may break the alphabetical order rule.
         These methods must have a message in their docstrings that says "Helper to <parent method name>"
 
@@ -217,7 +232,6 @@ Classes must match the template below. The number of comment lines is important.
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     Main method: public static void main(String[] args) {...}
-        Only one class, the main application, is permitted to have a main method.
  }
 
 
