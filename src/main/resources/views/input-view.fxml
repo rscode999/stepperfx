@@ -90,14 +90,14 @@
                </font>
             </Button>
 
-            <Button onAction="#setSettingsScreen" mnemonicParsing="false"
+            <Button onAction="#showSettingsScreen" mnemonicParsing="false"
                     prefWidth="120.0" styleClass="control-colors" text="Key Settings">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />
                </font>
             </Button>
 
-            <Button onAction="#setLoginScreen" defaultButton="true" mnemonicParsing="false" prefWidth="150"
+            <Button onAction="#showLoginScreen" defaultButton="true" mnemonicParsing="false" prefWidth="150"
                     styleClass="control-colors" text="Return to login">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />

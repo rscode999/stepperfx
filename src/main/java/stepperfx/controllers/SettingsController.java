@@ -140,7 +140,7 @@ public final class SettingsController extends IntegratedController {
      * Changes to the input screen
      */
     @FXML
-    private void setInputScreen() {
+    private void showInputScreen() {
         screenManager.showScreen("input");
         statusText.setText(" ");
         blockCountInput.setText("");

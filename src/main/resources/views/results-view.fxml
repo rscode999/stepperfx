@@ -68,8 +68,8 @@
               styleClass="control-colors"
               translateY="-10.0" wrapText="true" />
 
-    <Button defaultButton="true" onAction="#setLoginScreen" mnemonicParsing="false"
-            styleClass="control-accent-colors"  text="Return to Login">
+    <Button defaultButton="true" onAction="#showLoginScreen" mnemonicParsing="false"
+            styleClass="control-accent-colors" text="Return to Login">
       <font>
          <Font name="Trebuchet MS" size="14.0" />
       </font>

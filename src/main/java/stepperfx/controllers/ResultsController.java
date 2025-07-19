@@ -202,7 +202,7 @@ final public class ResultsController extends IntegratedController {
      * Sets the screen to the login screen. Resets the app's Service.
      */
     @FXML
-    private void setLoginScreen() {
+    private void showLoginScreen() {
         screenManager.showScreen("login");
         fields.resetService();
         resultArea.setText("");

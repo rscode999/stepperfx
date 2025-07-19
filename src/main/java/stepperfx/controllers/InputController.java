@@ -46,8 +46,8 @@ final public class InputController extends IntegratedController {
      *
      * All options except for the first two should be in the format "Threads: {integer on the interval [1, StepperFields.MAX_THREADS]}"
      */
-    final private String[] THREAD_OPTIONS = {"Number of threads: 1", "Custom...", "Threads: 2", "Threads: 4",
-            "Threads: 8", "Threads: 12", "Threads: 16", "Threads: 24", "Threads: 32"};
+    final private String[] THREAD_OPTIONS = {"Number of threads: 1", "Custom...", "Threads: 2", "Threads: 4", "Threads: 8",
+            "Threads: 12", "Threads: 16", "Threads: 24", "Threads: 32"};
 
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,7 +332,7 @@ final public class InputController extends IntegratedController {
      * Displays the login screen and resets the text inputs
      */
     @FXML
-    private void setLoginScreen() {
+    private void showLoginScreen() {
         screenManager.showScreen("login");
         textInput.setText("");
         keyInput.setText("");
@@ -344,7 +344,7 @@ final public class InputController extends IntegratedController {
      * Switches to the settings screen
      */
     @FXML
-    private void setSettingsScreen() {
+    private void showSettingsScreen() {
         screenManager.showScreen("settings");
     }
 

@@ -25,7 +25,7 @@
         </font>
     </Label>
 
-    <Button fx:id="cancelButton" onAction="#stopService" defaultButton="true" mnemonicParsing="false"
+    <Button fx:id="cancelButton" onAction="#stopLoading" defaultButton="true" mnemonicParsing="false"
             styleClass="control-accent-colors" text="Cancel">
         <font>
           <Font name="Trebuchet MS" size="16.0" />

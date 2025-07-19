@@ -56,7 +56,7 @@ final public class LoadingController extends IntegratedController {
      * Sets the screen to the input screen.
      */
     @FXML
-    public void stopService() {
+    public void stopLoading() {
         screenManager.showScreen("input");
         fields.stopService();
     }

@@ -61,7 +61,7 @@
             </font>
         </Button>
 
-        <Button onAction="#setInputScreen" mnemonicParsing="false" styleClass="control-colors" text="Return to input">
+        <Button onAction="#showInputScreen" mnemonicParsing="false" styleClass="control-colors" text="Return to input">
             <font>
                 <Font name="Trebuchet MS" size="14.0" />
             </font>
