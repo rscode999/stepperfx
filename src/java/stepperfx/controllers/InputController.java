@@ -2,15 +2,13 @@ package stepperfx.controllers;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import stepperfx.StepperFields;
-import stepperfx.screen_management.IntegratedController;
-import stepperfx.screen_management.ScreenManager;
+import stepperfx.integration.StepperFields;
+import stepperfx.integration.IntegratedController;
+import stepperfx.integration.ScreenManager;
+import stepperfx.integration.StyledDialogs;
 
 import java.util.Optional;
 
@@ -269,7 +267,7 @@ final public class InputController extends IntegratedController {
             final String ERROR_HEADER = "Invalid number of threads";
 
             //Get result from a dialog
-            Optional<String> userInput = Dialogs.showTextDialog("Custom thread input", "Enter number of threads",
+            Optional<String> userInput = StyledDialogs.showTextDialog("Custom thread input", "Enter number of threads",
                     "Example: if your computer has 4 cores,\nuse 4 threads to use all the cores");
             if(userInput.isPresent()) {
 
@@ -281,14 +279,14 @@ final public class InputController extends IntegratedController {
                 //Not a number: show error dialog
                 catch(NumberFormatException e) {
                     threadSelector.getSelectionModel().selectFirst();
-                    Dialogs.showAlertDialog(ERROR_TITLE, ERROR_HEADER, "The input must be an integer");
+                    StyledDialogs.showAlertDialog(ERROR_TITLE, ERROR_HEADER, "The input must be an integer");
                     return;
                 }
 
                 //Invalid number of threads: show dialog
                 if(newThreadCount<1 || newThreadCount>StepperFields.MAX_THREADS) {
                     threadSelector.getSelectionModel().selectFirst();
-                    Dialogs.showAlertDialog("Error", "Invalid number of threads",
+                    StyledDialogs.showAlertDialog(ERROR_TITLE, ERROR_HEADER,
                             "Number of threads must be an integer\nbetween 1 and " + StepperFields.MAX_THREADS);
                     return;
                 }
@@ -341,140 +339,13 @@ final public class InputController extends IntegratedController {
     }
 
 
+
     /**
-     * Displays the settings popup and takes input from it
+     * Switches to the settings screen
      */
     @FXML
-    private void showSettingsPopup() {
-        //Creating a dialog
-        Dialog<Integer[]> settingsPopup = new Dialog<>();
-        //Setting the title
-        settingsPopup.setTitle("Settings");
-
-
-        //Dialog's title
-        Label title = new Label("Key Settings");
-        title.translateYProperty().setValue(-5);
-        title.fontProperty().setValue(new Font("Trebuchet MS", 15));
-
-        //Top text input label
-        Label blockCountInputLabel = new Label("Enter number of blocks");
-        blockCountInputLabel.translateYProperty().setValue(10);
-        blockCountInputLabel.fontProperty().setValue(new Font("Trebuchet MS", 10));
-
-        //Sublabel
-        Label blockCountLabel = new Label("Current number of blocks: " + fields.getBlockCount());
-        blockCountLabel.fontProperty().setValue(new Font("Trebuchet MS", 9));
-
-        //Top text input
-        TextField blockCountInput = new TextField();
-
-        //Bottom text input label
-        Label blockLengthInputLabel = new Label("Enter block length");
-        blockLengthInputLabel.translateYProperty().setValue(10);
-        blockLengthInputLabel.fontProperty().setValue(new Font("Trebuchet MS", 10));
-
-        Label blockLengthLabel = new Label("Current block length: " + fields.getBlockLength());
-        blockLengthLabel.fontProperty().setValue(new Font("Trebuchet MS", 9));
-
-        //Bottom text input label
-        TextField blockLengthInput = new TextField();
-
-        //Warning text
-        Label errorText = new Label(" ");
-        errorText.fontProperty().setValue(new Font("Trebuchet MS", 8));
-        errorText.setWrapText(true);
-
-        //"Apply Changes" (enter) and "Done" (close) buttons
-        ButtonType enterButtonType = new ButtonType("Apply Changes", ButtonBar.ButtonData.APPLY);
-        ButtonType doneButtonType = new ButtonType("Exit Settings", ButtonBar.ButtonData.CANCEL_CLOSE);
-        settingsPopup.getDialogPane().getButtonTypes().addAll(doneButtonType, enterButtonType);
-
-
-        //Content container
-        VBox settingsPopupContents = new VBox(title, blockCountInputLabel, blockCountLabel, blockCountInput,
-                blockLengthInputLabel, blockLengthLabel, blockLengthInput, errorText);
-        settingsPopupContents.setSpacing(15);
-        settingsPopupContents.setPrefSize(200, 200);
-
-
-        final Button applyChangesButton = (Button) settingsPopup.getDialogPane().lookupButton(enterButtonType);
-        //Do error checking on the inputs
-        applyChangesButton.addEventFilter(ActionEvent.ACTION,
-        event -> {
-                // Check empty inputs
-                if (blockCountInput.getText().isEmpty()) {
-                    errorText.setText("Block count input cannot be empty");
-                    //Consume the event so the dialog doesn't close
-                    event.consume();
-                    return;
-                }
-                if (blockLengthInput.getText().isEmpty()) {
-                    errorText.setText("Block length input cannot be empty");
-                    event.consume();
-                    return;
-                }
-
-
-            // Do integer check
-                int userBlockCount = -1;
-                int userBlockLength = -1;
-                try {
-                    userBlockCount = (int)Float.parseFloat(blockCountInput.getText());
-                }
-                catch(NumberFormatException e) {
-                    errorText.setText("Number of blocks must be an integer");
-                    event.consume();
-                    return;
-                }
-                try {
-                    userBlockLength = (int)Float.parseFloat(blockLengthInput.getText());
-                }
-                catch(NumberFormatException e) {
-                    errorText.setText("Block length must be an integer");
-                    event.consume();
-                    return;
-                }
-
-                //Do bounds check
-                if(userBlockCount<=0 || userBlockCount>StepperFields.MAX_BLOCK_COUNT) {
-                    errorText.setText("Number of blocks must be between 1 and " + StepperFields.MAX_BLOCK_COUNT);
-                    event.consume();
-                    return;
-                }
-                if(userBlockLength<=0 || userBlockLength>StepperFields.MAX_BLOCK_LENGTH) {
-                    errorText.setText("Block length must be between 1 and " + StepperFields.MAX_BLOCK_LENGTH);
-                    event.consume();
-                    return;
-                }
-
-        });
-
-        //Load and show pane
-        settingsPopup.getDialogPane().setContent(settingsPopupContents);
-
-        //Set result retriever
-        settingsPopup.setResultConverter(buttonType -> {
-
-            if(buttonType == enterButtonType) {
-                //Load the input into format
-                int topInputInt = (int)Float.parseFloat(blockCountInput.getText());
-                int bottomInputInt = (int)Float.parseFloat(blockLengthInput.getText());
-                return new Integer[]{topInputInt, bottomInputInt};
-            }
-            return null;
-        });
-
-        //Get and process the input (it's already known to be valid)
-        Optional<Integer[]> rawUserInput = settingsPopup.showAndWait();
-        if(rawUserInput.isPresent()) {
-            Integer[] userInput = rawUserInput.get();
-            fields.setBlockCount(userInput[0]);
-            fields.setBlockLength(userInput[1]);
-
-            //Reopen the popup (really ghetto but it works)
-            showSettingsPopup();
-        }
+    private void setSettingsScreen() {
+        screenManager.showScreen("settings");
     }
 
 

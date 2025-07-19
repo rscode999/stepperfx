@@ -90,7 +90,7 @@
                </font>
             </Button>
 
-            <Button onAction="#showSettingsPopup" mnemonicParsing="false"
+            <Button onAction="#setSettingsScreen" mnemonicParsing="false"
                     prefWidth="120.0" styleClass="control-colors" text="Key Settings">
                <font>
                   <Font name="Trebuchet MS" size="14.0" />

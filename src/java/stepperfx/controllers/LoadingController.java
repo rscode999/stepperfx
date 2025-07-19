@@ -4,9 +4,9 @@ import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import stepperfx.StepperFields;
-import stepperfx.screen_management.IntegratedController;
-import stepperfx.screen_management.ScreenManager;
+import stepperfx.integration.StepperFields;
+import stepperfx.integration.IntegratedController;
+import stepperfx.integration.ScreenManager;
 import stepperfx.threading.ProcessTask;
 
 /**

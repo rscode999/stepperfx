@@ -2,10 +2,10 @@ package stepperfx.threading;
 
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import stepperfx.StepperFields;
+import stepperfx.integration.StepperFields;
 
-import static stepperfx.StepperFields.MAX_BLOCK_COUNT;
-import static stepperfx.StepperFields.MAX_BLOCK_LENGTH;
+import static stepperfx.integration.StepperFields.MAX_BLOCK_COUNT;
+import static stepperfx.integration.StepperFields.MAX_BLOCK_LENGTH;
 
 /**
  * Schedules multithreaded tasks for the app.<br><br>

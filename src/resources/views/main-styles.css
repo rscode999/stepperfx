@@ -74,6 +74,14 @@ Stylesheet for the input, loading, and results screens. Includes styles for popu
 
 
 
+.text-field {
+    -fx-faint-focus-color: #3c673c;
+    -fx-focus-color: #3c673c;
+    -fx-text-fill: #6e6e6e;
+}
+
+
+
 
 //For dialogs
 

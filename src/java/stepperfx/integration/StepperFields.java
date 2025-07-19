@@ -1,16 +1,14 @@
-package stepperfx;
+package stepperfx.integration;
 
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
-import javafx.scene.control.Alert;
-import javafx.scene.control.DialogPane;
 import stepperfx.threading.ProcessService;
-
-import java.net.URL;
 
 /**
  * Contains methods and fields shared between the application's controllers.
- * One of the fields is a javafx.concurrent.Service used to do operations.
+ * One of the fields is a javafx.concurrent.Service used to do operations.<br><br>
+ *
+ * This class is not thread-safe! It should never be handled by multiple threads at the same time.
  */
 final public class StepperFields {
 
@@ -43,12 +41,12 @@ final public class StepperFields {
 
     /**
      * Maximum amount of key blocks possible. Must be positive.<br>
-     * Its value, {@code KEY_BLOCK_INCREMENTS.length}, is currently equal to 10.
+     * Its value, {@code KEY_BLOCK_INCREMENTS.length}, equals 10.
      */
     final public static int MAX_BLOCK_COUNT = KEY_BLOCK_INCREMENTS.length;
 
     /**
-     * Maximum length of each key block. Must be positive.
+     * Length of each key block. Must be positive.
      */
     final public static int MAX_BLOCK_LENGTH = 100;
 
@@ -68,16 +66,6 @@ final public class StepperFields {
     //VARIABLES
 
     /**
-     * Holds the user's login credentials
-     */
-    private int loginCredentials;
-
-    /**
-     * A Service that controllers can start, cancel, and reset. Can never be null.
-     */
-    private final ProcessService service;
-
-    /**
      * Current number of blocks specified by the user. Cannot exceed {@code KEY_BLOCK_INCREMENTS.length}.
      */
     private int blockCount = DEFAULT_BLOCK_COUNT;
@@ -91,6 +79,16 @@ final public class StepperFields {
      * Current number of characters per block specified by the user. For use with static methods.
      */
     private static int blockCountStatic = DEFAULT_BLOCK_COUNT;
+
+    /**
+     * Holds the user's login credentials
+     */
+    private int loginCredentials;
+
+    /**
+     * A Service that controllers can start, cancel, and reset. Can never be null.
+     */
+    private final ProcessService service;
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -122,7 +120,7 @@ final public class StepperFields {
             throw new AssertionError("Default output filename must end in \".txt\"");
         if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length < DEFAULT_BLOCK_COUNT)
             throw new AssertionError("Key block increment length must be at least BLOCK_COUNT");
-        if(MAX_BLOCK_COUNT <= 0) throw new AssertionError("Max block count must be positive");
+        if(MAX_BLOCK_COUNT != KEY_BLOCK_INCREMENTS.length) throw new AssertionError("Max block count must equal KEY_BLOCK_INCREMENTS.length");
         if(MAX_BLOCK_LENGTH <= 0) throw new AssertionError("Max block length must be positive");
         if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
         if(RESULT_PAGE_LENGTH<1) throw new AssertionError("Result page length must be positive");
@@ -167,11 +165,11 @@ final public class StepperFields {
 
     /**
      * Sets the current block count to {@code newBlockCount}.
-     * @param newBlockCount block count to change to.  Must be on the interval [1, {@code StepperFields.getKeyBlockIncrementLength()}]
+     * @param newBlockCount block count to change to.  Must be on the interval [1, {@code StepperFields.MAX_BLOCK_COUNT}]
      */
     public void setBlockCount(int newBlockCount) {
-        if(newBlockCount<=0 || newBlockCount>KEY_BLOCK_INCREMENTS.length)
-            throw new AssertionError("New block count must be on the interval [1," + KEY_BLOCK_INCREMENTS.length + "]");
+        if(newBlockCount<=0 || newBlockCount>MAX_BLOCK_COUNT)
+            throw new AssertionError("New block count must be on the interval [1," + MAX_BLOCK_COUNT + "]");
         blockCount = newBlockCount;
         blockCountStatic = newBlockCount;
     }
@@ -263,7 +261,6 @@ final public class StepperFields {
     public void resetService() {
         service.reset();
     }
-
 
 
 

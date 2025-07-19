@@ -4,7 +4,7 @@ import javafx.concurrent.Task;
 
 import java.util.Arrays;
 
-import static stepperfx.StepperFields.getKeyBlockIncrementIndex;
+import static stepperfx.integration.StepperFields.getKeyBlockIncrementIndex;
 
 /**
  * Performs part of the work of a ProcessTask
@@ -862,9 +862,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
         byte[] output = setKeyBlockPositions(segments, blockCount, blockLength);
 
-        //Simulate moving through the remainder of the blocks
         for(int b = 0; b < segments % blockLength; b++) {
-            //Increment each index of the output
             for(int i=0; i<output.length; i++) {
                 output[i] = (byte) ((output[i] + getKeyBlockIncrementIndex(i)) % blockLength);
             }

@@ -1,5 +1,5 @@
 # StepperFX
-###### Implementation of the Stepper algorithm using the JavaFX framework  
+Implementation of the Stepper algorithm using the JavaFX framework  
 
 First large-scale project using JavaFX. 
 Enables users to take input directly in the app or through a chosen .txt file.  
@@ -11,13 +11,16 @@ For Java 21+
 
 
 ## IDE Configuration Instructions
-Use the following settings:
-- Main class: `src/java/stepperfx/Launcher`. If not exporting to a JAR, `src/java/stepperfx/MainApplication` also works as the main class.
+Use the following directory configuration:
 - Sources root: `src/java`
 - Resources root: `src/resources`
 - Test Sources root: `src/tests`  
 
-These settings are known to work for the IntelliJ IDE.
+To change the directory configuration in IntelliJ, right-click on a directory, then go to "Mark Directory As".  
+These settings are known to work for the IntelliJ IDE. I have never used another IDE before.
+
+The main class is `src/java/stepperfx/Launcher`. If not exporting to a JAR, `src/java/stepperfx/MainApplication` also works as the main class.
+
 
 
 ## Contribution Rules
@@ -31,24 +34,28 @@ Do not push to "main" without my explicit permission!
 ## Project Structure
 FXML files are stored in `src/resources/views`.
 Each FXML file represents the layout of one of the app's screens.  
+The directory also contains CSS stylesheets: `login-styles.css`, for the login and login rejection screens,
+and `main-styles.css`, for all other screens (and dialogs).
+
 
 Java source code is inside the `src/java/stepperfx` package.
 - The main class is called `MainApplication`. To export the app as a JAR, select `Launcher` as the main class.
-- `StepperFields` contains the shared state of the application. The class contains constants, encapsulated variables, and a shared Service for mulththeaded operations.
+
+- The `controllers` package contains the GUI controllers.  
+Each controller class is responsible for one screen.
 
 
-- The `controllers` package contains the GUI controllers. Each controller class is responsible for one screen.
-Also inside the package is the `Dialogs` class, which contains static methods for displaying popup windows.
-
-
-- The `screen_management` package contains the `IntegratedController`, the base class for GUI controllers.
-The package also contains `ScreenManager`, which controllers use to change the screen.
+- The `integration` package contains 4 classes:
+  - `IntegratedController`, the base class for GUI controllers. It allows controllers to change the screen and access shared variables.
+  - `ScreenManager`, which controllers use to change the screen.  
+  - `StepperFields`, containing the shared state of the application. The class contains constants, encapsulated variables, and a shared Service for multithreaded operations.
+  - `StyledDialogs`, with static methods to show dialogs. It takes its styles from the `dialog` style class inside `resources/views/main-styles.css`.
 
 
 - The `threading` package contains worker thread classes, which the app uses to process inputs.
-A `ProcessService`, stored in a `StepperFields` instance, deploys a `ProcessTask`, which in turn
-deploys `ProcessSubtaskDiacritics` and `ProcessSubtaskMain` instances. The final result is retrieved
-by the `ResultsController`. To get the result, the controller uses a value property listener set on the app's `ProcessService`.
+  - `ProcessService`, where an instance is stored in a `StepperFields` instance, deploys a `ProcessTask`.
+  - `ProcessTask` processes the input given to it by a `ProcessService`. To help it process input, a Task assigns work to `ProcessSubtaskDiacritics` and `ProcessSubtaskMain` instances.
+  - `ProcessSubtaskDiacritics` and `ProcessSubtaskMain` parse a small piece of their given inputs.
 
 
 ## Final Notes

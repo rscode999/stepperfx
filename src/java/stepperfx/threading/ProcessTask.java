@@ -2,7 +2,7 @@ package stepperfx.threading;
 
 
 import javafx.concurrent.Task;
-import stepperfx.StepperFields;
+import stepperfx.integration.StepperFields;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,7 +14,7 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static stepperfx.StepperFields.*;
+import static stepperfx.integration.StepperFields.*;
 
 /**
  * Processes the input on a separate thread.<br><br>
@@ -26,7 +26,7 @@ import static stepperfx.StepperFields.*;
  *
  * If the task is cancelled, the return value will have all indices as null.<br><br>
  *
- * The output is received with a ValueProperty listener assigned to the Service that deployed the Task.
+ * The output is received with a ValueProperty listener on the Service that deployed this object.
  */
 public class ProcessTask extends Task<String[]> {
 
@@ -45,22 +45,22 @@ public class ProcessTask extends Task<String[]> {
     /**
      * Number of blocks to use in processes
      */
-    private int blockCount;
+    private final int blockCount;
 
     /**
      * Number of characters per block to use in processes
      */
-    private int blockLength;
+    private final int blockLength;
 
     /**
      * True if using version 2 processes, false otherwise
      */
-    private boolean doingV2Process;
+    private final boolean doingV2Process;
 
     /**
      * True if the service is encrypting, false if the service is decrypting
      */
-    private boolean encrypting;
+    private final boolean encrypting;
 
     /**
      * Input text for the service to process
@@ -70,12 +70,12 @@ public class ProcessTask extends Task<String[]> {
     /**
      * Key to process the input with
      */
-    private String key;
+    private final String key;
 
     /**
      * Number of threads to use during processing
      */
-    private int nWorkerThreads;
+    private final int nWorkerThreads;
 
     /**
      * 0 if the task removes all punctuation from the input.<br>
@@ -84,12 +84,12 @@ public class ProcessTask extends Task<String[]> {
      *
      * No other value is allowed.
      */
-    private int punctMode;
+    private final int punctMode;
 
     /**
      * Whether the service's task will load its input from a file
      */
-    private boolean usingFileInput;
+    private final boolean usingFileInput;
 
 
     /**
@@ -232,8 +232,7 @@ public class ProcessTask extends Task<String[]> {
                             punctMode, startingSegment);
 
                     //Advance starting segment
-                    int charCounts = countAlphaChars(subtaskWorkloads[i]);
-                    startingSegment += charCounts / (int)blockLength;
+                    startingSegment += (countAlphaChars(subtaskWorkloads[i]) / blockLength);
 
                     if (isCancelled()) {
                         return new String[]{null, null, null, null};
@@ -570,8 +569,7 @@ public class ProcessTask extends Task<String[]> {
         input=a.charAt(0);
         a=null;
 
-        //Not like the 'final' declaration will save the array indices from tampering,
-        //but I hope that it increases speed a little.
+
         final String[] outChars={"àáâãäå", "ç", "ð", "èéëêœæ", "ìíîï", "òóôõöø", "ǹńñň",
                 "ß", "ùúûü", "ýÿ", "⁰₀", "¹₁", "²₂", "³₃", "⁴₄", "⁵₅", "⁶₆", "⁷₇", "⁸₈", "⁹₉", "—"};
         final char[] inChars={'a', 'c', 'd', 'e', 'i', 'o', 'n', 's', 'u', 'y',  '0', '1',
@@ -613,7 +611,7 @@ public class ProcessTask extends Task<String[]> {
      *
      * -Note: The final character of each output index (excluding the last index) should end in an alphabetic character.
      *
-     * @param text the text to split. Non-null
+     * @param text the text to split. Cannot be null
      * @param threads how many pieces {@code text} should be split into. If zero, or the Task is cancelled, returns {""}. Cannot be negative
      * @param blockLength number of characters, or a multiple thereof, to put in each piece. Must be positive
      * @return array of Strings. There are {@code threads} total Strings whose alphabetic characters are

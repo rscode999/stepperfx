@@ -1,4 +1,4 @@
-package stepperfx.controllers;
+package stepperfx.integration;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Dialog;
@@ -10,12 +10,12 @@ import java.util.Optional;
 
 /**
  * Class containing static methods to show styled dialogs.<br>
- * Dialog styles are loaded from the CSS file at {@code Dialogs.STYLESHEET_FILEPATH}, from the "dialog" style class.
+ * Dialog styles are loaded from the CSS file at {@code StyledDialogs.STYLESHEET_FILEPATH}, from the "dialog" style class.
  */
-public final class Dialogs {
+public final class StyledDialogs {
 
     /**
-     * Filepath to load dialog stylesheets from.<br><br>
+     * Filepath to load dialog stylesheets from. Must point to a valid CSS file.<br><br>
      * A style class called "dialog" governs dialog styles.
      */
     final public static String STYLESHEET_FILEPATH = "/views/main-styles.css";
@@ -26,25 +26,25 @@ public final class Dialogs {
     //HELPERS
 
     /**
-     * Configures and loads {@code dialog} with the stylesheet at {@code Dialogs.STYLESHEET_FILEPATH}.
+     * Configures and loads {@code dialog} with the stylesheet at {@code StyledDialogs.STYLESHEET_FILEPATH}.
      * Sets the dialog's title, header, and text.<br><br>
      *
-     * After this method returns, {@code dialog} will be changed.
+     * Upon completion of this method, {@code dialog} will be mutated.
      *
      * @param dialog dialog to configure
      * @param title title of the dialog window
      * @param header large text explaining the main message of the dialog
      * @param text small text below the header providing more information
      */
-    private static void loadDialog(Dialog dialog, String title, String header, String text) {
+    private static void loadDialog(Dialog<?> dialog, String title, String header, String text) {
         //Set the stylesheet
         DialogPane dialogPane = dialog.getDialogPane();
-        URL styles = Dialogs.class.getResource(STYLESHEET_FILEPATH);
-        if(styles==null) throw new AssertionError("The given dialog stylesheet given in 'styles' does not exist");
+        URL styles = StyledDialogs.class.getResource(STYLESHEET_FILEPATH);
+        if(styles==null) throw new AssertionError("The dialog stylesheet at \"" + STYLESHEET_FILEPATH + "\" does not exist");
         dialogPane.getStylesheets().add(styles.toExternalForm());
         dialogPane.getStyleClass().add("dialog");
 
-        //configure the dialog and show it
+        //configure the dialog
         dialog.setTitle(title);
         dialog.setHeaderText(header);
         dialog.setContentText(text);

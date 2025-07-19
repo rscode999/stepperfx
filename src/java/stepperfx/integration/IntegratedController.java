@@ -1,8 +1,7 @@
-package stepperfx.screen_management;
+package stepperfx.integration;
 
 
 import javafx.scene.Parent;
-import stepperfx.StepperFields;
 
 /**
  * Base class for GUI controllers.
@@ -36,9 +35,9 @@ public class IntegratedController {
     //CONSTRUCTOR
 
     /**
-     * Creates a new IntegratedController. Its ScreenManager, root, and StepperFields will remain uninitialized.<br><br>
+     * Creates a new IntegratedController. Its ScreenManager, scene graph root, and StepperFields will remain uninitialized.<br><br>
      *
-     * Initialization occurs in the {@code initializeController} method inside the ScreenManager class definition.
+     * Initialization occurs in the {@code initializeController} method inside a ScreenManager.
      */
     public IntegratedController() {
         //Must have an explicitly defined constructor to conform to the project rules

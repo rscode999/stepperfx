@@ -2,7 +2,8 @@ package stepperfx;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import stepperfx.screen_management.ScreenManager;
+import stepperfx.integration.ScreenManager;
+import stepperfx.integration.StepperFields;
 
 /**
  * Responsible for configuring and displaying the app.<br>
@@ -25,6 +26,7 @@ final public class MainApplication extends Application {
         manager.addScreen("login-reject", "/views/login-reject-view.fxml", fields);
         manager.addScreen("input", "/views/input-view.fxml", fields);
         manager.addScreen("loading", "/views/loading-view.fxml", fields);
+        manager.addScreen("settings", "/views/settings-view.fxml", fields);
         manager.addScreen("results", "/views/results-view.fxml", fields);
         manager.finishLoading();
 

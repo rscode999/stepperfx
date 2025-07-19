@@ -6,9 +6,10 @@ module test.stepperfx {
 
     opens stepperfx to javafx.fxml;
     exports stepperfx;
-    exports stepperfx.screen_management;
+    exports stepperfx.integration;
     exports stepperfx.controllers;
     exports stepperfx.threading;
     opens stepperfx.controllers to javafx.fxml;
+    opens stepperfx.integration to javafx.fxml;
 
 }

@@ -1,4 +1,4 @@
-package stepperfx.screen_management;
+package stepperfx.integration;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,8 +8,6 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
-
-import stepperfx.StepperFields;
 
 
 /**
@@ -28,7 +26,10 @@ final public class ScreenManager {
     private final Stage primaryStage;
 
     /**
+     * Set containing previously loaded FXML paths.<br><br>
      *
+     * Used to check if a FXML file has been previously loaded.<br>
+     * Becomes null when the ScreenManager is finished loading.
      */
     private HashSet<String> loadedFxmlPaths;
 
@@ -140,7 +141,7 @@ final public class ScreenManager {
 
 
     /**
-     * Prevents the {@code ScreenManager} from loading any more screens, enabling screen changing to occur.
+     * Prevents the ScreenManager from loading more screens. Enables screen changing.
      */
     public void finishLoading() {
         loadedFxmlPaths = null;
@@ -184,9 +185,9 @@ final public class ScreenManager {
            throw new AssertionError("The screen \"" + name + "\" is not tracked by the manager");
        }
 
-       //Check if the manager is loadable, i.e. the loaded FXML path set is not null
+       //Check if the manager is loadable, i.e. the set of loaded FXML paths is not null
         if(loadedFxmlPaths != null) {
-            throw new IllegalStateException("Cannot show new screens before the manager finishes loading. Call finishLoading() to allow screen changing.");
+            throw new IllegalStateException("Cannot show new screens before the manager finishes loading. Call {managerName}.finishLoading() to allow screen changing");
         }
 
         //Replace the root of the existing Scene
@@ -198,7 +199,7 @@ final public class ScreenManager {
         }
 
         primaryStage.sizeToScene(); //Adjust window size to fit new content
-       primaryStage.show();
+        primaryStage.show();
     }
 
 }

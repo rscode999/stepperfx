@@ -8,9 +8,10 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import stepperfx.StepperFields;
-import stepperfx.screen_management.IntegratedController;
-import stepperfx.screen_management.ScreenManager;
+import stepperfx.integration.StepperFields;
+import stepperfx.integration.IntegratedController;
+import stepperfx.integration.ScreenManager;
+import stepperfx.integration.StyledDialogs;
 
 import java.util.*;
 
@@ -119,11 +120,11 @@ final public class ResultsController extends IntegratedController {
 
                     //File loading exception: load with error message
                     if(newValue[2].equals("class java.io.FileNotFoundException")) {
-                        Dialogs.showAlertDialog("File load error", "File load error", newValue[3]);
+                        StyledDialogs.showAlertDialog("File load error", "File load error", newValue[3]);
                     }
                     //Any other exception: load with exception's message
                     else {
-                        Dialogs.showAlertDialog("Thread unhandled exception", newValue[2], newValue[3]);
+                        StyledDialogs.showAlertDialog("Thread unhandled exception", newValue[2], newValue[3]);
                     }
                 }
 
