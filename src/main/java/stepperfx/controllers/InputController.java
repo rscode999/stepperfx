@@ -3,8 +3,8 @@ package stepperfx.controllers;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import stepperfx.integration.StepperFields;
 import stepperfx.integration.IntegratedController;
 import stepperfx.integration.ScreenManager;
@@ -126,19 +126,16 @@ final public class InputController extends IntegratedController {
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //"CONSTRUCTOR"
 
-
-
     /**
      * Initializes the controller with {@code manager}, {@code sceneGraphRoot}, and {@code fields}.<br>
      * Sets GUI elements. Assigns a listener to clear the text inputs upon successful operations.
      *
      * @param manager ScreenManager for screen changes
-     * @param sceneGraphRoot root of the controller's scene graph
      * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, Parent sceneGraphRoot, StepperFields fields) {
-        assertInitializeController(manager, sceneGraphRoot, fields);
+    public void initializeController(ScreenManager manager, StepperFields fields) {
+        assertInitializeController(manager, fields);
 
         //Check thread option formatting
         for(int v=0; v<THREAD_OPTIONS.length; v++) {
@@ -165,7 +162,6 @@ final public class InputController extends IntegratedController {
 
         //Initialize controller's fields
         this.screenManager = manager;
-        this.sceneGraphRoot = sceneGraphRoot;
         this.fields = fields;
 
         //Set choice boxes and combo box. Then select their first option
@@ -180,7 +176,6 @@ final public class InputController extends IntegratedController {
 
         // ///////////////////////////////////////////////////////////////////////////
 
-
         //Set listener on the shared service to clear the inputs upon successful output
         fields.addServiceValueListener((obs, oldValue, newValue) -> {
             //Service output: {processed text, key, error message}
@@ -191,16 +186,19 @@ final public class InputController extends IntegratedController {
             }
         });
 
-        assertInitializeController(manager, sceneGraphRoot, fields);
+        //Set key listener on this screen
+        manager.addKeyEventFilter(name, event -> {
+            if(event.getCode().equals(KeyCode.ALT)) {
+                manager.setAlternateStyles(false);
+            }
+            else if(event.getCode().equals(KeyCode.DELETE) || event.getCode().equals(KeyCode.ESCAPE)) {
+                manager.showScreen("login");
+            }
+        });
+
+        assertInitializeController(manager, fields);
     }
 
-
-
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //HELPERS
 
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,11 +216,9 @@ final public class InputController extends IntegratedController {
     @FXML
     private void onInputSelectorChange() {
         if(inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
-            textInput.setPromptText("Example: C:\\Users\\username\\Desktop\\file.txt");
             textInputLabel.setText("Path to input text (*.txt) file");
         }
         else {
-            textInput.setPromptText("Enter text here");
             textInputLabel.setText("Text");
         }
     }
@@ -249,7 +245,6 @@ final public class InputController extends IntegratedController {
         //Change label text, if file input is not selected
         if(!inputSelector.getValue().equals(INPUT_SELECTION_OPTIONS[2])) {
             textInputLabel.setText("Text");
-            textInput.setPromptText("Enter text here");
         }
     }
 

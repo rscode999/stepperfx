@@ -2,12 +2,10 @@ package stepperfx.controllers;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import stepperfx.integration.StepperFields;
 import stepperfx.integration.IntegratedController;
 import stepperfx.integration.ScreenManager;
@@ -71,21 +69,19 @@ final public class ResultsController extends IntegratedController {
     /**
      * Sets the app's fields.<br>
      * Attaches a value listener to the app's shared Service to load the Service's output.<br>
-     * Attaches an event filter to the scene graph root to check for key presses.
+     * Attaches an event filter to the scene graph root (in the screen manager) to check for key presses.
      *
      * @param manager ScreenManager for screen changes
-     * @param sceneGraphRoot root of the scene graph managed by the controller
      * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, Parent sceneGraphRoot, StepperFields fields) {
-        assertInitializeController(manager, sceneGraphRoot, fields);
+    public void initializeController(ScreenManager manager, StepperFields fields) {
+        assertInitializeController(manager, fields);
         this.fields = fields;
-        this.sceneGraphRoot = sceneGraphRoot;
         this.screenManager = manager;
 
         //Configure key shortcuts
-        sceneGraphRoot.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+        screenManager.addKeyEventFilter(name, event -> {
 
             //Move between pages with arrow keys
             if (KeyCode.RIGHT.equals(event.getCode()) || KeyCode.UP.equals(event.getCode())) {
@@ -94,7 +90,16 @@ final public class ResultsController extends IntegratedController {
             else if(KeyCode.LEFT.equals(event.getCode()) || KeyCode.DOWN.equals(event.getCode())) {
                 setPreviousPage();
             }
+
+            //Quick settings for color switching and returning to the login
+            else if(event.getCode().equals(KeyCode.ALT)) {
+                manager.setAlternateStyles(false);
+            }
+            else if(event.getCode().equals(KeyCode.DELETE) || event.getCode().equals(KeyCode.ESCAPE)) {
+                showLoginScreen();
+            }
         });
+
 
         //Attach value listener to the service to handle its output
         fields.addServiceValueListener((obs, oldValue, newValue) -> {
@@ -165,7 +170,7 @@ final public class ResultsController extends IntegratedController {
             });
         });
 
-        assertInitializeController(manager, sceneGraphRoot, fields);
+        assertInitializeController(manager, fields);
     }
 
 

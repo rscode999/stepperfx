@@ -11,15 +11,15 @@ Stylesheet for the input, loading, and results screens. Includes styles for popu
 
 //control components
 .control-colors {
-    -fx-background-color: #3c643c;
-    -fx-control-inner-background: #3c643c;
+    -fx-background-color: #3c963c;
+    -fx-control-inner-background: #3c963c;
 }
 
 
 //control components (slightly different colors)
 .control-accent-colors {
-    -fx-background-color: #3c843c;
-    -fx-control-inner-background: #3c843c;
+    -fx-background-color: #3ca03c;
+    -fx-control-inner-background: #3ca03c;
 }
 
 
@@ -34,7 +34,7 @@ Stylesheet for the input, loading, and results screens. Includes styles for popu
 
 
 .check-box *.box {
-    -fx-background-color: #3c643c;
+    -fx-background-color: #3c963c;
 }
 
 //check mark
@@ -47,19 +47,19 @@ Stylesheet for the input, loading, and results screens. Includes styles for popu
 //text color of choice box
 .choice-box .label {
   -fx-font-family: "System";
-  -fx-text-fill: #323232;
+  -fx-text-fill: black;
 }
 
 
 
 //text color of combo box
 .combo-box .list-cell {
-  -fx-text-fill: #323232;
+  -fx-text-fill: black;
 }
 
 //text color of combo box (when opened)
 .combo-box .list-view .list-cell {
-  -fx-text-fill: #323232;
+  -fx-text-fill: black;
 }
 
 
@@ -68,7 +68,7 @@ Stylesheet for the input, loading, and results screens. Includes styles for popu
 .text-area {
     -fx-faint-focus-color: #3c673c;
     -fx-focus-color: #3c673c;
-    -fx-text-fill: #4d704d;
+    -fx-text-fill: black;
 }
 
 
@@ -77,7 +77,7 @@ Stylesheet for the input, loading, and results screens. Includes styles for popu
 .text-field {
     -fx-faint-focus-color: #3c673c;
     -fx-focus-color: #3c673c;
-    -fx-text-fill: #6e6e6e;
+    -fx-text-fill: black;
 }
 
 

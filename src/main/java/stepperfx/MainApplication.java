@@ -28,6 +28,12 @@ final public class MainApplication extends Application {
         manager.addScreen("loading", "/views/loading-view.fxml", fields);
         manager.addScreen("settings", "/views/settings-view.fxml", fields);
         manager.addScreen("results", "/views/results-view.fxml", fields);
+
+        //Add alternate styles for input, settings, results screens
+        manager.addAlternateStylesheet("input", "/views/high-contrast-main-styles.css");
+        manager.addAlternateStylesheet("settings", "/views/high-contrast-main-styles.css");
+        manager.addAlternateStylesheet("results", "/views/high-contrast-main-styles.css");
+
         manager.finishLoading();
 
         initialStage.setTitle("StepperFX");

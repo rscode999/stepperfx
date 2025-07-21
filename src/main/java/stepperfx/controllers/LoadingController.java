@@ -30,15 +30,13 @@ final public class LoadingController extends IntegratedController {
      * Sets and configures the fields of this controller
      *
      * @param manager ScreenManager for screen changes
-     * @param sceneGraphRoot root of the controller's scene graph
      * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, Parent sceneGraphRoot, StepperFields fields) {
-        assertInitializeController(manager, sceneGraphRoot, fields);
+    public void initializeController(ScreenManager manager, StepperFields fields) {
+        assertInitializeController(manager, fields);
 
         this.screenManager = manager;
-        this.sceneGraphRoot = sceneGraphRoot;
         this.fields = fields;
 
         fields.addServiceMessageListener((obs, oldValue, newValue) -> {

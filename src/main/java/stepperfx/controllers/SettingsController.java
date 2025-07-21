@@ -1,12 +1,11 @@
 package stepperfx.controllers;
 
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import stepperfx.integration.StepperFields;
 import stepperfx.integration.IntegratedController;
-import stepperfx.integration.ScreenManager;
 import stepperfx.integration.StyledDialogs;
 
 /**
@@ -14,6 +13,12 @@ import stepperfx.integration.StyledDialogs;
  * Responsible for taking and updating the user's preferences.
  */
 public final class SettingsController extends IntegratedController {
+
+    /**
+     * Allows the user to select high-contrast styles
+     */
+    @FXML
+    private CheckBox highContrastStyleSelector;
 
     /**
      *  Label for the block count input
@@ -49,31 +54,6 @@ public final class SettingsController extends IntegratedController {
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //"CONSTRUCTOR"
-
-    /**
-     *
-     * @param manager the ScreenManager responsible for the controller. Cannot be null
-     * @param sceneGraphRoot root of the controller's scene. Cannot be null
-     * @param fields reference to shared fields between controllers. Cannot be null
-     */
-    @Override
-    public void initializeController(ScreenManager manager, Parent sceneGraphRoot, StepperFields fields) {
-        assertInitializeController(manager, sceneGraphRoot, fields);
-        this.screenManager = manager;
-        this.sceneGraphRoot = sceneGraphRoot;
-        this.fields = fields;
-
-        blockCountInputText.setText("Number of blocks (current: " + fields.getBlockCount() + ")");
-        blockLengthInputText.setText("Block length (current: " + fields.getBlockLength() + ")");
-
-        assertInitializeController(manager, sceneGraphRoot, fields);
-    }
-
-
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //METHODS
 
 
@@ -82,46 +62,65 @@ public final class SettingsController extends IntegratedController {
      */
     @FXML
     private void applySettings() {
-        //Take input and throw exception if something goes wrong
-        int newBlockCount;
-        int newBlockLength;
-        try {
-            newBlockCount = Integer.parseInt(blockCountInput.getText());
-        }
-        catch(NumberFormatException e) {
-            StyledDialogs.showAlertDialog("Invalid input", "Invalid input", "New block count must be an integer");
-            return;
-        }
-        try {
-            newBlockLength = Integer.parseInt(blockLengthInput.getText());
-        }
-        catch(NumberFormatException e) {
-            StyledDialogs.showAlertDialog("Invalid input", "Invalid input", "New block length must be an integer");
-            return;
+
+        int newBlockCount = fields.getBlockCount();
+        int newBlockLength = fields.getBlockLength();
+
+        //Get new block count
+        if(!blockCountInput.getText().isEmpty()) {
+            try {
+                newBlockCount = Integer.parseInt(blockCountInput.getText());
+            }
+            catch (NumberFormatException e) {
+                StyledDialogs.showAlertDialog("Invalid input", "Invalid input", "New block count must be an integer");
+                return;
+            }
+
+            if(newBlockCount<=0 || newBlockCount>StepperFields.MAX_BLOCK_COUNT) {
+                StyledDialogs.showAlertDialog("Invalid input", "Invalid input",
+                        "New block count must be an integer between 1 and " + StepperFields.MAX_BLOCK_COUNT);
+                return;
+            }
         }
 
-        //Ensure the inputs are in valid range
-        if(newBlockCount<=0 || newBlockCount>StepperFields.MAX_BLOCK_COUNT) {
-            StyledDialogs.showAlertDialog("Invalid input", "Invalid input",
-                    "New block count must be an integer between 1 and " + StepperFields.MAX_BLOCK_COUNT);
-            return;
+        //Get new block length
+        if(!blockLengthInput.getText().isEmpty()) {
+            try {
+                newBlockLength = Integer.parseInt(blockLengthInput.getText());
+            }
+            catch (NumberFormatException e) {
+                StyledDialogs.showAlertDialog("Invalid input", "Invalid input", "New block length must be an integer");
+                return;
+            }
+
+            if(newBlockLength<=0 || newBlockLength>StepperFields.MAX_BLOCK_LENGTH) {
+                StyledDialogs.showAlertDialog("Invalid input", "Invalid input",
+                        "New block length must be an integer between 1 and " + StepperFields.MAX_BLOCK_LENGTH);
+                return;
+            }
         }
-        if(newBlockLength<=0 || newBlockLength>StepperFields.MAX_BLOCK_LENGTH) {
-            StyledDialogs.showAlertDialog("Invalid input", "Invalid input",
-                    "New block length must be an integer between 1 and " + StepperFields.MAX_BLOCK_LENGTH);
-            return;
+
+        //Update the "changes applied" label, if changes were made
+        if(!blockCountInput.getText().isEmpty()
+        || !blockLengthInput.getText().isEmpty()
+        || highContrastStyleSelector.isSelected() != screenManager.usingAlternateStyles()) {
+            statusText.setText("Changes applied");
+        }
+        else {
+            statusText.setText(" ");
         }
 
         //Update the settings
         fields.setBlockCount(newBlockCount);
         fields.setBlockLength(newBlockLength);
+        screenManager.setAlternateStyles(highContrastStyleSelector.isSelected());
 
         //Update the labels
         blockCountInputText.setText("Number of blocks (current: " + fields.getBlockCount() + ")");
         blockLengthInputText.setText("Block length (current: " + fields.getBlockLength() + ")");
 
-        //Update the success label
-        statusText.setText("Changes applied");
+        blockCountInput.setText("");
+        blockLengthInput.setText("");
     }
 
 
@@ -137,6 +136,18 @@ public final class SettingsController extends IntegratedController {
 
 
     /**
+     * Prepares the settings screen for view. Updates the high-contrast selector, block count, and block length displayed.
+     */
+    @Override
+    protected void prepareScreen() {
+        highContrastStyleSelector.setSelected(screenManager.usingAlternateStyles());
+        blockCountInputText.setText("Number of blocks (current: " + fields.getBlockCount() + ")");
+        blockLengthInputText.setText("Block length (current: " + fields.getBlockLength() + ")");
+    }
+
+
+
+    /**
      * Changes to the input screen
      */
     @FXML
@@ -146,4 +157,5 @@ public final class SettingsController extends IntegratedController {
         blockCountInput.setText("");
         blockLengthInput.setText("");
     }
+
 }
