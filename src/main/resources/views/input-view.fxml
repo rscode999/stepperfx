@@ -19,7 +19,7 @@
 
    <!-- TOP -->
    <top>
-      <Label alignment="TOP_LEFT" text="Stepper App JavaFX" BorderPane.alignment="CENTER">
+      <Label alignment="TOP_LEFT" text="Stepper App JavaFX" styleClass="control-colors" BorderPane.alignment="CENTER">
          <font>
             <Font name="Trebuchet MS" size="36.0" />
          </font>

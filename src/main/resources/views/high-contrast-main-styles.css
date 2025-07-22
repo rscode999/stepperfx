@@ -63,6 +63,9 @@ Stylesheet for the input, loading, and results screens. Includes styles for popu
 }
 
 
+.label {
+    -fx-
+}
 
 
 .text-area {

@@ -191,8 +191,8 @@ final public class InputController extends IntegratedController {
             if(event.getCode().equals(KeyCode.ALT)) {
                 manager.setAlternateStyles(false);
             }
-            else if(event.getCode().equals(KeyCode.DELETE) || event.getCode().equals(KeyCode.ESCAPE)) {
-                manager.showScreen("login");
+            else if(event.getCode().equals(KeyCode.ESCAPE)) {
+                showLoginScreen();
             }
         });
 

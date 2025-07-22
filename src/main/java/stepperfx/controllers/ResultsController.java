@@ -91,11 +91,11 @@ final public class ResultsController extends IntegratedController {
                 setPreviousPage();
             }
 
-            //Quick settings for color switching and returning to the login
+            //Quick settings for color switching
             else if(event.getCode().equals(KeyCode.ALT)) {
                 manager.setAlternateStyles(false);
             }
-            else if(event.getCode().equals(KeyCode.DELETE) || event.getCode().equals(KeyCode.ESCAPE)) {
+            else if(event.getCode().equals(KeyCode.ESCAPE)) {
                 showLoginScreen();
             }
         });
