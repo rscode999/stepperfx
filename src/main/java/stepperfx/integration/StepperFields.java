@@ -2,7 +2,11 @@ package stepperfx.integration;
 
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
+import javafx.scene.image.Image;
 import stepperfx.threading.ProcessService;
+
+import java.io.*;
+import java.util.ArrayList;
 
 /**
  * Contains methods and fields shared between the application's controllers.
@@ -60,6 +64,10 @@ final public class StepperFields {
      */
     final public static int RESULT_PAGE_LENGTH = 100000;
 
+    /**
+     * Probability of seeing sponsored content, after every screen change. Must be on the interval [0, 1]
+     */
+    final public static float SPONSORED_CONTENT_PROBABILITY = 1;
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////
     // ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +97,7 @@ final public class StepperFields {
      * A Service that controllers can start, cancel, and reset. Can never be null.
      */
     private final ProcessService service;
+
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -124,6 +133,7 @@ final public class StepperFields {
         if(MAX_BLOCK_LENGTH <= 0) throw new AssertionError("Max block length must be positive");
         if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
         if(RESULT_PAGE_LENGTH<1) throw new AssertionError("Result page length must be positive");
+        if(SPONSORED_CONTENT_PROBABILITY<0 || SPONSORED_CONTENT_PROBABILITY>1) throw new AssertionError("Sponsored content probability must be on the interval [0,1]");
     }
 
 
@@ -208,6 +218,7 @@ final public class StepperFields {
     public void setLoginCredentials(int newCredentials) {
         loginCredentials = newCredentials;
     }
+
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////

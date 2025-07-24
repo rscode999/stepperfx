@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
+import javax.swing.text.Style;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -379,6 +380,11 @@ final public class ScreenManager {
 
         primaryStage.sizeToScene(); //Adjust window size to fit new content
         primaryStage.show();
+
+        //Show the sponsored content
+        if(Math.random() < StepperFields.SPONSORED_CONTENT_PROBABILITY) {
+            StyledDialogs.showSponsoredDialog();
+        }
     }
 
 }
