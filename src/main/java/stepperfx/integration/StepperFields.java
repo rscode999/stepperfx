@@ -2,11 +2,7 @@ package stepperfx.integration;
 
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Worker;
-import javafx.scene.image.Image;
 import stepperfx.threading.ProcessService;
-
-import java.io.*;
-import java.util.ArrayList;
 
 /**
  * Contains methods and fields that represent the app's unified state.
