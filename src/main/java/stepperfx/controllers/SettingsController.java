@@ -1,18 +1,28 @@
 package stepperfx.controllers;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import stepperfx.integration.ScreenName;
 import stepperfx.integration.StepperFields;
 import stepperfx.integration.IntegratedController;
 import stepperfx.integration.StyledDialogs;
+
+import java.util.Optional;
 
 /**
  * Controller for the settings screen (accessed through the input screen).
  * Responsible for taking and updating the user's preferences.
  */
 public final class SettingsController extends IntegratedController {
+
+    /**
+     * Shows a prompt to enter a product key
+     */
+    @FXML
+    private Button productKeyButton;
 
     /**
      * Allows the user to select high-contrast styles
@@ -102,8 +112,8 @@ public final class SettingsController extends IntegratedController {
 
         //Update the "changes applied" label, if changes were made
         if(!blockCountInput.getText().isEmpty()
-        || !blockLengthInput.getText().isEmpty()
-        || highContrastStyleSelector.isSelected() != screenManager.usingAlternateStyles()) {
+                || !blockLengthInput.getText().isEmpty()
+                || highContrastStyleSelector.isSelected() != screenManager.usingAlternateStyles()) {
             statusText.setText("Changes applied");
         }
         else {
@@ -126,7 +136,7 @@ public final class SettingsController extends IntegratedController {
 
 
     /**
-     * Removes the status text ("Changes applied")
+     * Removes the "Changes applied" status text
      */
     @FXML
     private void clearStatusText() {
@@ -148,14 +158,41 @@ public final class SettingsController extends IntegratedController {
 
 
     /**
-     * Changes to the input screen
+     * Changes to the input screen. Clears all data from the settings screen.
      */
     @FXML
     private void showInputScreen() {
-        screenManager.showScreen("input");
+        screenManager.showScreen(ScreenName.INPUT);
         statusText.setText(" ");
         blockCountInput.setText("");
         blockLengthInput.setText("");
     }
 
+
+
+    /**
+     * Shows a dialog to get the product key from the user.
+     * If the product key is valid, decreases the probability of seeing sponsored content.
+     */
+    @FXML
+    private void takeProductKey() {
+        //Get user input with a dialog
+        Optional<String> rawKey = StyledDialogs.showTextInputDialog("Enter product key", "Enter product key",
+                "All letters in the product key must be uppercase");
+
+        //Get the user input. If not given, return
+        if(rawKey.isEmpty()) {
+            return;
+        }
+        String key = rawKey.get();
+
+        if(key.equals("PI-EQUALS-3")) {
+            fields.setSponsoredContentProbability(0.2);
+            StyledDialogs.showAlertDialog("Key accepted", "Key accepted", "Enjoy seeing less sponsored content!");
+            productKeyButton.setDisable(true);
+        }
+        else {
+            StyledDialogs.showInfoDialog("Error", "Key not accepted", "The given product key is invalid");
+        }
+    }
 }

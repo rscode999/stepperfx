@@ -4,16 +4,10 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
-import javafx.stage.StageStyle;
 
 import java.io.File;
-import java.io.FilenameFilter;
-import java.lang.reflect.Array;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Optional;
-import java.util.Random;
 
 /**
  * Class containing static methods to show styled dialogs.<br>
@@ -22,7 +16,7 @@ import java.util.Random;
 public final class StyledDialogs {
 
     /**
-     * Path to a directory containing images for sponsored content.
+     * Path to a directory containing images for sponsored content
      */
     final public static String SPONSORED_CONTENT_DIRECTORY = "src/main/resources/images";
 
@@ -54,15 +48,15 @@ public final class StyledDialogs {
 
         //Check all valid file extensions
         return !(testFilename.endsWith("jpg") ||
-               testFilename.endsWith("jpeg") ||
-               testFilename.endsWith("png") ||
-               testFilename.endsWith("bmp") ||
-               testFilename.endsWith("gif"));
+                testFilename.endsWith("jpeg") ||
+                testFilename.endsWith("png") ||
+                testFilename.endsWith("bmp") ||
+                testFilename.endsWith("gif"));
     }
 
 
     /**
-     * Configures and loads {@code dialog} with the stylesheet at {@code StyledDialogs.STYLESHEET_FILEPATH}.
+     * Loads {@code dialog} with the stylesheet at {@code StyledDialogs.STYLESHEET_FILEPATH}.<br>
      * Sets the dialog's title, header, and text.<br><br>
      *
      * Upon completion of this method, {@code dialog} will be mutated.
@@ -92,7 +86,7 @@ public final class StyledDialogs {
     //METHODS
 
     /**
-     * Shows a standalone modal alert dialog.
+     * Shows a modal alert dialog.
      * @param title title of the dialog window. Cannot be null
      * @param header large text explaining the main message of the dialog. Cannot be null
      * @param text small text below the header providing more information. Cannot be null
@@ -104,6 +98,25 @@ public final class StyledDialogs {
 
         //create, load and show the dialog
         Alert alert = new Alert(Alert.AlertType.WARNING);
+        loadDialog(alert, title, header, text);
+        alert.showAndWait();
+    }
+
+
+
+    /**
+     * Shows a modal information dialog.
+     * @param title title of the dialog window. Cannot be null
+     * @param header large text explaining the main message of the dialog. Cannot be null
+     * @param text small text below the header providing more information. Cannot be null
+     */
+    public static void showInfoDialog(String title, String header, String text) {
+        if(title==null) throw new AssertionError("Title cannot be null");
+        if(header==null) throw new AssertionError("Header cannot be null");
+        if(text==null) throw new AssertionError("Text cannot be null");
+
+        //create, load and show the dialog
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
         loadDialog(alert, title, header, text);
         alert.showAndWait();
     }
@@ -125,32 +138,33 @@ public final class StyledDialogs {
         Image image = null;
 
         // Check if the directory exists and is a directory
-        if (dir.exists() && dir.isDirectory()) {
-            // Get all the files in the directory
-            File[] files = dir.listFiles();
-            if(files==null) {
-                throw new AssertionError("The directory \"" + SPONSORED_CONTENT_DIRECTORY + "\" does not exist");
-            }
-            if(files.length == 0) {
-                System.err.println("\"" + SPONSORED_CONTENT_DIRECTORY + "\" is empty");
-                return;
-            }
-
-            //Pick a random index from the directory
-            int randIndex = (int) (Math.random() * (files.length));
-            File selectedImage = files[randIndex];
-
-            //Check if the file is valid
-            if(fileInvalid(selectedImage)) {
-                throw new AssertionError("The file \"" + selectedImage.getName() + "\" is of an unsupported image type");
-            }
-
-            // Create an Image object and add it to the list
-            image = new Image(selectedImage.toURI().toString());
+        if(!dir.exists()) {
+            throw new AssertionError("The directory \"" + SPONSORED_CONTENT_DIRECTORY + "\" does not exist");
         }
-        else {
+        if(!dir.isDirectory()) {
             throw new AssertionError("The directory \"" + SPONSORED_CONTENT_DIRECTORY + "\" is not a directory");
         }
+
+        // Get all the files in the directory
+        File[] files = dir.listFiles();
+        assert files != null;
+        if(files.length == 0) {
+            System.err.println("Alert: \"" + SPONSORED_CONTENT_DIRECTORY + "\" is empty");
+            return;
+        }
+
+        //Pick a random index from the directory
+        int randIndex = (int) (Math.random() * (files.length));
+        File selectedImage = files[randIndex];
+
+        //Check if the file is valid
+        if(fileInvalid(selectedImage)) {
+            throw new AssertionError("The file \"" + selectedImage.getName() + "\" is of an unsupported image type");
+        }
+
+        // Create an Image object and add it to the list
+        image = new Image(selectedImage.toURI().toString());
+
 
         //Put the image in a viewable format
         ImageView imageView = new ImageView(image);
@@ -177,13 +191,13 @@ public final class StyledDialogs {
 
     /**
      * Shows a standalone modal dialog with a text field, a Cancel button, and an OK button.<br>
-     * Returns the value received from the dialog, or {@code null} if the value is cancelled.
+     * Returns the value received from the dialog, as an Optional.
      * @param title title of the dialog window. Cannot be null
      * @param header large text explaining the main message of the dialog. Cannot be null
      * @param text small text below the header providing more information. Cannot be null
      * @return user's input from the dialog
      */
-    public static Optional<String> showTextDialog(String title, String header, String text) {
+    public static Optional<String> showTextInputDialog(String title, String header, String text) {
         if(title==null) throw new AssertionError("Title cannot be null");
         if(header==null) throw new AssertionError("Header cannot be null");
         if(text==null) throw new AssertionError("Text cannot be null");

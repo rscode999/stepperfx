@@ -6,9 +6,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import javax.swing.text.Style;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
@@ -32,7 +32,12 @@ final public class ScreenManager {
     /**
      * Stores controllers for each of the Manager's screens
      */
-    private final HashMap<String, IntegratedController> controllerMap;
+    private final HashMap<ScreenName, IntegratedController> controllerMap;
+
+    /**
+     * Holds the application's shared state
+     */
+    private final StepperFields fields;
 
     /**
      * Reference to the main application window where the screens will be displayed
@@ -51,7 +56,7 @@ final public class ScreenManager {
      * Stores root nodes of the ScreenManager's FXML files.
      * Keys, assigned during the {@code addScreen} method, are the screen's names
      */
-    private final HashMap<String, Parent> rootMap;
+    private final HashMap<ScreenName, Parent> rootMap;
 
     /**
      * True if the manager is currently displaying alternate screens, false otherwise
@@ -64,11 +69,16 @@ final public class ScreenManager {
     //CONSTRUCTOR
 
     /**
-     * Initializes the ScreenManager with a stage.
-     * @param primaryStage stage to load
+     * Creates a new ScreenManager with a stage and an instance eof shared fields.
+     * @param primaryStage stage to load. Can't be null
+     * @param fields shared fields to load. Can't be null
      */
-    public ScreenManager(Stage primaryStage) {
+    public ScreenManager(Stage primaryStage, StepperFields fields) {
+        if(primaryStage == null) throw new AssertionError("Primary stage cannot be null");
+        if(fields == null) throw new AssertionError("Shared fields cannot be null");
+
         this.primaryStage = primaryStage;
+        this.fields = fields;
 
         usingAlternateStyles = false;
 
@@ -82,60 +92,6 @@ final public class ScreenManager {
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //GETTERS AND SETTERS
-
-
-    /**
-     * Returns an array containing all screen names tracked by the ScreenManager.<br><br>
-     *
-     * The elements in the array are deep copies of the ScreenManager's screen names,
-     * so they may be changed without affecting the ScreenManager.
-     *
-     * @return deep copy array of screen names
-     */
-    public String[] getScreens() {
-        Set<String> set = rootMap.keySet();
-        String[] output = new String[set.size()];
-        int i = 0;
-        for(String s : set) {
-            output[i] = s;
-            i++;
-        }
-        return output;
-    }
-
-
-
-    /**
-     * Returns a list of stylesheet names for the screen {@code screenName}.<br><br>
-     *
-     * The last index in the output is the currently shown screen.<br><br>
-     *
-     * This method returns a deep copy of the screen's stylesheets. The output can be modified without affecting the screen.
-     *
-     * @param screenName name of screen to get stylesheets from
-     * @return ObservableList of stylesheet names
-     */
-    public ObservableList<String> getScreenStylesheets(String screenName) {
-        ObservableList<String> stylesheetList = rootMap.get(screenName).getStylesheets();
-
-        //Turn into a deep copy
-        LinkedList<String> output = new LinkedList<>(stylesheetList);
-        return FXCollections.observableArrayList(output);
-    }
-
-
-
-    /**
-     * Returns a string representation of the Manager.<br>
-     * Includes the screen names under its control and whether the Manager can load new screens.
-     * @return manager as a string
-     */
-    @Override
-    public String toString() {
-        return super.toString() + ", screens=" + Arrays.toString(getScreens())
-                + ", " + (loadedFxmlPaths==null ? "finished loading" : "not finished loading");
-    }
-
 
 
     /**
@@ -169,10 +125,11 @@ final public class ScreenManager {
      * @throws IllegalStateException if a load is attempted after {@code finishLoading} is called
      * @throws IOException if the given FXML file path is invalid
      */
-    public void addScreen(String name, String fxmlPath, StepperFields fields) throws IOException {
+    public void addScreen(ScreenName name, String fxmlPath, StepperFields fields) throws IOException {
         if(name==null) {
             throw new AssertionError("Name cannot be null");
         }
+
         if(rootMap.containsKey(name)) {
             throw new AssertionError("The screen name \"" + name + "\" cannot match any other screen names");
         }
@@ -247,13 +204,12 @@ final public class ScreenManager {
      * assumes that the resources root is `resources`.<br>
      * Important: Load paths must begin with a slash.<br>
      *
-     * @param screenName name of the screen to add the alternate CSS file to. Cannot be null. Corresponding root must contain at most 2 stylesheets.
+     * @param screenName name of the screen to add the alternate CSS file to. Corresponding root must contain at most 2 stylesheets.
      * @param stylesheetPath path to the CSS file, relative to the `resources` root. Cannot be null. Must end in '.css'
      * @throws IOException if the file at {@code stylesheetPath} does not exist
      * @throws IllegalStateException if the manager is done loading, i.e. {@code finishLoading} was called
      */
-    public void addAlternateStylesheet(String screenName, String stylesheetPath) throws IOException {
-        if(screenName==null) throw new AssertionError("Screen name cannot be null");
+    public void addAlternateStylesheet(ScreenName screenName, String stylesheetPath) throws IOException {
         if(stylesheetPath==null) throw new AssertionError("CSS path cannot be null");
 
         //Check state
@@ -295,7 +251,7 @@ final public class ScreenManager {
      * @param screenName name of the screen to use. Cannot be null. Must be a screen name managed by this ScreenManager
      * @param eventHandler event handler to place on the desired screen. Cannot be null
      */
-    public void addKeyEventFilter(String screenName, javafx.event.EventHandler<? super KeyEvent> eventHandler) {
+    public void addKeyEventFilter(ScreenName screenName, javafx.event.EventHandler<? super KeyEvent> eventHandler) {
         if(screenName==null) throw new AssertionError("Screen name cannot be null");
         if(eventHandler==null) throw new AssertionError("Event handler cannot be null");
         if(!rootMap.containsKey(screenName)) {
@@ -334,7 +290,7 @@ final public class ScreenManager {
         if(loadedFxmlPaths != null) throw new IllegalStateException("Cannot set alternate styles when the manager is not done loading. Call {managerName}.finishLoading() first");
 
         if(this.usingAlternateStyles != usingAlternateStyles) {
-            for(String name : rootMap.keySet()) {
+            for(ScreenName name : rootMap.keySet()) {
                 //Reverse every stylesheet list for each screen (activating the alternate stylesheet)
                 ObservableList<String> stylesheets = rootMap.get(name).getStylesheets();
                 FXCollections.reverse(stylesheets);
@@ -347,24 +303,44 @@ final public class ScreenManager {
 
 
     /**
-     * Sets the ScreenManager's stage with a screen whose name is {@code name}.
-     * @param name name of the screen. Cannot be null. Must be the name of a screen managed by this ScreenManager
+     * Sets the ScreenManager's stage with a screen whose name is {@code name}.<br><br>
+     *
+     * This method has a {@code fields.getSponsoredContentProbability()} probability of showing a sponsored content dialog.<br>
+     *
+     * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
      * @throws IllegalStateException if the manager is not finished loading screens
      */
-    public void showScreen(String name) {
+    public void showScreen(ScreenName name) {
+        showScreen(name, true);
+    }
+
+
+    /**
+     * Sets the ScreenManager's stage with a screen whose name is {@code name}.<br><br>
+     *
+     * If {@code showingSponsoredContent} is true, this method has a {@code fields.getSponsoredContentProbability()}
+     * probability of showing a sponsored content dialog.<br>
+     * If false, a sponsored dialog is never shown,
+     *
+     * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
+     * @param showingSponsoredContent whether to have a chance of showing sponsored content
+     * @throws IllegalStateException if the manager is not finished loading screens
+     */
+    public void showScreen(ScreenName name, boolean showingSponsoredContent) {
         if(name == null) {
             throw new AssertionError("Screen name cannot be null");
         }
 
         //Check that the manager actually contains the screen
-       if(!rootMap.containsKey(name)) {
-           throw new AssertionError("The screen \"" + name + "\" is not tracked by the manager");
-       }
+        if(!rootMap.containsKey(name)) {
+            throw new AssertionError("The screen \"" + name + "\" is not tracked by the manager");
+        }
 
-       //Check if the manager is loadable, i.e. the set of loaded FXML paths is not null
+        //Check if the manager is loadable, i.e. the set of loaded FXML paths is not null
         if(loadedFxmlPaths != null) {
             throw new IllegalStateException("Cannot show new screens before the manager finishes loading. Call {managerName}.finishLoading() to allow screen changing");
         }
+
 
         //Replace the root of the existing Scene
         if (primaryStage.getScene() == null) {
@@ -381,8 +357,8 @@ final public class ScreenManager {
         primaryStage.sizeToScene(); //Adjust window size to fit new content
         primaryStage.show();
 
-        //Show the sponsored content
-        if(Math.random() < StepperFields.SPONSORED_CONTENT_PROBABILITY) {
+        //Show the sponsored content, if desired
+        if(showingSponsoredContent && (float)Math.random() < fields.getSponsoredContentProbability()) {
             StyledDialogs.showSponsoredDialog();
         }
     }

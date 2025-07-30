@@ -20,7 +20,7 @@ public class IntegratedController {
      * The name of the screen that the Controller controls. Assigned upon addition to a ScreenManager.<br>
      * Used to access the Controller's screen when using a ScreenManager.
      */
-    protected String name;
+    protected ScreenName name;
 
     /**
      * The ScreenManager that controls screen transitions for the Controller.

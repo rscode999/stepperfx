@@ -1,9 +1,9 @@
 package stepperfx.controllers;
 
 import javafx.fxml.FXML;
-import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import stepperfx.integration.ScreenName;
 import stepperfx.integration.StepperFields;
 import stepperfx.integration.IntegratedController;
 import stepperfx.integration.ScreenManager;
@@ -40,7 +40,6 @@ final public class LoadingController extends IntegratedController {
         this.fields = fields;
 
         fields.addServiceMessageListener((obs, oldValue, newValue) -> {
-//            System.out.println("Listener triggered: " + oldValue + "->" + newValue);
             loadStatus.setText(newValue);
 
             //Disable the cancel button when a cancel operation is impossible
@@ -55,7 +54,7 @@ final public class LoadingController extends IntegratedController {
      */
     @FXML
     public void stopLoading() {
-        screenManager.showScreen("input");
+        screenManager.showScreen(ScreenName.INPUT);
         fields.stopService();
     }
 }

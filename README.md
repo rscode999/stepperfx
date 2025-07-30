@@ -45,9 +45,10 @@ Java source code is inside the `src/main/java/stepperfx` package.
 - The `controllers` package contains the **GUI controllers**. Each controller class is responsible for one screen.
 
 
-- The `integration` package holds functionality **shared throughout the app**. It contains 4 classes:
+- The `integration` package holds functionality **shared throughout the app**. It contains 4 classes and 1 enum:
   - `IntegratedController`, the **base class for GUI controllers**. It allows controllers to change the screen and access shared variables.
   - `ScreenManager`, which controllers use to **change the screen**.  
+  - `ScreenName` (the enum), a set of **possible screen names**.
   - `StepperFields`, containing the **shared state** of the application. The class contains constants, encapsulated variables, and a shared Service for multithreaded operations.
   - `StyledDialogs`, with static methods to **show dialogs**. It takes its styles from the `dialog` style class inside `src/main/resources/views/main-styles.css`.
 

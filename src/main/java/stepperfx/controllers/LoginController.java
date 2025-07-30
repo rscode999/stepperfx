@@ -3,6 +3,7 @@ package stepperfx.controllers;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import stepperfx.integration.IntegratedController;
+import stepperfx.integration.ScreenName;
 
 
 /**
@@ -47,10 +48,10 @@ final public class LoginController extends IntegratedController {
         }
 
         if(index == -1) {
-            screenManager.showScreen("login-reject");
+            screenManager.showScreen(ScreenName.LOGIN_REJECT);
         }
         else {
-            screenManager.showScreen("input");
+            screenManager.showScreen(ScreenName.INPUT);
             fields.setLoginCredentials(index);
             pwField.setText("");
         }

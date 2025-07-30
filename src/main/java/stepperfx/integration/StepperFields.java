@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.ArrayList;
 
 /**
- * Contains methods and fields shared between the application's controllers.
+ * Contains methods and fields that represent the app's unified state.
  * One of the fields is a javafx.concurrent.Service used to do operations.<br><br>
  *
  * This class is not thread-safe! It should never be handled by multiple threads at the same time.
@@ -64,10 +64,6 @@ final public class StepperFields {
      */
     final public static int RESULT_PAGE_LENGTH = 100000;
 
-    /**
-     * Probability of seeing sponsored content, after every screen change. Must be on the interval [0, 1]
-     */
-    final public static float SPONSORED_CONTENT_PROBABILITY = 1;
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////
     // ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,7 +80,7 @@ final public class StepperFields {
     private int blockLength = DEFAULT_BLOCK_LENGTH;
 
     /**
-     * Current number of characters per block specified by the user. For use with static methods.
+     * Current number of characters per block specified by the user. For use with static methods. Must equal {@code blockCount}.
      */
     private static int blockCountStatic = DEFAULT_BLOCK_COUNT;
 
@@ -97,6 +93,12 @@ final public class StepperFields {
      * A Service that controllers can start, cancel, and reset. Can never be null.
      */
     private final ProcessService service;
+
+    /**
+     * Probability of seeing sponsored content, after every screen change. Must be on the interval [0, 1].<br><br>
+     * The premium version has a 1-{@code sponsoredContentProbability} chance of seeing sponsored content.
+     */
+    private float sponsoredContentProbability = 0.8f;
 
 
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -121,8 +123,8 @@ final public class StepperFields {
      * Throws an AssertionError if any constant's invariants are broken
      */
     private void assertConstantInvariants() {
-        if(DEFAULT_BLOCK_COUNT <=0) throw new AssertionError("Block count must be positive");
-        if(DEFAULT_BLOCK_LENGTH <=0) throw new AssertionError("Block length must be positive");
+        if(DEFAULT_BLOCK_COUNT<=0) throw new AssertionError("Block count must be positive");
+        if(DEFAULT_BLOCK_LENGTH<=0) throw new AssertionError("Block length must be positive");
         if(DEFAULT_INPUT_FILENAME==null || DEFAULT_INPUT_FILENAME.length()<4 || !DEFAULT_INPUT_FILENAME.endsWith(".txt"))
             throw new AssertionError("Default input filename must end in \".txt\"");
         if(DEFAULT_OUTPUT_FILENAME==null || DEFAULT_OUTPUT_FILENAME.length()<4 || !DEFAULT_OUTPUT_FILENAME.endsWith(".txt"))
@@ -133,7 +135,6 @@ final public class StepperFields {
         if(MAX_BLOCK_LENGTH <= 0) throw new AssertionError("Max block length must be positive");
         if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
         if(RESULT_PAGE_LENGTH<1) throw new AssertionError("Result page length must be positive");
-        if(SPONSORED_CONTENT_PROBABILITY<0 || SPONSORED_CONTENT_PROBABILITY>1) throw new AssertionError("Sponsored content probability must be on the interval [0,1]");
     }
 
 
@@ -141,28 +142,6 @@ final public class StepperFields {
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
     //GETTERS, SETTERS
-
-
-    /**
-     * Returns the value at index {@code index} of the app's key block increments array.<br><br>
-     *
-     * If {@code index} is at least {@code {fieldsName}.getBlockCount()}, a warning is printed to System.err.
-     *
-     * @param index index to retrieve in the key block increments
-     * @return value at specified index of the increments array
-     * @throws ArrayIndexOutOfBoundsException if the index is outside the array's range
-     */
-    public static byte getKeyBlockIncrementIndex(int index) {
-        if(index<0 || index>=KEY_BLOCK_INCREMENTS.length) {
-            throw new ArrayIndexOutOfBoundsException("The given index (value=" + index +
-                    ") must be on the interval [0, " + (KEY_BLOCK_INCREMENTS.length-1) + "]- instead received " + index);
-        }
-        if(index >= blockCountStatic) {
-            System.err.println("WARNING: Index of key block increments (value=" + index + ") should be on the interval [0, " + (blockCountStatic-1) + "]");
-        }
-
-        return KEY_BLOCK_INCREMENTS[index];
-    }
 
 
     /**
@@ -184,6 +163,7 @@ final public class StepperFields {
         blockCountStatic = newBlockCount;
     }
 
+
     /**
      * Returns the current block length stored by the shared fields
      * @return block length
@@ -197,9 +177,31 @@ final public class StepperFields {
      * @param newBlockLength value to set to. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_LENGTH}]
      */
     public void setBlockLength(int newBlockLength) {
-      if(newBlockLength<=0 || newBlockLength>MAX_BLOCK_LENGTH)
-          throw new AssertionError("New block length must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
+        if(newBlockLength<=0 || newBlockLength>MAX_BLOCK_LENGTH)
+            throw new AssertionError("New block length must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
         blockLength = newBlockLength;
+    }
+
+
+    /**
+     * Returns the value at index {@code index} of the app's key block increments array.<br><br>
+     *
+     * If {@code index} is at least {@code {stepperFieldsName}.getBlockCount()}, a warning is printed to System.err.<br>
+     *
+     * @param index index to retrieve in the key block increments
+     * @return value at specified index of the increments array
+     * @throws ArrayIndexOutOfBoundsException if the index is outside the array's range
+     */
+    public static byte getKeyBlockIncrementIndex(int index) {
+        if(index<0 || index>=KEY_BLOCK_INCREMENTS.length) {
+            throw new ArrayIndexOutOfBoundsException("The given index (value=" + index +
+                    ") must be on the interval [0, " + (KEY_BLOCK_INCREMENTS.length-1) + "]- instead received " + index);
+        }
+        if(index >= blockCountStatic) {
+            System.err.println("WARNING: Index of key block increments (value=" + index + ") should be on the interval [0, " + (blockCountStatic-1) + "]");
+        }
+
+        return KEY_BLOCK_INCREMENTS[index];
     }
 
 
@@ -217,6 +219,30 @@ final public class StepperFields {
      */
     public void setLoginCredentials(int newCredentials) {
         loginCredentials = newCredentials;
+    }
+
+
+    /**
+     * Returns the probability that sponsored content is shown on the next screen change.<br><br>
+     * The value returned is on the interval [0,1].
+     * @return sponsored content probability
+     */
+    public float getSponsoredContentProbability() {
+        if(sponsoredContentProbability<0 || sponsoredContentProbability>1)
+            throw new AssertionError("INTERNAL ERROR- Sponsored content probability must be on the interval [0,1]. Instead received " + sponsoredContentProbability);
+
+        return sponsoredContentProbability;
+    }
+
+    /**
+     * Sets the probability that sponsored content is shown on the next screen change.
+     * @param newProbability new probability to use. {@code (float)newProbability} must be on the interval [0,1]
+     */
+    public void setSponsoredContentProbability(double newProbability) {
+        if((float)newProbability<0 || (float)newProbability>1)
+            throw new AssertionError("Float value of new sponsored content probability must be on the interval [0,1]- instead received " + (float)newProbability);
+
+        sponsoredContentProbability = (float)newProbability;
     }
 
 

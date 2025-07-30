@@ -6,10 +6,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
-import stepperfx.integration.StepperFields;
-import stepperfx.integration.IntegratedController;
-import stepperfx.integration.ScreenManager;
-import stepperfx.integration.StyledDialogs;
+import stepperfx.integration.*;
 
 import java.util.*;
 
@@ -119,9 +116,9 @@ final public class ResultsController extends IntegratedController {
 
                 //Error: display the dialog (dialog creation works on any screen)
                 if(newValue[0]==null && newValue[1]==null && newValue[2]!=null && newValue[3]!=null) {
-
-                    screenManager.showScreen("input");
                     fields.resetService();
+
+                    screenManager.showScreen(ScreenName.INPUT, false);
 
                     //File loading exception: load with error message
                     if(newValue[2].equals("class java.io.FileNotFoundException")) {
@@ -130,6 +127,11 @@ final public class ResultsController extends IntegratedController {
                     //Any other exception: load with exception's message
                     else {
                         StyledDialogs.showAlertDialog("Thread unhandled exception", newValue[2], newValue[3]);
+                    }
+
+                    //After the dialog shows, show sponsored content
+                    if(Math.random() < fields.getSponsoredContentProbability()) {
+                        StyledDialogs.showSponsoredDialog();
                     }
                 }
 
@@ -160,7 +162,7 @@ final public class ResultsController extends IntegratedController {
                     resultArea.setText(resultPages.getFirst());
                     keyArea.setText(newValue[1]);
 
-                    screenManager.showScreen("results");
+                    screenManager.showScreen(ScreenName.RESULTS);
                 }
 
                 //Something weird
@@ -208,7 +210,7 @@ final public class ResultsController extends IntegratedController {
      */
     @FXML
     private void showLoginScreen() {
-        screenManager.showScreen("login");
+        screenManager.showScreen(ScreenName.LOGIN);
         fields.resetService();
         resultArea.setText("");
         keyArea.setText("");

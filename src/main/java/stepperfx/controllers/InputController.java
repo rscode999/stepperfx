@@ -5,10 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
-import stepperfx.integration.StepperFields;
-import stepperfx.integration.IntegratedController;
-import stepperfx.integration.ScreenManager;
-import stepperfx.integration.StyledDialogs;
+import stepperfx.integration.*;
 
 import java.util.Optional;
 
@@ -262,7 +259,7 @@ final public class InputController extends IntegratedController {
             final String ERROR_HEADER = "Invalid number of threads";
 
             //Get result from a dialog
-            Optional<String> userInput = StyledDialogs.showTextDialog("Custom thread input", "Enter number of threads",
+            Optional<String> userInput = StyledDialogs.showTextInputDialog("Custom thread input", "Enter number of threads",
                     "Example: if your computer has 4 cores,\nuse 4 threads to use all the cores");
             if(userInput.isPresent()) {
 
@@ -328,7 +325,7 @@ final public class InputController extends IntegratedController {
      */
     @FXML
     private void showLoginScreen() {
-        screenManager.showScreen("login");
+        screenManager.showScreen(ScreenName.LOGIN);
         textInput.setText("");
         keyInput.setText("");
     }
@@ -340,7 +337,7 @@ final public class InputController extends IntegratedController {
      */
     @FXML
     private void showSettingsScreen() {
-        screenManager.showScreen("settings");
+        screenManager.showScreen(ScreenName.SETTINGS);
     }
 
 
@@ -352,7 +349,7 @@ final public class InputController extends IntegratedController {
     @FXML
     private void startProcess() {
 
-        screenManager.showScreen("loading");
+        screenManager.showScreen(ScreenName.LOADING, false);
 
         //Set mode options
         boolean encrypting = !modeSelector.getValue().equals(MODE_OPTIONS[2]);
