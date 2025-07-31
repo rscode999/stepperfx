@@ -90,7 +90,7 @@ final public class ResultsController extends IntegratedController {
 
             //Quick settings for color switching
             else if(event.getCode().equals(KeyCode.ALT)) {
-                manager.setAlternateStyles(false);
+                manager.useAlternateStyles(false);
             }
             else if(event.getCode().equals(KeyCode.ESCAPE)) {
                 showLoginScreen();

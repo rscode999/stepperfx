@@ -186,7 +186,7 @@ final public class InputController extends IntegratedController {
         //Set key listener on this screen
         manager.addKeyEventFilter(name, event -> {
             if(event.getCode().equals(KeyCode.ALT)) {
-                manager.setAlternateStyles(false);
+                manager.useAlternateStyles(false);
             }
             else if(event.getCode().equals(KeyCode.ESCAPE)) {
                 showLoginScreen();

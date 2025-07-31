@@ -46,6 +46,10 @@ final public class MainApplication extends Application {
     }
 
 
+    // //////////////////////////////////////////////////////////////////////////////////////////////////////
+    //MAIN
+
+
     /**
      * Launches the app.
      * @param args Java Virtual Machine arguments

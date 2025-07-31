@@ -41,6 +41,11 @@ public class ProcessSubtaskMain extends Task<String> {
      */
     final private boolean usingV2Process;
 
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // CONSTRUCTORS
+
+
     /**
      * Creates a new {@code ProcessSubtaskMain} and loads its fields.
      * @param textPiece the substring it should process. Can't be null
@@ -81,6 +86,7 @@ public class ProcessSubtaskMain extends Task<String> {
     }
 
 
+
     /**
      * FOR METHOD UNIT TESTING ONLY! Creates a new {@code ProcessSubtaskMain}. Initializes fields against operation preconditions.
      */
@@ -94,12 +100,11 @@ public class ProcessSubtaskMain extends Task<String> {
     }
 
 
-
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    // CALL
 
 
     /**
@@ -149,8 +154,6 @@ public class ProcessSubtaskMain extends Task<String> {
     //METHODS
 
 
-
-
     /**
      * Returns the decrypted version of {@code text} using the given key beginning at index {@code startSegment}.<br><br>
      *
@@ -197,7 +200,7 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
 
         //Configure block positions
-        byte[] keyBlockBasePositions=setKeyBlockPositions((long)startSegment * key[0].length + text.length(),
+        byte[] keyBlockBasePositions= initializeKeyBlockPositions((long)startSegment * key[0].length + text.length(),
                 key.length, key[0].length);
         StringBuilder output = new StringBuilder(text.length());
 
@@ -302,6 +305,7 @@ public class ProcessSubtaskMain extends Task<String> {
     }
 
 
+
     /**
      * Returns the Version 2 decrypted version of {@code text} using the given key.
      * Operations start after {@code startingSegment} segments have been decrypted.<br><br>
@@ -403,7 +407,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
             currentBlock--;
             if((currentBlock+1) % key[0].length==0) {
-                keyBlockBasePositions = setKeyBlockPositions(currentBlock, key.length, key[0].length);
+                keyBlockBasePositions = initializeKeyBlockPositions(currentBlock, key.length, key[0].length);
             }
 
 
@@ -553,7 +557,7 @@ public class ProcessSubtaskMain extends Task<String> {
         // ////////////////////////
         //Start the process
 
-        byte[] keyBlockBasePositions = setKeyBlockPositions((long)startSegment * (long)key[0].length,
+        byte[] keyBlockBasePositions = initializeKeyBlockPositions((long)startSegment * (long)key[0].length,
                 key.length, key[0].length);
         byte[] keyBlockReadPositions = new byte[key.length];
         System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
@@ -629,6 +633,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
         return output.toString();
     }
+
 
 
     /**
@@ -722,7 +727,7 @@ public class ProcessSubtaskMain extends Task<String> {
             }
 
             if((blocksEncrypted+1) % key[0].length == 0) {
-                keyBlockBasePositions = setKeyBlockPositions(blocksEncrypted+2, key.length, key[0].length);
+                keyBlockBasePositions = initializeKeyBlockPositions(blocksEncrypted+2, key.length, key[0].length);
             }
 
             blocksEncrypted++;
@@ -754,6 +759,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
         return output.toString();
     }
+
 
 
     /**
@@ -800,6 +806,7 @@ public class ProcessSubtaskMain extends Task<String> {
     }
 
 
+
     /**
      * Returns an array containing the positions of all non-alphabetic characters in {@code text}.
      * If there's an alphabetic character, puts a 0 in the output index.<br><br>
@@ -841,6 +848,83 @@ public class ProcessSubtaskMain extends Task<String> {
     }
 
 
+
+    /**
+     * Returns the unenhanced (v1) key block positions for the given text length,
+     * number of blocks, and length of each block.<br><br>
+     *
+     * Important note: this method uses text length, not the number of blocks that are in the text.<br><br>
+     *
+     * Helper to the operation functions.
+     *
+     * @param textLength length of text. Must be at least 0
+     * @param blockCount number of key blocks used. Must be positive
+     * @param blockLength number of characters in each key block. Must be positive
+     * @return key block positions for the given length, block count, and block length
+     */
+    private byte[] initializeKeyBlockPositions(long textLength, int blockCount, int blockLength) {
+        //Check parameters
+        if(textLength < 0) throw new AssertionError("Text length cannot be negative- instead received " + textLength);
+        if(blockCount <= 0) throw new AssertionError("Block count must be positive- instead received " + blockCount);
+        if(blockLength <= 0) throw new AssertionError("Block length must be positive- instead received " + blockLength);
+
+        //Set the output array, assign all empty space to 0
+        byte[] result = new byte[blockCount];
+
+        long quotient=textLength;
+        double decimalPortion=0;
+
+        //Eliminate block spill-overs.
+        quotient = quotient % ((long)Math.pow(blockLength, blockCount+1));
+
+        //Divide quotient and take only the portion to the left of the decimal point
+        quotient = quotient / blockLength;
+
+
+        for(int i = result.length-1; i >= 0; i--) {
+
+            //Divide quotient and take only the portion to the right of the decimal point
+            decimalPortion = (double)quotient / blockLength - quotient / blockLength;
+            //Divide quotient and keep only the portion to the left of the decimal point
+            quotient = quotient / (long) blockLength;
+
+            //Convert the decimal portion to a digit and add to the result
+            result[i] = (byte)(Math.round(decimalPortion * blockLength));
+
+            if(quotient <= 0) {
+                break;
+            }
+
+        }
+
+        //Reverse the output
+        byte[] output = new byte[result.length];
+        for(int i=0; i<result.length; i++) {
+            output[i] = result[result.length - i - 1];
+        }
+
+        return output;
+    }
+
+    /**
+     * Returns the unenhanced (v1) key block positions for the given text length,
+     * number of blocks, and length of each block.<br><br>
+     *
+     * Important note: this method uses text length, not the number of blocks that are in the text.<br><br>
+     *
+     * FOR TESTING PURPOSES ONLY!
+     *
+     * @param textLength length of text. Must be at least 0
+     * @param blockCount number of key blocks used
+     * @param blockLength number of characters in each key block
+     * @return key block positions for the given length, block count, and block length
+     */
+    public byte[] initializeKeyBlockPositions_Testing(long textLength, int blockCount, int blockLength) {
+        return initializeKeyBlockPositions(textLength, blockCount, blockLength);
+    }
+
+
+
     /**
      * Returns an array of bytes representing the key block positions at the end of version 2 encryption,
      * if the input had {@code segments} segments<br><br>
@@ -860,7 +944,7 @@ public class ProcessSubtaskMain extends Task<String> {
         if(blockCount<=0) throw new AssertionError("Block count must be positive- received " + blockCount);
         if(blockLength<=0) throw new AssertionError("Block length must be positive- received " + blockLength);
 
-        byte[] output = setKeyBlockPositions(segments, blockCount, blockLength);
+        byte[] output = initializeKeyBlockPositions(segments, blockCount, blockLength);
 
         for(int b = 0; b < segments % blockLength; b++) {
             for(int i=0; i<output.length; i++) {
@@ -870,6 +954,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
         return output;
     }
+
 
 
     /**
@@ -1055,80 +1140,5 @@ public class ProcessSubtaskMain extends Task<String> {
         return output.toString();
     }
 
-
-
-    /**
-     * Returns the unenhanced (v1) key block positions for the given text length,
-     * number of blocks, and length of each block.<br><br>
-     *
-     * Important note: this method uses text length, not the number of blocks that are in the text.<br><br>
-     *
-     * Helper to the operation functions.
-     *
-     * @param textLength length of text. Must be at least 0
-     * @param blockCount number of key blocks used. Must be positive
-     * @param blockLength number of characters in each key block. Must be positive
-     * @return key block positions for the given length, block count, and block length
-     */
-    private byte[] setKeyBlockPositions(long textLength, int blockCount, int blockLength) {
-        //Check parameters
-        if(textLength < 0) throw new AssertionError("Text length cannot be negative- instead received " + textLength);
-        if(blockCount <= 0) throw new AssertionError("Block count must be positive- instead received " + blockCount);
-        if(blockLength <= 0) throw new AssertionError("Block length must be positive- instead received " + blockLength);
-        
-        //Set the output array, assign all empty space to 0
-        byte[] result = new byte[blockCount];
-
-        long quotient=textLength;
-        double decimalPortion=0;
-
-        //Eliminate block spill-overs.
-        quotient = quotient % ((long)Math.pow(blockLength, blockCount+1));
-
-        //Divide quotient and take only the portion to the left of the decimal point
-        quotient = quotient / blockLength;
-
-
-        for(int i = result.length-1; i >= 0; i--) {
-
-            //Divide quotient and take only the portion to the right of the decimal point
-            decimalPortion = (double)quotient / blockLength - quotient / blockLength;
-            //Divide quotient and keep only the portion to the left of the decimal point
-            quotient = quotient / (long) blockLength;
-
-            //Convert the decimal portion to a digit and add to the result
-            result[i] = (byte)(Math.round(decimalPortion * blockLength));
-
-            if(quotient <= 0) {
-                break;
-            }
-
-        }
-
-        //Reverse the output
-        byte[] output = new byte[result.length];
-        for(int i=0; i<result.length; i++) {
-            output[i] = result[result.length - i - 1];
-        }
-
-        return output;
-    }
-    
-    /**
-     * Returns the unenhanced (v1) key block positions for the given text length,
-     * number of blocks, and length of each block.<br><br>
-     *
-     * Important note: this method uses text length, not the number of blocks that are in the text.<br><br>
-     *
-     * FOR TESTING PURPOSES ONLY!
-     *
-     * @param textLength length of text. Must be at least 0
-     * @param blockCount number of key blocks used
-     * @param blockLength number of characters in each key block
-     * @return key block positions for the given length, block count, and block length
-     */
-    public byte[] setKeyBlockPositions_Testing(long textLength, int blockCount, int blockLength) {
-        return setKeyBlockPositions(textLength, blockCount, blockLength);
-    }
 
 }

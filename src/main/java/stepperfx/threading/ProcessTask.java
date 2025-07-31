@@ -216,7 +216,7 @@ public class ProcessTask extends Task<String[]> {
 
                 //Create subtasks and workloads
                 ExecutorService executorService = Executors.newFixedThreadPool(nWorkerThreads);
-                String[] subtaskWorkloads = setWorkerLoads(input, nWorkerThreads, blockLength);
+                String[] subtaskWorkloads = assignWorkerLoads(input, nWorkerThreads, blockLength);
 
                 //Assign worker threads. Run 1 -> diacritics workers, run 2 -> main process workers
                 Task<String>[] subtasks = (run == 1)
@@ -303,6 +303,167 @@ public class ProcessTask extends Task<String[]> {
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //METHODS
+
+    /**
+     * Returns an array containing {@code text} split evenly into {@code threads} pieces.
+     * The number of alphabetic characters of each piece is a multiple of {@code blockLength}, except for the last piece.<br><br>
+     *
+     * -Alphabetic characters are lowercase English ASCII characters.<br>
+     *
+     * -All indices except for the last one should have {@code blockLength}alphabetic characters or a multiple thereof.<br>
+     *
+     * -Any unused threads should be assigned the empty string, not null. Empty strings may occur at the beginning of the output array.<br>
+     *
+     * -Note: The final character of each output index (excluding the last index) should end in an alphabetic character.
+     *
+     * @param text the text to split. Cannot be null
+     * @param threads how many pieces {@code text} should be split into. If zero, or the Task is cancelled, returns {""}. Cannot be negative
+     * @param blockLength number of characters, or a multiple thereof, to put in each piece. Must be positive
+     * @return array of Strings. There are {@code threads} total Strings whose alphabetic characters are
+     * evenly split among the output's indices
+     */
+    private String[] assignWorkerLoads(String text, int threads, int blockLength) {
+        //Assert preconditions
+        if (text==null) throw new AssertionError("Text cannot be null");
+        if(threads<0) throw new AssertionError("Number of threads cannot be negative");
+        if(blockLength<=0) throw new AssertionError("Block length must be positive");
+
+        //Return the empty string if threads is 0
+        if(threads==0) {
+            return new String[] {""};
+        }
+
+        //Find effective length of the text to create the blocks without wasting memory
+        int alphaChars = 0;
+        for(int i=0; i<text.length(); i++) {
+            if(text.charAt(i)>=97 && text.charAt(i)<=122) {
+                alphaChars++;
+            }
+
+            if(isCancelled()) {
+                return new String[] {""};
+            }
+        }
+
+
+        //CALCULATE NUMBER OF BLOCKS PER THREAD
+
+        //Number of blocks equals the number of alphabetic characters divided by the block length
+        //If there is a remainder, there is an extra block
+        int nBlocks = alphaChars / blockLength;
+        if (alphaChars % blockLength != 0) nBlocks++;
+        //Note: one block is a piece of length `blockLength` or shorter
+
+        //Create the number of characters in each thread. Temporarily holds the number of blocks
+        int[] charsPerThread = new int[threads];
+
+        //The minimum number of blocks per piece is the number of blocks divided by the number of threads
+        Arrays.fill(charsPerThread, nBlocks / threads);
+        //The number of remaining blocks equals the remainder of the number of blocks divided by the number of threads
+        for (int i = charsPerThread.length - 1; i >= charsPerThread.length - nBlocks % threads; i--) {
+            charsPerThread[i]++;
+        }
+
+
+        //CALCULATE NUMBER OF CHARACTERS PER THREAD
+
+        //Create a StringBuilder array to hold the result and load it. Also properly calculate number of characters per thread
+        StringBuilder[] threadLoads = new StringBuilder[threads];
+        for(int t=0; t<threadLoads.length; t++) {
+            threadLoads[t] = new StringBuilder();
+            charsPerThread[t] *= blockLength; //now, charsPerThread holds the number of characters per thread
+
+            //Check if cancelled, abort if so
+            if(isCancelled()) {
+                return new String[] {""};
+            }
+        }
+
+
+        //LOAD THE THREADS
+
+        //Move through each thread, except for the last one, and load it
+        int currentThread = 0;
+        int currentTextIndex = 0;
+        while(currentThread < threadLoads.length) {
+
+            //If there are no more characters to load, move to the next thread
+            if(charsPerThread[currentThread] == 0) {
+                currentThread++;
+            }
+            //If not, load the character
+            else {
+                threadLoads[currentThread].append(text.charAt(currentTextIndex));
+
+                //Update number of alphabetic characters if a letter was loaded
+                if(text.charAt(currentTextIndex)>=97 && text.charAt(currentTextIndex)<=122) {
+                    charsPerThread[currentThread]--;
+                }
+
+                //Move to the next index
+                currentTextIndex++;
+            }
+
+            //Exit the loop if it will overrun the input text
+            if(currentTextIndex >= text.length()) {
+                break;
+            }
+
+            //Check if cancelled, abort if so
+            if(isCancelled()) {
+                return new String[] {""};
+            }
+        }
+
+        //Load any non-alphabetic character that was not yet loaded into the last thread
+        while(currentTextIndex < text.length()) {
+            threadLoads[threadLoads.length-1].append(text.charAt(currentTextIndex));
+            currentTextIndex++;
+
+            //Check if cancelled, abort if so
+            if(isCancelled()) {
+                return new String[] {""};
+            }
+        }
+
+        //Convert StringBuilders to proper strings
+        String[] output = new String[threads];
+        for(int l=0; l<threadLoads.length; l++) {
+            output[l] = threadLoads[l].toString();
+
+            //Check if cancelled, abort if so
+            if(isCancelled()) {
+                return new String[] {""};
+            }
+        }
+
+        return output;
+    }
+
+    /**
+     * FOR UNIT TESTING ONLY!<br><br>
+     *
+     * Returns an array containing {@code text} split evenly into {@code threads} pieces.
+     * The number of alphabetic characters of each piece is a multiple of {@code blockLength}, except for the last piece.<br><br>
+     *
+     * -Alphabetic characters are lowercase English ASCII characters.<br>
+     *
+     * -All indices except for the last one should have {@code blockLength}alphabetic characters or a multiple thereof.<br>
+     *
+     * -Any unused threads should be assigned the empty string, not null. Empty strings may occur at the beginning of the output array.<br>
+     *
+     * -Note: The final character of each output index (excluding the last index) should end in an alphabetic character.
+     *
+     * @param text the text to split. Non-null
+     * @param threads how many pieces {@code text} should be split into. If zero, or the Task is cancelled, returns {""}. Cannot be negative
+     * @param blockLength number of characters, or a multiple thereof, to put in each piece. Must be positive
+     * @return array of Strings. There are {@code threads} total Strings whose alphabetic characters are
+     * evenly split among the output's indices
+     */
+    public String[] assignWorkerLoads_Testing(String text, int threads, int blockLength) {
+        return assignWorkerLoads(text, threads, blockLength);
+    }
+
 
 
     /**
@@ -595,168 +756,6 @@ public class ProcessTask extends Task<String[]> {
         }
 
         return charReplacement;
-    }
-
-
-
-    /**
-     * Returns an array containing {@code text} split evenly into {@code threads} pieces.
-     * The number of alphabetic characters of each piece is a multiple of {@code blockLength}, except for the last piece.<br><br>
-     *
-     * -Alphabetic characters are lowercase English ASCII characters.<br>
-     *
-     * -All indices except for the last one should have {@code blockLength}alphabetic characters or a multiple thereof.<br>
-     *
-     * -Any unused threads should be assigned the empty string, not null. Empty strings may occur at the beginning of the output array.<br>
-     *
-     * -Note: The final character of each output index (excluding the last index) should end in an alphabetic character.
-     *
-     * @param text the text to split. Cannot be null
-     * @param threads how many pieces {@code text} should be split into. If zero, or the Task is cancelled, returns {""}. Cannot be negative
-     * @param blockLength number of characters, or a multiple thereof, to put in each piece. Must be positive
-     * @return array of Strings. There are {@code threads} total Strings whose alphabetic characters are
-     * evenly split among the output's indices
-     */
-    private String[] setWorkerLoads(String text, int threads, int blockLength) {
-        //Assert preconditions
-        if (text==null) throw new AssertionError("Text cannot be null");
-        if(threads<0) throw new AssertionError("Number of threads cannot be negative");
-        if(blockLength<=0) throw new AssertionError("Block length must be positive");
-
-        //Return the empty string if threads is 0
-        if(threads==0) {
-            return new String[] {""};
-        }
-
-        //Find effective length of the text to create the blocks without wasting memory
-        int alphaChars = 0;
-        for(int i=0; i<text.length(); i++) {
-            if(text.charAt(i)>=97 && text.charAt(i)<=122) {
-                alphaChars++;
-            }
-
-            if(isCancelled()) {
-                return new String[] {""};
-            }
-        }
-
-
-        //CALCULATE NUMBER OF BLOCKS PER THREAD
-
-        //Number of blocks equals the number of alphabetic characters divided by the block length
-        //If there is a remainder, there is an extra block
-        int nBlocks = alphaChars / blockLength;
-        if (alphaChars % blockLength != 0) nBlocks++;
-        //Note: one block is a piece of length `blockLength` or shorter
-
-        //Create the number of characters in each thread. Temporarily holds the number of blocks
-        int[] charsPerThread = new int[threads];
-
-        //The minimum number of blocks per piece is the number of blocks divided by the number of threads
-        Arrays.fill(charsPerThread, nBlocks / threads);
-        //The number of remaining blocks equals the remainder of the number of blocks divided by the number of threads
-        for (int i = charsPerThread.length - 1; i >= charsPerThread.length - nBlocks % threads; i--) {
-            charsPerThread[i]++;
-        }
-
-
-        //CALCULATE NUMBER OF CHARACTERS PER THREAD
-
-        //Create a StringBuilder array to hold the result and load it. Also properly calculate number of characters per thread
-        StringBuilder[] threadLoads = new StringBuilder[threads];
-        for(int t=0; t<threadLoads.length; t++) {
-            threadLoads[t] = new StringBuilder();
-            charsPerThread[t] *= blockLength; //now, charsPerThread holds the number of characters per thread
-
-            //Check if cancelled, abort if so
-            if(isCancelled()) {
-                return new String[] {""};
-            }
-        }
-
-
-        //LOAD THE THREADS
-
-        //Move through each thread, except for the last one, and load it
-        int currentThread = 0;
-        int currentTextIndex = 0;
-        while(currentThread < threadLoads.length) {
-
-            //If there are no more characters to load, move to the next thread
-            if(charsPerThread[currentThread] == 0) {
-                currentThread++;
-            }
-            //If not, load the character
-            else {
-                threadLoads[currentThread].append(text.charAt(currentTextIndex));
-
-                //Update number of alphabetic characters if a letter was loaded
-                if(text.charAt(currentTextIndex)>=97 && text.charAt(currentTextIndex)<=122) {
-                    charsPerThread[currentThread]--;
-                }
-
-                //Move to the next index
-                currentTextIndex++;
-            }
-
-            //Exit the loop if it will overrun the input text
-            if(currentTextIndex >= text.length()) {
-                break;
-            }
-
-            //Check if cancelled, abort if so
-            if(isCancelled()) {
-                return new String[] {""};
-            }
-        }
-
-        //Load any non-alphabetic character that was not yet loaded into the last thread
-        while(currentTextIndex < text.length()) {
-            threadLoads[threadLoads.length-1].append(text.charAt(currentTextIndex));
-            currentTextIndex++;
-
-            //Check if cancelled, abort if so
-            if(isCancelled()) {
-                return new String[] {""};
-            }
-        }
-
-        //Convert StringBuilders to proper strings
-        String[] output = new String[threads];
-        for(int l=0; l<threadLoads.length; l++) {
-            output[l] = threadLoads[l].toString();
-
-            //Check if cancelled, abort if so
-            if(isCancelled()) {
-                return new String[] {""};
-            }
-        }
-
-        return output;
-    }
-
-    /**
-     * FOR UNIT TESTING ONLY!<br><br>
-     *
-     * Returns an array containing {@code text} split evenly into {@code threads} pieces.
-     * The number of alphabetic characters of each piece is a multiple of {@code blockLength}, except for the last piece.<br><br>
-     *
-     * -Alphabetic characters are lowercase English ASCII characters.<br>
-     *
-     * -All indices except for the last one should have {@code blockLength}alphabetic characters or a multiple thereof.<br>
-     *
-     * -Any unused threads should be assigned the empty string, not null. Empty strings may occur at the beginning of the output array.<br>
-     *
-     * -Note: The final character of each output index (excluding the last index) should end in an alphabetic character.
-     *
-     * @param text the text to split. Non-null
-     * @param threads how many pieces {@code text} should be split into. If zero, or the Task is cancelled, returns {""}. Cannot be negative
-     * @param blockLength number of characters, or a multiple thereof, to put in each piece. Must be positive
-     * @return array of Strings. There are {@code threads} total Strings whose alphabetic characters are
-     * evenly split among the output's indices
-     */
-    public String[] setWorkerLoads_Testing(String text, int threads, int blockLength) {
-        return setWorkerLoads(text, threads, blockLength);
     }
 
 

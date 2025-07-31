@@ -8,14 +8,14 @@ This program supports both normal and enhanced (version 2) processes.
 
 For Java 21+
 
-By contributing to this project, you agree to follow the rules listed in [the rules document](rules.md).
+By contributing to this project, you agree to follow the rules listed in the [rules document](rules.md).
 
 
 ### Table of Contents
 - [IDE Configuration Instructions](#ide-configuration-instructions)
 - [Git Contribution Rules](#git-contribution-rules)
 - [Project Structure](#project-structure)
-  - [Stylesheets](#fxml-and-css-stylesheets)
+  - [FXMLs and Stylesheets](#fxml-and-css-stylesheets)
   - [Images](#images)
   - [Java Code](#code)
 - [Final Notes](#final-notes)
@@ -58,7 +58,7 @@ Images are stored in `src/main/resources/images`.
   Note: To use the images, you need to change the paths in the `src/main/java/stepperfx/integration/StyledDialogs` class.
 
 ##### Code
-Java source code is inside the `src/main/java/stepperfx` package.
+All Java source code is inside the `src/main/java/stepperfx` package.
 - The **main class** is called `MainApplication`. To export the app as a JAR, select `Launcher` as the main class.
 
 - The `controllers` package contains the **GUI controllers**. Each controller class is responsible for one screen.
@@ -78,7 +78,7 @@ Java source code is inside the `src/main/java/stepperfx` package.
 
 ## Final Notes
 
-Anyone working on this project must follow the rules stated in [the rules document](rules.md).
+Anyone working on this project must follow the rules stated in the [rules document](rules.md).
 I reserve the rights to change, update, nullify, or interpret the rules at any time.  
 Failure to obey the rules means I will hunt you down and [DATA EXPUNGED].
 

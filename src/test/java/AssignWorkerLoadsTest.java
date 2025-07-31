@@ -4,11 +4,11 @@ import stepperfx.threading.ProcessTask;
 import java.util.Arrays;
 
 /**
- * Class to test the {@code setWorkerLoads} method of a {@code ProcessTask}.<br><br>
+ * Class to test the {@code assignWorkerLoads} method of a {@code ProcessTask}.<br><br>
  *
  * Note: As long as the thread loads are evenly distributed, the result is acceptable.
  */
-public class SetWorkerLoadsTest {
+public class AssignWorkerLoadsTest {
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //UTILITY METHODS
@@ -65,22 +65,22 @@ public class SetWorkerLoadsTest {
         ProcessTask pt = new ProcessTask();
 
         String s = "abcdefabcdefabcdefabcdef";
-        String[] result = pt.setWorkerLoads_Testing(s, 1, 8);
+        String[] result = pt.assignWorkerLoads_Testing(s, 1, 8);
         String[] expected = new String[]{"abcdefabcdefabcdefabcdef"};
         printAssert(expected, result);
 
         s = "abcdefgh";
-        result = pt.setWorkerLoads_Testing(s, 1, 2);
+        result = pt.assignWorkerLoads_Testing(s, 1, 2);
         expected = new String[]{"abcdefgh"};
         printAssert(expected, result);
 
         s = "abcde";
-        result = pt.setWorkerLoads_Testing(s, 1, 1);
+        result = pt.assignWorkerLoads_Testing(s, 1, 1);
         expected = new String[]{"abcde"};
         printAssert(expected, result);
 
         s = "";
-        result = pt.setWorkerLoads_Testing(s, 1, 999);
+        result = pt.assignWorkerLoads_Testing(s, 1, 999);
         expected = new String[]{""};
         printAssert(expected, result);
     }
@@ -94,38 +94,38 @@ public class SetWorkerLoadsTest {
 
         //3 blocks of 8
         String s = "abcdefghabcdefghabcdefgh";
-        String[] result = task.setWorkerLoads_Testing(s, 3, 8);
+        String[] result = task.assignWorkerLoads_Testing(s, 3, 8);
         String[] expected = new String[]{"abcdefgh", "abcdefgh", "abcdefgh"};
         printAssert(expected, result);
 
         //5 blocks of 8
         s = "abcdefghabcdefghabcdefghabcdefghabcdefgh";
         expected = new String[]{"abcdefgh", "abcdefgh", "abcdefgh", "abcdefgh", "abcdefgh"};
-        result = task.setWorkerLoads_Testing(s, 5, 8);
+        result = task.assignWorkerLoads_Testing(s, 5, 8);
         printAssert(expected, result);
 
         //1 block of 8
         s = "abcdefgh";
         expected = new String[]{"abcdefgh"};
-        result = task.setWorkerLoads_Testing(s, 1, 8);
+        result = task.assignWorkerLoads_Testing(s, 1, 8);
         printAssert(expected, result);
 
         //6 blocks of 4
         s = "abcdabcdabcdabcdabcdabcd";
         expected = new String[]{"abcd", "abcd", "abcd", "abcd", "abcd", "abcd"};
-        result = task.setWorkerLoads_Testing(s, 6, 4);
+        result = task.assignWorkerLoads_Testing(s, 6, 4);
         printAssert(expected, result);
 
         //2 blocks of 6
         s = "abcdefabcdef";
         expected = new String[]{"abcdef", "abcdef"};
-        result = task.setWorkerLoads_Testing(s, 2, 6);
+        result = task.assignWorkerLoads_Testing(s, 2, 6);
         printAssert(expected, result);
 
         //4 blocks of 3
         s = "abcabcabcabc";
         expected = new String[]{"abc", "abc", "abc", "abc"};
-        result = task.setWorkerLoads_Testing(s, 4, 3);
+        result = task.assignWorkerLoads_Testing(s, 4, 3);
         printAssert(expected, result);
     }
 
@@ -138,25 +138,25 @@ public class SetWorkerLoadsTest {
 
         //Block length is 8*2 (m=16)
         String s = "abcdabcdabcdabcdefghefghefghefgh";
-        String[] result = task.setWorkerLoads_Testing(s, 2, 8);
+        String[] result = task.assignWorkerLoads_Testing(s, 2, 8);
         String[] expected = new String[]{"abcdabcdabcdabcd", "efghefghefghefgh"};
         printAssert(expected, result);
 
         //Block length is 8*2 (m=16)
         s = "aaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbccccccccccccccccdddddddddddddddd";
         expected = new String[]{"aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbb", "cccccccccccccccc", "dddddddddddddddd"};
-        result = task.setWorkerLoads_Testing(s, 4,8);
+        result = task.assignWorkerLoads_Testing(s, 4,8);
         printAssert(expected, result);
 
         //Block length is 5*3 (m=15)
         s = "abcdefghijklmnabcdefghijklmnabcdefghijklmn";
         expected = new String[]{"abcdefghijklmn", "abcdefghijklmn", "abcdefghijklmn"};
-        result = task.setWorkerLoads_Testing(s, 3, 5);
+        result = task.assignWorkerLoads_Testing(s, 3, 5);
 
         //Block length is 6*2 (m=12)
         s = "abababababababababababababababababababababababab";
         expected = new String[]{"abababababab", "abababababab", "abababababab", "abababababab"};
-        result = task.setWorkerLoads_Testing(s, 4, 2);
+        result = task.assignWorkerLoads_Testing(s, 4, 2);
     }
 
 
@@ -168,25 +168,25 @@ public class SetWorkerLoadsTest {
 
         //First index has enough room for one string of length minBlockSize
         String s = "aaaaaaaabbbbbbbbbbbb";
-        String[] result = task.setWorkerLoads_Testing(s, 2, 8);
+        String[] result = task.assignWorkerLoads_Testing(s, 2, 8);
         String[] expected = new String[]{"aaaaaaaa", "bbbbbbbbbbbb"};
         printAssert(expected, result);
 
         //First index has enough room for many strings of length minBlockSize
         s = "aaaaaaaacccccccceeeeeeee";
-        result = task.setWorkerLoads_Testing(s, 2, 8);
+        result = task.assignWorkerLoads_Testing(s, 2, 8);
         expected = new String[]{"aaaaaaaa", "cccccccceeeeeeee"};
         printAssert(expected, result);
 
         //First index has enough room for many strings of length minBlockSize, minBlockSize is not 8
         s = "aaaaaabbbbbbccccccd";
-        result = task.setWorkerLoads_Testing(s, 2, 6);
+        result = task.assignWorkerLoads_Testing(s, 2, 6);
         expected = new String[]{"aaaaaabbbbbb", "ccccccd"};
         printAssert(expected, result);
 
         //First index has enough room for many strings of length minBlockSize and second index has room for many length-minBlockSize strings
         s = "aaabbbcccdddeee";
-        result = task.setWorkerLoads_Testing(s, 2, 3);
+        result = task.assignWorkerLoads_Testing(s, 2, 3);
         expected = new String[]{"aaabbb", "cccdddeee"};
         printAssert(expected, result);
     }
@@ -200,19 +200,19 @@ public class SetWorkerLoadsTest {
 
         //Remainder block should be longer than others
         String s = "abcdefghabcdefghabcdefghabcdefghabcdefgh";
-        String[] result = task.setWorkerLoads_Testing(s, 4, 8);
+        String[] result = task.assignWorkerLoads_Testing(s, 4, 8);
         String[] expected = new String[]{"abcdefgh", "abcdefgh", "abcdefgh", "abcdefghabcdefgh"};
         printAssert(expected, result);
 
         //Remainder block should be longer than others. Each block is longer than the minimum block size
         s = "abcdefghabcdefghabcdefghabcdefghabcdefghabcdefghabcde";
-        result = task.setWorkerLoads_Testing(s, 3, 8);
+        result = task.assignWorkerLoads_Testing(s, 3, 8);
         expected = new String[]{"abcdefghabcdefgh", "abcdefghabcdefgh", "abcdefghabcdefghabcde"};
         printAssert(expected, result);
 
         //Remainder block should be shorter than others
         s = "abcdeabcdeabcdeabcdeabcdeabcdeabcdeabcdeabc";
-        result = task.setWorkerLoads_Testing(s, 3, 5);
+        result = task.assignWorkerLoads_Testing(s, 3, 5);
         expected = new String[]{"abcdeabcdeabcde", "abcdeabcdeabcde", "abcdeabcdeabc"};
         printAssert(expected, result);
     }
@@ -226,12 +226,12 @@ public class SetWorkerLoadsTest {
         ProcessTask task = new ProcessTask();
 
         String s = "abcdefghijklmnopabcdefghijklmnopabcdefghijklmnopabcdefghijklmnopabcdefghijkl";
-        String[] result = task.setWorkerLoads_Testing(s, 3, 16);
+        String[] result = task.assignWorkerLoads_Testing(s, 3, 16);
         String[] expected = new String[]{"abcdefghijklmnop", "abcdefghijklmnopabcdefghijklmnop", "abcdefghijklmnopabcdefghijkl"};
         printAssert(expected, result);
 
         s = "abcdabcdabcdabcdabcdabcdabcdabcdabc";
-        result = task.setWorkerLoads_Testing(s, 5, 4);
+        result = task.assignWorkerLoads_Testing(s, 5, 4);
         expected = new String[]{"abcd", "abcdabcd", "abcdabcd", "abcdabcd", "abcdabc"};
         printAssert(expected, result);
     }
@@ -243,32 +243,32 @@ public class SetWorkerLoadsTest {
         ProcessTask task = new ProcessTask();
 
         String s = "abcdefghabcdefghabcdefgh";
-        String[] result = task.setWorkerLoads_Testing(s, 5, 8);
+        String[] result = task.assignWorkerLoads_Testing(s, 5, 8);
         String[] expected = new String[]{"", "", "abcdefgh", "abcdefgh", "abcdefgh"};
         printAssert(expected, result);
 
         s = "abcdefgha";
-        result = task.setWorkerLoads_Testing(s, 3, 8);
+        result = task.assignWorkerLoads_Testing(s, 3, 8);
         expected = new String[]{"", "abcdefgh", "a"};
         printAssert(expected, result);
 
         s = "abcdefgh";
-        result = task.setWorkerLoads_Testing(s, 3, 8);
+        result = task.assignWorkerLoads_Testing(s, 3, 8);
         expected = new String[]{"", "", "abcdefgh"};
         printAssert(expected, result);
 
         s = "abcdefg";
-        result = task.setWorkerLoads_Testing(s, 2, 8);
+        result = task.assignWorkerLoads_Testing(s, 2, 8);
         expected = new String[]{"", "abcdefg"};
         printAssert(expected, result);
 
         s = "abcabcabcabcabc";
-        result = task.setWorkerLoads_Testing(s, 6, 3);
+        result = task.assignWorkerLoads_Testing(s, 6, 3);
         expected = new String[]{"", "abc", "abc", "abc", "abc", "abc"};
         printAssert(expected, result);
 
         s = "abcdefghijabcdefghijabcdefghij";
-        result = task.setWorkerLoads_Testing(s, 5, 30);
+        result = task.assignWorkerLoads_Testing(s, 5, 30);
         expected = new String[]{"", "", "", "", "abcdefghijabcdefghijabcdefghij"};
         printAssert(expected, result);
     }
@@ -282,32 +282,32 @@ public class SetWorkerLoadsTest {
 
         //Non-alphanumeric characters
         String s = "abcdefgh-abcdefgh-abcdefgh";
-        String[] result = task.setWorkerLoads_Testing(s, 3, 8);
+        String[] result = task.assignWorkerLoads_Testing(s, 3, 8);
         String[] expected = new String[]{"abcdefgh", "-abcdefgh", "-abcdefgh"};
         printAssert(expected, result);
 
         //Numeric characters and uppercase letters
         s = "aZbc0abcA1abc2abc9Z";
-        result = task.setWorkerLoads_Testing(s, 4, 3);
+        result = task.assignWorkerLoads_Testing(s, 4, 3);
         expected = new String[]{"aZbc", "0abc", "A1abc", "2abc9Z"};
         printAssert(expected, result);
 
         //Mix
         s = "---abcd*e123f00gh[]ij===k";
-        result = task.setWorkerLoads_Testing(s, 3, 5);
+        result = task.assignWorkerLoads_Testing(s, 3, 5);
         expected = new String[]{"---abcd*e", "123f00gh[]ij", "===k"};
         printAssert(expected, result);
 
         //Number of non-alphabetic characters between letter groups are greater than blockLength
         s = "=======================abcde-------------------fghi;;;;;;;;;;;;;;;;;jk";
-        result = task.setWorkerLoads_Testing(s, 3, 5);
+        result = task.assignWorkerLoads_Testing(s, 3, 5);
         expected = new String[]{"=======================abcde", "-------------------fghi;;;;;;;;;;;;;;;;;j", "k"};
         printAssert(expected, result);
 
         //Same as above, but tests block spillover
         s = "===============abc-------------de000000000000000abcd;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;e" +
                 "            ab          cd        e[[[[[[[[[]]]]]]abc----------dea---";
-        result = task.setWorkerLoads_Testing(s, 3, 5);
+        result = task.assignWorkerLoads_Testing(s, 3, 5);
         expected = new String[]{"===============abc-------------de",
                 "000000000000000abcd;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;e            ab          cd        e",
                 "[[[[[[[[[]]]]]]abc----------dea---"};
@@ -315,7 +315,7 @@ public class SetWorkerLoadsTest {
 
         //"Test Bugfix" but with non-alpha characters included
         s = "abc-AAA-------  dabcdab   cdabcdabcdab   cdabcdabc     dabc ";
-        result = task.setWorkerLoads_Testing(s, 5, 4);
+        result = task.assignWorkerLoads_Testing(s, 5, 4);
         expected = new String[]{"abc-AAA-------  d", "abcdab   cd", "abcdabcd", "ab   cdabcd", "abc     dabc "};
         printAssert(expected, result);
     }

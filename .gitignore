@@ -40,6 +40,6 @@ build/
 
 ### Specifics ###
 reference/
-src/main/resources/images_unused/
+src/main/resources/images/
 input.txt
 output.txt

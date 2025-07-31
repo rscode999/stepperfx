@@ -6,6 +6,7 @@ import javafx.scene.image.ImageView;
 import javafx.stage.Modality;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Optional;
 
@@ -16,9 +17,20 @@ import java.util.Optional;
 public final class StyledDialogs {
 
     /**
-     * Path to a directory containing images for sponsored content
+     * Path to the preferred directory containing images for sponsored content.<br><br>
+     *
+     * When run in the IntelliJ IDE, this path is relative to the project root directory.<br>
+     * When run as a standalone executable, the path is relative to the app.
      */
-    final public static String SPONSORED_CONTENT_DIRECTORY = "src/main/resources/images";
+    private static String SPONSORED_CONTENT_DIRECTORY = "src/main/resources/images";
+
+    /**
+     * Path to a backup directory containing images for sponsored content.<br><br>
+     *
+     * When run in the IntelliJ IDE, this path is relative to the project root directory.<br>
+     * When run as a standalone executable, the path is relative to the app.
+     */
+    final private static String SPONSORED_CONTENT_DIRECTORY_ALTERNATE = "images";
 
     /**
      * Filepath to load dialog stylesheets from. Must point to a valid CSS file.<br><br>
@@ -26,10 +38,56 @@ public final class StyledDialogs {
      */
     final public static String STYLESHEET_FILEPATH = "/views/main-styles.css";
 
-
     // //////////////////////////////////////////////////////////////////////////////////////////////////////
     // //////////////////////////////////////////////////////////////////////////////////////////////////////
     //HELPERS
+
+    /**
+     * Returns a randomly selected image from {@code directory}.<br><br>
+     *
+     * This method has 3 illegal states: If the {@code StyledDialogs.getSponsoredContentDirectory()} directory does not exist,
+     * there are no files in {@code StyledDialogs.getSponsoredContentDirectory()}, or the randomly selected file
+     * is not of a supported image type.<br><br>
+     *
+     * In the case of an illegal state, the method throws a FileNotFoundException.<br><br>
+     *
+     * When run in the IntelliJ IDE, the sponsored content directories are relative to the project root directory.<br>
+     * When run as a standalone executable, they're relative to the app.
+     *
+     * @param directory directory to choose a file from
+     * @return randomly selected image from {@code directory}
+     * @throws FileNotFoundException if an illegal state is found
+     */
+    private static Image fetchRandomImage(String directory) throws FileNotFoundException {
+        File dir = new File(directory);
+        Image image = null;
+
+        if(!(dir.exists() || dir.isDirectory())) {
+            throw new FileNotFoundException("The folder \"" + directory + "\" (path relative to the app) does not exist");
+        }
+
+        // Get all the files in the directory
+        File[] files = dir.listFiles();
+        assert files != null;
+        if(files.length == 0) {
+            throw new FileNotFoundException("The folder \"" + directory + "\" (path relative to the app) must contain an image");
+        }
+
+        //Pick a random index from the directory
+        int randIndex = (int) (Math.random() * (files.length));
+        File selectedImage = files[randIndex];
+
+        //Check if the file is valid
+        if(imageInvalid(selectedImage)) {
+            throw new FileNotFoundException("The file \"" + selectedImage.getName() + "\" inside the folder \"" + directory +
+                    "\" must be a JPG, PNG, BMP, or GIF image");
+        }
+
+        // Create an Image object and add it to the list
+        return new Image(selectedImage.toURI().toString());
+    }
+
+
 
     /**
      * Returns true if {@code testFile} does not exist or has an unsupported image file extension.<br>
@@ -38,7 +96,7 @@ public final class StyledDialogs {
      * @param testFile file to test
      * @return true if the file is invalid, false otherwise
      */
-    private static boolean fileInvalid(File testFile) {
+    private static boolean imageInvalid(File testFile) {
         //Check if the file exists
         if(!testFile.exists()) {
             return true;
@@ -47,11 +105,11 @@ public final class StyledDialogs {
         String testFilename = testFile.getName().toLowerCase();
 
         //Check all valid file extensions
-        return !(testFilename.endsWith("jpg") ||
-                testFilename.endsWith("jpeg") ||
-                testFilename.endsWith("png") ||
-                testFilename.endsWith("bmp") ||
-                testFilename.endsWith("gif"));
+        return !(testFilename.endsWith(".jpg") ||
+                testFilename.endsWith(".jpeg") ||
+                testFilename.endsWith(".png") ||
+                testFilename.endsWith(".bmp") ||
+                testFilename.endsWith(".gif"));
     }
 
 
@@ -79,6 +137,39 @@ public final class StyledDialogs {
         dialog.setHeaderText(header);
         dialog.setContentText(text);
     }
+
+
+    // //////////////////////////////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////////////////////////////
+    //GETTERS
+
+    /**
+     * Returns the path to the sponsored content directory.<br><br>
+     *
+     * When run in the IntelliJ IDE, this path is relative to the project root directory.<br>
+     * When run as a standalone executable, the path is relative to the app.<br>
+     *
+     * @return path to sponsored content
+     */
+    public static String getSponsoredContentDirectory() {
+        return SPONSORED_CONTENT_DIRECTORY;
+    }
+
+
+    /**
+     * Returns the path to the alternate sponsored content directory.<br><br>
+     *
+     * When run in the IntelliJ IDE, this path is relative to the project root directory.<br>
+     * When run as a standalone executable, the path is relative to the app.<br><br>
+     *
+     * This directory is used in case the sponsored content directory doesn't exist or is invalid.
+     *
+     * @return path to alternate sponsored content
+     */
+    public static String getSponsoredContentDirectoryAlternate() {
+        return SPONSORED_CONTENT_DIRECTORY_ALTERNATE;
+    }
+
 
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,48 +216,40 @@ public final class StyledDialogs {
 
     /**
      * Shows a modal dialog. The dialog contains one random sponsored image
-     * from the directory {@code StyledDialogs.SPONSORED_CONTENT_DIRECTORY}.<br><br>
+     * from the directory {@code StyledDialogs.getSponsoredContentDirectory()}.<br><br>
      *
-     * If the {@code StyledDialogs.SPONSORED_CONTENT_DIRECTORY} directory does not exist, throws an AssertionError.<br>
-     * If there are no images in {@code StyledDialogs.SPONSORED_CONTENT_DIRECTORY}, the method prints a warning to System.err
-     * and returns.<br>
-     * If the randomly selected image is not of a supported type, the method throws an AssertionError.
+     * If the image load from {@code StyledDialogs.getSponsoredContentDirectory()} fails, the method shows an error dialog.
+     * The method then attempts a second load from {@code StyledDialogs.getSponsoredContentDirectoryAlternate()}.
+     * If the second load fails, another dialog is shown, then {@code System.exit(0)} is called.<br><br>
+     *
+     * When run in the IntelliJ IDE, the sponsored content directories are relative to the project root directory.<br>
+     * When run as a standalone executable, they're relative to the app.
      */
     public static void showSponsoredDialog() {
 
-        File dir = new File(SPONSORED_CONTENT_DIRECTORY);
         Image image = null;
 
-        // Check if the directory exists and is a directory
-        if(!dir.exists()) {
-            throw new AssertionError("The directory \"" + SPONSORED_CONTENT_DIRECTORY + "\" does not exist");
+        //Attempt to load from the primary content directory
+        try {
+            image = fetchRandomImage(SPONSORED_CONTENT_DIRECTORY);
         }
-        if(!dir.isDirectory()) {
-            throw new AssertionError("The directory \"" + SPONSORED_CONTENT_DIRECTORY + "\" is not a directory");
-        }
+        //Load fails: show dialog, then attempt alternate directory load
+        catch (FileNotFoundException e) {
+            showAlertDialog("Configuration error", "Folder not found", e.getMessage());
 
-        // Get all the files in the directory
-        File[] files = dir.listFiles();
-        assert files != null;
-        if(files.length == 0) {
-            System.err.println("Alert: \"" + SPONSORED_CONTENT_DIRECTORY + "\" is empty");
-            return;
-        }
-
-        //Pick a random index from the directory
-        int randIndex = (int) (Math.random() * (files.length));
-        File selectedImage = files[randIndex];
-
-        //Check if the file is valid
-        if(fileInvalid(selectedImage)) {
-            throw new AssertionError("The file \"" + selectedImage.getName() + "\" is of an unsupported image type");
+            //Attempt second load. If successful, make the alternate directory into the primary
+            try {
+                image = fetchRandomImage(SPONSORED_CONTENT_DIRECTORY_ALTERNATE);
+                SPONSORED_CONTENT_DIRECTORY = SPONSORED_CONTENT_DIRECTORY_ALTERNATE;
+            }
+            //Second load fails: show dialog, then exit
+            catch (FileNotFoundException e2) {
+                showAlertDialog("Configuration error", "Folder not found", e2.getMessage());
+                System.exit(0);
+            }
         }
 
-        // Create an Image object and add it to the list
-        image = new Image(selectedImage.toURI().toString());
-
-
-        //Put the image in a viewable format
+        //Put the loaded image in a viewable format
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(300);  // Set a maximum width for the image
         imageView.setPreserveRatio(true);  // Preserve the aspect ratio of the image

@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * Centralized manager for screen transitions.<br><br>
  *
- * The {@code IntegratedController} class uses a {@code ScreenManager} to change the displayed screen.<br><br>
+ * The {@code IntegratedController} class uses an instance of this class to change the displayed screen.<br><br>
  *
  * A {@code ScreenManager} can load new screens until the {@code finishLoading} method is called.<br>
  * Afterward, the manager can change screens, and can no longer load new screens.<br><br>
@@ -90,7 +90,7 @@ final public class ScreenManager {
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //GETTERS AND SETTERS
+    //GETTERS
 
 
     /**
@@ -242,6 +242,7 @@ final public class ScreenManager {
     }
 
 
+
     /**
      * Adds a key event filter with the handler {@code eventHandler} to the screen whose name is {@code screenName}.<br><br>
      *
@@ -271,32 +272,6 @@ final public class ScreenManager {
      */
     public void finishLoading() {
         loadedFxmlPaths = null;
-    }
-
-
-
-    /**
-     * If {@code usingAlternateStyles} is true, the manager displays the alternate style of each screen.<br>
-     * Otherwise, the manager displays default styles.<br>
-     * The update appears instantly.<br><br>
-     *
-     * For each screen with only one style loaded, the method does not affect those screens.<br>
-     *
-     * @param usingAlternateStyles whether to display the manager's alternate styles
-     * @throws IllegalStateException if the manager is not finished loading, i.e. {@code finishLoading} was not called
-     */
-    public void setAlternateStyles(boolean usingAlternateStyles) {
-        if(loadedFxmlPaths != null) throw new IllegalStateException("Cannot set alternate styles when the manager is not done loading. Call {managerName}.finishLoading() first");
-
-        if(this.usingAlternateStyles != usingAlternateStyles) {
-            for(ScreenName name : rootMap.keySet()) {
-                //Reverse every stylesheet list for each screen (activating the alternate stylesheet)
-                ObservableList<String> stylesheets = rootMap.get(name).getStylesheets();
-                FXCollections.reverse(stylesheets);
-            }
-
-            this.usingAlternateStyles = !this.usingAlternateStyles;
-        }
     }
 
 
@@ -359,6 +334,32 @@ final public class ScreenManager {
         //Show the sponsored content, if desired
         if(showSponsoredContent && (float)Math.random() < fields.getSponsoredContentProbability()) {
             StyledDialogs.showSponsoredDialog();
+        }
+    }
+
+
+
+    /**
+     * If {@code newAlternateStyles} is true, the manager displays the alternate style of each screen.<br>
+     * Otherwise, the manager displays default styles.<br>
+     * The update appears instantly.<br><br>
+     *
+     * For each screen with only one style loaded, the method does not affect those screens.<br>
+     *
+     * @param newAlternateStyles whether to display the manager's alternate styles
+     * @throws IllegalStateException if the manager is not finished loading, i.e. {@code finishLoading} was not called
+     */
+    public void useAlternateStyles(boolean newAlternateStyles) {
+        if(loadedFxmlPaths != null) throw new IllegalStateException("Cannot set alternate styles when the manager is not done loading. Call {managerName}.finishLoading() first");
+
+        if(this.usingAlternateStyles != newAlternateStyles) {
+            for(ScreenName name : rootMap.keySet()) {
+                //Reverse every stylesheet list for each screen (activating the alternate stylesheet)
+                ObservableList<String> stylesheets = rootMap.get(name).getStylesheets();
+                FXCollections.reverse(stylesheets);
+            }
+
+            this.usingAlternateStyles = !this.usingAlternateStyles;
         }
     }
 

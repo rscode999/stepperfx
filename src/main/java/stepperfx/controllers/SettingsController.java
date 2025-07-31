@@ -123,7 +123,7 @@ public final class SettingsController extends IntegratedController {
         //Update the settings
         fields.setBlockCount(newBlockCount);
         fields.setBlockLength(newBlockLength);
-        screenManager.setAlternateStyles(highContrastStyleSelector.isSelected());
+        screenManager.useAlternateStyles(highContrastStyleSelector.isSelected());
 
         //Update the labels
         blockCountInputText.setText("Number of blocks (current: " + fields.getBlockCount() + ")");
@@ -188,11 +188,11 @@ public final class SettingsController extends IntegratedController {
 
         if(key.equals("PI-EQUALS-3")) {
             fields.setSponsoredContentProbability(0.2);
-            StyledDialogs.showAlertDialog("Key accepted", "Key accepted", "Enjoy seeing less sponsored content!");
+            StyledDialogs.showInfoDialog("Key accepted", "Key accepted", "Enjoy seeing less sponsored content!");
             productKeyButton.setDisable(true);
         }
         else {
-            StyledDialogs.showInfoDialog("Error", "Key not accepted", "The given product key is invalid");
+            StyledDialogs.showAlertDialog("Error", "Key not accepted", "The given product key is invalid");
         }
     }
 }

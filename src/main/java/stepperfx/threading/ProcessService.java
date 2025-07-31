@@ -90,6 +90,7 @@ final public class ProcessService extends Service<String[]> {
     /**
      * Creates and runs a ProcessTask. The Service's fields are set to null to save memory.
      */
+    @Override
     public Task<String[]> createTask() {
         ProcessTask task = new ProcessTask(input, key, encrypting, usingV2Process,
                 blocks, charsPerBlock,
@@ -103,10 +104,10 @@ final public class ProcessService extends Service<String[]> {
 
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //SETTERS
+    //METHODS
 
     /**
-     * Sets the input and amount of threads for input processing.<br>
+     * Sets all inputs for processing.<br>
      * The inputs to this method will be passed to the service's Task to execute.
      *
      * @param input input text to process, or a filepath to load from. Cannot be null

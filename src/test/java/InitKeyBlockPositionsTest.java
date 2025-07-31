@@ -7,9 +7,9 @@ import java.util.Arrays;
 
 
 /**
- * Class to test the method {@code setKeyBlockPositions} in a {@code ProcessSubtaskMain}.
+ * Class to test the method {@code initializeKeyBlockPositions} in a {@code ProcessSubtaskMain}.
  */
-public class SetKeyBlockPositionsTest {
+public class InitKeyBlockPositionsTest {
 
 
     //UTILITIES
@@ -33,7 +33,7 @@ public class SetKeyBlockPositionsTest {
      * @param textLength the text length to test
      * @return key block positions for the given text length
      */
-    private byte[] setKeyBlockPositions_Reference(long textLength, int blockCount, int blockLength) {
+    private byte[] initializeKeyBlockPositions_Reference(long textLength, int blockCount, int blockLength) {
         if(textLength < 0) throw new AssertionError("Text length cannot be negative");
         if(blockCount <= 0) throw new AssertionError("Block count must be positive");
         if(blockLength <= 0) throw new AssertionError("Block length must be positive");
@@ -134,18 +134,18 @@ public class SetKeyBlockPositionsTest {
         byte[] result;
 
         input = 0;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH);
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH);
         printAssert(expected, result);
 
         input = 3;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = BLOCK_LENGTH - 1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
     }
 
@@ -160,18 +160,18 @@ public class SetKeyBlockPositionsTest {
         byte[] result;
 
         input = BLOCK_LENGTH;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = BLOCK_LENGTH+1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = BLOCK_LENGTH*2-1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
     }
 
@@ -186,33 +186,33 @@ public class SetKeyBlockPositionsTest {
         byte[] result;
 
         input = BLOCK_LENGTH*2;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = BLOCK_LENGTH*3 - 1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = BLOCK_LENGTH*3;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = BLOCK_LENGTH*5 - 1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = BLOCK_LENGTH*5;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = BLOCK_LENGTH * BLOCK_LENGTH - 1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
     }
 
@@ -226,18 +226,18 @@ public class SetKeyBlockPositionsTest {
         byte[] result;
 
         input = BLOCK_LENGTH * BLOCK_LENGTH;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = (BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH-1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = (BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
     }
 
@@ -252,28 +252,28 @@ public class SetKeyBlockPositionsTest {
         byte[] result;
 
         input = (BLOCK_LENGTH * BLOCK_LENGTH * BLOCK_LENGTH);
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = (BLOCK_LENGTH * BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH*2 - 1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = (BLOCK_LENGTH * BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH*2;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = (long)Math.pow(BLOCK_LENGTH,4) + BLOCK_LENGTH*5 - 1;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         input = (long)Math.pow(BLOCK_LENGTH,4) + BLOCK_LENGTH*5;
-        expected = setKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
     }
 
@@ -294,20 +294,20 @@ public class SetKeyBlockPositionsTest {
 
         //Barely overflows, should be all zeros
         input = (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1);
-        expected = setKeyBlockPositions_Reference(0, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(0, BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
 
         //Overflow + 1, should be all zeros
         input = (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1) + 1;
-        expected = setKeyBlockPositions_Reference(input - (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1), BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH);
+        expected = initializeKeyBlockPositions_Reference(input - (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1), BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH);
         printAssert(expected, result);
 
         //Overflow with some rotation, equivalent to a length of (BLOCK_LEN * BLOCK_LEN) + BLOCK_LEN*2 - 1
         input = (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1) + (BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH*2 - 1;
-        expected = setKeyBlockPositions_Reference(input - (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1), BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.setKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
+        expected = initializeKeyBlockPositions_Reference(input - (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1), BLOCK_COUNT, BLOCK_LENGTH);
+        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
         printAssert(expected, result);
     }
 

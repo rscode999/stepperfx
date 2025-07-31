@@ -12,7 +12,6 @@ public class IntegratedController {
 
     /**
      * Contains a reference to fields that are shared between other controllers.
-     * The shared fields belong to all controllers.
      */
     protected StepperFields fields;
 

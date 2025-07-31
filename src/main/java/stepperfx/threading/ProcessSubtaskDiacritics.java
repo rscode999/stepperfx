@@ -14,6 +14,10 @@ public class ProcessSubtaskDiacritics extends Task<String> {
      */
     private final String inputPiece;
 
+
+    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // CONSTRUCTORS
+
     /**
      * Creates a new subtask and assigns it to remove diacritics from {@code inputPiece}.
      * @param inputPiece text to remove diacritics from. Cannot be null
@@ -22,6 +26,8 @@ public class ProcessSubtaskDiacritics extends Task<String> {
         if(inputPiece==null)  throw new AssertionError("Input piece cannot be null");
         this.inputPiece = inputPiece;
     }
+
+
 
     /**
      * FOR METHOD UNIT TESTING ONLY! Creates a new instance, initialized to garbage values.
@@ -32,7 +38,7 @@ public class ProcessSubtaskDiacritics extends Task<String> {
 
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    // CALL
 
     /**
      * Performs this task's processing and returns the result
@@ -47,7 +53,7 @@ public class ProcessSubtaskDiacritics extends Task<String> {
 
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    // METHODS
 
     /**
      * Returns a lowercased version of the input without accent marks or letter variants.
