@@ -322,10 +322,10 @@ final public class ScreenManager {
      * If false, a sponsored dialog is never shown,
      *
      * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
-     * @param showingSponsoredContent whether to have a chance of showing sponsored content
+     * @param showSponsoredContent whether to have a chance of showing sponsored content
      * @throws IllegalStateException if the manager is not finished loading screens
      */
-    public void showScreen(ScreenName name, boolean showingSponsoredContent) {
+    public void showScreen(ScreenName name, boolean showSponsoredContent) {
         if(name == null) {
             throw new AssertionError("Screen name cannot be null");
         }
@@ -357,7 +357,7 @@ final public class ScreenManager {
         primaryStage.show();
 
         //Show the sponsored content, if desired
-        if(showingSponsoredContent && (float)Math.random() < fields.getSponsoredContentProbability()) {
+        if(showSponsoredContent && (float)Math.random() < fields.getSponsoredContentProbability()) {
             StyledDialogs.showSponsoredDialog();
         }
     }
