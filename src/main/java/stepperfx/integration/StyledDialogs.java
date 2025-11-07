@@ -33,7 +33,8 @@ public final class StyledDialogs {
     final private static String SPONSORED_CONTENT_DIRECTORY_ALTERNATE = "images";
 
     /**
-     * Filepath to load dialog stylesheets from. Must point to a valid CSS file.<br><br>
+     * Filepath to load dialog stylesheets from, relative to the directory marked as the "resources" root.
+     * Must point to a valid CSS file containing a style class called "dialog".<br><br>
      * A style class called "dialog" governs dialog styles.
      */
     final public static String STYLESHEET_FILEPATH = "/views/main-styles.css";
@@ -43,43 +44,44 @@ public final class StyledDialogs {
     //HELPERS
 
     /**
-     * Returns a randomly selected image from {@code directory}.<br><br>
+     * Returns a randomly selected image from the directory {@code directoryPath}.<br><br>
      *
-     * This method has 3 illegal states: If the {@code StyledDialogs.getSponsoredContentDirectory()} directory does not exist,
-     * there are no files in {@code StyledDialogs.getSponsoredContentDirectory()}, or the randomly selected file
-     * is not of a supported image type.<br><br>
+     * This method has 2 illegal states: If {@code directoryPath} does not exist,
+     * or there are no files in {@code directoryPath}.<br><br>
      *
      * In the case of an illegal state, the method throws a FileNotFoundException.<br><br>
      *
      * When run in the IntelliJ IDE, the sponsored content directories are relative to the project root directory.<br>
      * When run as a standalone executable, they're relative to the app.
      *
-     * @param directory directory to choose a file from
-     * @return randomly selected image from {@code directory}
-     * @throws FileNotFoundException if an illegal state is found
+     * @param directoryPath directory to choose a file from. Must contain at least 1 image,
+     *                      where all files inside {@code directoryPath} make {@code imageValid} return true
+     * @return randomly selected image from {@code directoryPath}
+     * @throws FileNotFoundException if {@code directoryPath} doesn't exist or is empty
      */
-    private static Image fetchRandomImage(String directory) throws FileNotFoundException {
-        File dir = new File(directory);
-        Image image = null;
+    private static Image fetchRandomImage(String directoryPath) throws FileNotFoundException {
+        File dir = new File(directoryPath);
 
         if(!(dir.exists() || dir.isDirectory())) {
-            throw new FileNotFoundException("The folder \"" + directory + "\" (path relative to the app) does not exist");
+            throw new FileNotFoundException("The folder \"" + directoryPath + "\" (path relative to the app) does not exist");
         }
 
-        // Get all the files in the directory
+        // Get all the files in the directoryPath
         File[] files = dir.listFiles();
-        assert files != null;
+        if(files == null) {
+            throw new AssertionError("I/O error when accessing \"" + directoryPath + "\"");
+        }
         if(files.length == 0) {
-            throw new FileNotFoundException("The folder \"" + directory + "\" (path relative to the app) must contain an image");
+            throw new FileNotFoundException("The folder \"" + directoryPath + "\" (path relative to the app) must contain an image");
         }
 
-        //Pick a random index from the directory
+        //Pick a random index from the directoryPath
         int randIndex = (int) (Math.random() * (files.length));
         File selectedImage = files[randIndex];
 
         //Check if the file is valid
-        if(imageInvalid(selectedImage)) {
-            throw new FileNotFoundException("The file \"" + selectedImage.getName() + "\" inside the folder \"" + directory +
+        if(!imageValid(selectedImage)) {
+            throw new AssertionError("The file \"" + selectedImage.getName() + "\" inside the folder \"" + directoryPath +
                     "\" must be a JPG, PNG, BMP, or GIF image");
         }
 
@@ -90,22 +92,22 @@ public final class StyledDialogs {
 
 
     /**
-     * Returns true if {@code testFile} does not exist or has an unsupported image file extension.<br>
+     * Returns true if {@code testFile} exists and has a supported image file extension.<br>
      * Supported file extensions are jpg, jpeg, png, bmp, or gif.
      *
      * @param testFile file to test
-     * @return true if the file is invalid, false otherwise
+     * @return true if the file is valid, false otherwise
      */
-    private static boolean imageInvalid(File testFile) {
+    private static boolean imageValid(File testFile) {
         //Check if the file exists
         if(!testFile.exists()) {
-            return true;
+            return false;
         }
 
         String testFilename = testFile.getName().toLowerCase();
 
         //Check all valid file extensions
-        return !(testFilename.endsWith(".jpg") ||
+        return (testFilename.endsWith(".jpg") ||
                 testFilename.endsWith(".jpeg") ||
                 testFilename.endsWith(".png") ||
                 testFilename.endsWith(".bmp") ||
@@ -128,7 +130,10 @@ public final class StyledDialogs {
         //Set the stylesheet
         DialogPane dialogPane = dialog.getDialogPane();
         URL styles = StyledDialogs.class.getResource(STYLESHEET_FILEPATH);
-        if(styles==null) throw new AssertionError("The dialog stylesheet at \"" + STYLESHEET_FILEPATH + "\" does not exist");
+
+        if(styles==null) throw new AssertionError("The file at \"" + STYLESHEET_FILEPATH + "\" " +
+                "is not a CSS stylesheet containing the 'dialog' style class");
+
         dialogPane.getStylesheets().add(styles.toExternalForm());
         dialogPane.getStyleClass().add("dialog");
 
@@ -242,7 +247,7 @@ public final class StyledDialogs {
                 image = fetchRandomImage(SPONSORED_CONTENT_DIRECTORY_ALTERNATE);
                 SPONSORED_CONTENT_DIRECTORY = SPONSORED_CONTENT_DIRECTORY_ALTERNATE;
             }
-            //Second load fails: show dialog, then exit
+            //Second load fails: show dialog, then exit the app
             catch (FileNotFoundException e2) {
                 showAlertDialog("Configuration error", "Folder not found", e2.getMessage());
                 System.exit(0);

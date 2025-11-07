@@ -279,7 +279,10 @@ final public class ScreenManager {
     /**
      * Sets the ScreenManager's stage with a screen whose name is {@code name}.<br><br>
      *
-     * This method has a {@code fields.getSponsoredContentProbability()} probability of showing a sponsored content dialog.<br>
+     * This method has a {@code fields.getSponsoredContentProbability()} probability of showing a sponsored content dialog.<br><br>
+     *
+     * WARNING: If a sponsored content dialog is shown, the FX app thread will block!
+     * Any background process will continue to run until the dialog is closed!
      *
      * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
      * @throws IllegalStateException if the manager is not finished loading screens
@@ -294,7 +297,10 @@ final public class ScreenManager {
      *
      * If {@code showingSponsoredContent} is true, this method has a {@code fields.getSponsoredContentProbability()}
      * probability of showing a sponsored content dialog.<br>
-     * If false, a sponsored dialog is never shown,
+     * If false, a sponsored dialog is never shown.<br><br>
+     *
+     * WARNING: If a sponsored content dialog is shown, the FX app thread will block!
+     * Any background process will continue to run until the dialog is closed!
      *
      * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
      * @param showSponsoredContent whether to have a chance of showing sponsored content

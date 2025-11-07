@@ -20,7 +20,7 @@ I reserve the rights to change, update, nullify, or interpret any of the rules a
 ## Docstring Rules
 All docstrings must follow the template given below:  
 
-##### BEGIN DOCSTRING FORMAT
+**BEGIN DOCSTRING FORMAT**  
 One-line summary of the method or class, followed by two `<br>` tags.
 
 Additional details of the method or class. This may span multiple lines.  
@@ -40,7 +40,7 @@ This section must contain "Helper to {parent method name}" if the method is a pr
 Exception description is not needed if throwing an Exception that an overridden function throws
 (i.e. ExecutionException and InterruptedException in a Task), or if the Exception is unlikely to be thrown 
 
-##### END DOCSTRING FORMAT
+**END DOCSTRING FORMAT**
 
 Clarity is more important than strict grammatical adherence.
 
@@ -56,7 +56,9 @@ Docstrings for fields can contain only a one-line summary.
 ## FXML Rules
 These rules apply, even if Scene Builder is used!
 
-The parent container's FXML declaration must be in the following format:
+A parent container is any JavaFX object that dictates the layout of objects inside it. Example: VBox
+
+A parent container's FXML declaration must be in the following format:
 1. Open angled bracket.
 2. Characteristics of the container, listed in alphabetical order, followed by a newline.**
 3. URLs to important resources, followed by a newline.*
@@ -79,11 +81,11 @@ Examples:
         fx:controller="stepperfx.controllers.LoginController" fx:id="background">
 
 
-All objects or attributes contained within another object
+All JavaFX objects inside a container
 must be separated by **1 level** of indentation.
 
 Objects arranged inside containers must be arranged
-from top to bottom, left to right.   
+from top to bottom, left to right. 
 Example:  
 
     <Container>
@@ -101,9 +103,9 @@ Example:
     <Container/>
 
 
-The FXML defining individual GUI elements must be separated by one new line.  
-Attributes, such as `Font`, should not be separated by newlines.  
-Example:
+The FXML defining individual JavaFX elements must be separated by one new line.  
+Attributes of JavaFX objects, such as `Font`, should not be separated by newlines.  
+Example (notice the line spacing between the two ExampleObjects):
 
     <Container>
         <ExampleObject option1=... option2=...>
@@ -115,7 +117,7 @@ Example:
         <ExampleObject/>
     <Container/>
 
-At the start of the FXML object's options should be the `fx:id`, followed by the `onAction` option.  
+At the start of the FXML object's options should be the `fx:id`, followed by the `onAction` option (if either exist).  
 Options for FXML objects must be listed in alphabetical order (or in some other logical order).  
 Examples:  
 
@@ -127,8 +129,10 @@ If the options exceed ~90 characters, the FXML value should have a line wrap.
 The line wrap should be on the same level of indentation, or one level in, as the rest of the object.
 Lines may wrap if the options are shorter than 90 characters.  
 Example:  
-`<ExampleObject option1=... option2=... option3=... option4=... option5=...  
-option6=... option7=... option8=... />`
+```
+<ExampleObject option1=... option2=... option3=... option4=... option5=...  
+option6=... option7=... option8=... />
+```
 
 
 
@@ -136,10 +140,8 @@ option6=... option7=... option8=... />`
 ## CSS Rules
 
 Custom style classes should appear at the top of the CSS file, in alphabetical order by class name.  
-Below is 3-4 blank lines.  
+Below should be 3-4 blank lines.  
 Preset style classes for GUI components (i.e. Button, CheckBox) should appear below the custom style classes and blank lines, in alphabetical order by class name.  
-
-All style components inside a CSS entry should appear in some logical order, most often alphabetical order.
 
 
 
@@ -167,8 +169,8 @@ Method names that start with the following words should do their associated acti
 - `read...`-- Returns the contents of an external resource as a **String**.
   If the resource is not returned as a String, use `fetch...` instead.
 - `set...`-- Changes the value of **exactly one** private variable.
-- `show...`-- Changes the GUI
-- `take...`-- Retrieves a value from the app. Processes the value.
+- `show...`-- Changes the user interface, i.e. displays another screen, shows a dialog
+- `take...`-- Retrieves a value from the user interface.
 - `write...`-- Takes a String as one of its inputs. Writes to an external resource with the given String.
 
 If the method does anything else, the method's name should not start with any of the above words.
@@ -186,11 +188,15 @@ can fit on your screen.
 
 All methods must conform to the [Method Rules](#method-rules).
 
-Underneath each row of comment lines is a section header. The section header should also appear in the class definition.
+Underneath each row of comment lines is a section header. The section header should also appear in the class definition.  
+
+Example of comment lines with header:  
+// ////////////////////////////////////////////////  
+//HEADER NAME
 
 A class does not need to have all the listed sections.
 
-##### BEGIN CLASS FORMAT
+**BEGIN CLASS FORMAT**
 
 Docstring that conforms to the [Docstring Rules](#docstring-rules)   
 NOTE: Since class definitions have no inputs or return values, 
@@ -303,10 +309,10 @@ Overloaded methods are ideally separated by 1-2 blank lines.
 
 Main method: `public static void main(String[] args) {...}`
 
-##### END CLASS FORMAT
+**END CLASS FORMAT**
 
 
-##### Example Class
+**Example Class**
 
     /**
       * Controller for the sample screen (which does not really exist).
@@ -499,5 +505,11 @@ Main method: `public static void main(String[] args) {...}`
 
 ## Final Remarks
 Curran Muhlburger is not allowed to contribute to any documentation in this project.
+
+No one working on the project is allowed to make references to K-Pop Demon hunters or the "6 7" meme.
+
+You agree that 3 is a good enough approximation for π (ratio of a circle's circumference to its diameter) and e (Euler's number).
+
+If you disagree with any of the rules, click [here](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.youtube.com/watch%3Fv%3DxvFZjo5PgG0).
 
 [Back to table of contents](#table-of-contents)

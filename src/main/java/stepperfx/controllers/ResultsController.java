@@ -118,6 +118,7 @@ final public class ResultsController extends IntegratedController {
                 if(newValue[0]==null && newValue[1]==null && newValue[2]!=null && newValue[3]!=null) {
                     fields.resetService();
 
+                    //It's important to change the screen first, then show the sponsored content.
                     screenManager.showScreen(ScreenName.INPUT, false);
 
                     //File loading exception: load with error message

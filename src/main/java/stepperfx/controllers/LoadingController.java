@@ -54,7 +54,9 @@ final public class LoadingController extends IntegratedController {
      */
     @FXML
     public void stopLoading() {
-        screenManager.showScreen(ScreenName.INPUT);
+        //IMPORTANT: Stop the Service before changing the screen. If not, the worker threads will continue running while a sponsored content dialog is showing.
+        //If background threads keep running, the screen may unexpectedly change to the results screen.
         fields.stopService();
+        screenManager.showScreen(ScreenName.INPUT);
     }
 }
