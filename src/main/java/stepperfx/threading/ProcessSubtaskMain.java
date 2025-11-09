@@ -814,9 +814,12 @@ public class ProcessSubtaskMain extends Task<String> {
      * Alphabetic characters are ASCII characters that belong to the English alphabet.<br>
      * Uppercase and lowercase letters are both treated as letters.<br><br>
      *
-     * Example: if the text is "A1b2c3", the output, expressed as ints, should be {0, 48, 0, 49, 0, 50}.
+     * A NUL character, a (char)0, should be loaded as a (char)7 instead.<br><br>
+     *
+     * Example: if the text is "A1b2c3", the output, expressed as ints, is {0, 48, 0, 49, 0, 50}.
      * Since indices 0, 2, and 4 in the input are alphabetic characters, the corresponding indices in the output is 0.
-     * Indices 1, 3, and 5 hold the corresponding ASCII value in the corresponding output indices
+     * Indices 1, 3, and 5 hold the corresponding ASCII value in the corresponding output indices<br>
+     * Example: If the text is "\u0000", the output, expressed as ints, is {7}.
      *
      * @param text text to find non-alphabetic characters in. Cannot be null
      * @return char array containing locations of non-alphabetic characters. Returns {@code {(char)0}} if the Worker is cancelled.
@@ -833,18 +836,33 @@ public class ProcessSubtaskMain extends Task<String> {
                 return new char[(char)0];
             }
 
-            if((int)text.charAt(i)<65
+            //(char)0 special handling
+            if((int)text.charAt(i) == 0){
+                nonAlphas[i] = (char)7;
+            }
+            //Other non-letter
+            else if((int)text.charAt(i)<65
                     || ((int)text.charAt(i)>90 && (int)text.charAt(i)<97)
                     || (int)text.charAt(i)>122) {
 
                 nonAlphas[i] = text.charAt(i);
             }
+            //Letter
             else {
-                nonAlphas[i]=(char)0;
+                nonAlphas[i] = (char)0;
             }
         }
 
         return nonAlphas;
+    }
+
+    /**
+     * FOR TESTING PURPOSES ONLY! Returns the output of {@code findNonAlphaPositions} for {@code text}.
+     * @param text text to find non-alphabetic characters in. Cannot be null
+     * @return char array containing locations of non-alphabetic characters
+     */
+    public char[] findNonAlphaPositions_Testing(String text) {
+        return findNonAlphaPositions(text);
     }
 
 
@@ -871,8 +889,8 @@ public class ProcessSubtaskMain extends Task<String> {
         //Set the output array, assign all empty space to 0
         byte[] result = new byte[blockCount];
 
-        long quotient=textLength;
-        double decimalPortion=0;
+        long quotient = textLength;
+        double decimalPortion = 0;
 
         //Eliminate block spill-overs.
         quotient = quotient % ((long)Math.pow(blockLength, blockCount+1));
@@ -884,12 +902,12 @@ public class ProcessSubtaskMain extends Task<String> {
         for(int i = result.length-1; i >= 0; i--) {
 
             //Divide quotient and take only the portion to the right of the decimal point
-            decimalPortion = (double)quotient / blockLength - quotient / blockLength;
+            decimalPortion = (double)quotient / blockLength - (int)(quotient / blockLength);
             //Divide quotient and keep only the portion to the left of the decimal point
             quotient = quotient / (long) blockLength;
 
             //Convert the decimal portion to a digit and add to the result
-            result[i] = (byte)(Math.round(decimalPortion * blockLength));
+            result[result.length - 1 - i] = (byte)(Math.round(decimalPortion * blockLength));
 
             if(quotient <= 0) {
                 break;
@@ -897,13 +915,7 @@ public class ProcessSubtaskMain extends Task<String> {
 
         }
 
-        //Reverse the output
-        byte[] output = new byte[result.length];
-        for(int i=0; i<result.length; i++) {
-            output[i] = result[result.length - i - 1];
-        }
-
-        return output;
+        return result;
     }
 
     /**
@@ -967,20 +979,27 @@ public class ProcessSubtaskMain extends Task<String> {
      *
      * -If {@code reinsertPunctuation} is true, the text returned should contain all characters from nonAlphas
      * reinserted in their original places.
-     * If not, the text returned should contain only alphanumeric characters.<br><br>
+     * If not, the text returned should contain only alphanumeric characters.<br>
      *
-     * Example: {@code text} is "abcdefg", {@code nonAlphas} is [0,0,0,32,0,0,0,48,49,50].<br>
+     * - Regardless of the value of {@code reinsertPunctuation}, apostrophes are never included in the output. An apostrophe is
+     * any character equal to (char)39, (char)96, `, or ’.<br><br>
+     *
+     * Example: {@code text} is "abcdefg", {@code nonAlphas} is [0,0,0,32,0,0,0,39,48,49,50].<br>
      * {@code nonAlphas}'s positive entries are at positions where, in the original text, there were non-alphabetic
      * characters that were removed. A space (Unicode: 32) was at index 3 in the original text. Numbers '1', '2', and '3'
-     * (Unicode: 48, 49, 50) were at indices 7, 8, and 9.<br>
+     * (Unicode: 48, 49, 50) were at indices 8, 9, and 10. There is a (char)39, an apostrophe, at index 7.<br>
      * Given the text, the non-alpha positions, and a {@code reinsertingPunctuation} value of true, the output would be
      * "abc defg123".<br>
      *
-     * If {@code reinsertPunctuation} was false, the output would be "abcdefg123".<br><br>
+     * If {@code reinsertPunctuation} was false, the output would be "abcdefg123".<br>
      *
-     * Undoes the separation of characters in {@code removeNonAlphas}.
+     * Note that in both cases, the apostrophe never appears in the output.<br><br>
      *
-     * @param text input text without non-alphabetic characters. Cannot be null
+     * Undoes the separation of characters in {@code removeNonAlphas} and {@code findNonAlphaPositions}.<br>
+     * IMPORTANT: Given an original string, {@code text} must be the string's alphabetic characters,
+     * and {@code nonAlphas} should be the result of using {@code findNonAlphaPositions} on the string.
+     *
+     * @param text input text without non-alphabetic characters. Cannot be null. Must contain English lowercase ASCII letters only
      * @param nonAlphas array containing locations of non-alphabetic characters. Cannot be null
      * @param reinsertingPunctuation whether to include punctuation in the output;
      *                            if false, the function reinserts numbers only
@@ -994,84 +1013,64 @@ public class ProcessSubtaskMain extends Task<String> {
             throw new AssertionError("Non-alphas cannot be null");
         }
 
-        for(int v=0; v<text.length(); v++) {
-            if(text.charAt(v)<97 || text.charAt(v)>122) {
-                throw new AssertionError("All indices in the text must be English lowercase letters");
-            }
-        }
-
-        //make defensive copy of nonAlphasIn
-        char[] nonAlphasWorking = new char[nonAlphas.length];
-        for(int t=0; t<nonAlphasWorking.length; t++) {
-            if(isCancelled()) {
-                return "";
-            }
-
-            nonAlphasWorking[t]=nonAlphas[t];
-        }
 
         StringBuilder output = new StringBuilder(text.length());
-        int textIndex=0;
-        int nonAlphasIndex=0;
-        int outputLen=text.length();
+        int textIndex = 0;
+        int nonAlphasIndex = 0;
 
-        if(text.length() > nonAlphasWorking.length) {
-            System.err.println("WARNING: does 'symbols' have blank spaces accounted for?");
+
+        if(text.length() > nonAlphas.length) {
+            System.err.println("WARNING: does 'nonAlphas' have blank spaces accounted for?");
         }
 
 
-        //all characters from [0..nonAlphasIndex) in text should be already processed
-        //outputLen should equal the input's length, plus the number of symbols added to the output
-        while(nonAlphasIndex < outputLen) {
+        while(nonAlphasIndex < nonAlphas.length) {
             if(isCancelled()) {
                 return "";
             }
 
-            //If there's a symbol in the current index
-            if(nonAlphasWorking[nonAlphasIndex] > 0) {
-                //If not an apostrophe (ignore the compiler warning)
-                if(!(nonAlphasWorking[nonAlphasIndex]==(char)39 || nonAlphasWorking[nonAlphasIndex]==(char)96 || nonAlphasWorking[nonAlphasIndex]=='’' || nonAlphasWorking[nonAlphasIndex]=='`')) {
-
-                    if( (reinsertingPunctuation) ||
-                            (nonAlphasWorking[nonAlphasIndex]>=48 && nonAlphasWorking[nonAlphasIndex]<=57) ) {
-                        //add to output
-                        output.append((char)nonAlphasWorking[nonAlphasIndex]);
-                    }
-
-                    //empty the symbol
-                    nonAlphasWorking[nonAlphasIndex]=0;
+            //Letter found: add current letter to output, then move to next letter
+            if(nonAlphas[nonAlphasIndex] == (char)0) {
+                //assertion
+                if((int)text.charAt(textIndex) < 97 || (int)text.charAt(textIndex) > 122) {
+                    throw new AssertionError("Text character at index " + textIndex + " must be a English lowercase ASCII letter");
                 }
 
-                outputLen++;
-            }
-
-            //If there's no symbol
-            else {
                 output.append(text.charAt(textIndex));
+
                 textIndex++;
-            }
+                nonAlphasIndex++;
 
-            nonAlphasIndex++;
+            }
+            //Apostrophe found: ignore it
+            else if(nonAlphas[nonAlphasIndex]==(char)39 || nonAlphas[nonAlphasIndex]==(char)96 || nonAlphas[nonAlphasIndex]=='’' || nonAlphas[nonAlphasIndex]=='`') {
+                nonAlphasIndex++;
+            }
+            //Other non-letter found
+            else {
+                //Add, if either a number or reinserting punctuation
+                if(reinsertingPunctuation ||
+                        ((int)nonAlphas[nonAlphasIndex] >= 48 && (int)nonAlphas[nonAlphasIndex] <= 57)) {
+                    output.append(nonAlphas[nonAlphasIndex]);
+                }
+
+                nonAlphasIndex++;
+            }
         }
-
-
-        //Add the rest of the symbols
-
-        //all characters from [0..nonAlphasIndex) in text should be already processed
-        while(nonAlphasIndex < nonAlphasWorking.length) {
-            if(isCancelled()) {
-                return "";
-            }
-
-            if((nonAlphasWorking[nonAlphasIndex]>0 && reinsertingPunctuation)
-                    || (nonAlphasWorking[nonAlphasIndex])>=48 && nonAlphasWorking[nonAlphasIndex]<=57) {
-                output.append(nonAlphasWorking[nonAlphasIndex]);
-            }
-            nonAlphasIndex++;
-        }
-
 
         return output.toString();
+    }
+
+    /**
+     * FOR TESTING PURPOSES ONLY! Returns the output of the {@code recombineNonAlphas} method.
+     * @param text input text without non-alphabetic characters. Cannot be null
+     * @param nonAlphas array containing locations of non-alphabetic characters. Cannot be null
+     * @param reinsertingPunctuation whether to include punctuation in the output;
+     *                            if false, the function reinserts numbers only
+     * @return version of text with non-alphabetic characters in their places
+     */
+    public String recombineNonAlphas_Testing(String text, char[] nonAlphas, boolean reinsertingPunctuation) {
+        return recombineNonAlphas(text, nonAlphas, reinsertingPunctuation);
     }
 
 
@@ -1079,6 +1078,8 @@ public class ProcessSubtaskMain extends Task<String> {
     /**
      * Returns a version of {@code text} without non-alphabetic characters.
      * The text returned is converted to lowercase.<br><br>
+     *
+     * An alphabetic character is an English ASCII letter (its int value is between 65 and 90, or 97 and 122).<br><br>
      *
      * WARNING! Not to be confused with {@code removeNonAlnums}!
      * {@code removeNonAlphas} removes all non-letters, including numbers!
@@ -1093,20 +1094,36 @@ public class ProcessSubtaskMain extends Task<String> {
             return "";
         }
 
-        text=text.toLowerCase();
-
         StringBuilder output = new StringBuilder(text.length());
         for(int i=0; i<text.length(); i++) {
             if(isCancelled()) {
                 return "";
             }
 
+            //lowercase letter: append to output
             if((int)text.charAt(i)>=97 && (int)text.charAt(i)<=122) {
                 output.append(text.charAt(i));
+            }
+            //uppercase letter: convert to uppercase, then append to output
+            else if((int)text.charAt(i)>=65 && (int)text.charAt(i)<=90) {
+                output.append((char)(text.charAt(i) + 32));
             }
         }
 
         return output.toString();
+    }
+
+    /**
+     * FOR TESTING PURPOSES ONLY! Returns a lowercased version of {@code text} without non-alphabetic characters.<br><br>
+     *
+     * Note: All non-alphabetic characters, including numbers, should be removed.
+     * An alphabetic character is an English ASCII letter (its int value is between 65 and 90, or 97 and 122).
+     *
+     * @param text original input. Can't be null
+     * @return lowercased text without non-alphabetic characters
+     */
+    public String removeNonAlphas_Testing(String text) {
+        return removeNonAlphas(text);
     }
 
 

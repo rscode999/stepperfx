@@ -310,7 +310,7 @@ public class ProcessTask extends Task<String[]> {
      *
      * -Alphabetic characters are lowercase English ASCII characters.<br>
      *
-     * -All indices except for the last one should have {@code blockLength}alphabetic characters or a multiple thereof.<br>
+     * -All indices except for the last one should have {@code blockLength} alphabetic characters or a multiple thereof.<br>
      *
      * -Any unused threads should be assigned the empty string, not null. Empty strings may occur at the beginning of the output array.<br>
      *

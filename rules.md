@@ -1,4 +1,7 @@
 # PROJECT RULES
+
+[Back to README](README.md)
+
 This is a project of rules and regulations! Read this document thoroughly before
 starting work on the project!
 As a friendly reminder, failure to follow the rules means I will hunt you down and [DATA EXPUNGED].
@@ -506,7 +509,7 @@ Main method: `public static void main(String[] args) {...}`
 ## Final Remarks
 Curran Muhlburger is not allowed to contribute to any documentation in this project.
 
-No one working on the project is allowed to make references to K-Pop Demon hunters or the "6 7" meme.
+No contributors, viewers, or users are allowed to make references to K-Pop Demon hunters or the "6 7" meme.
 
 You agree that 3 is a good enough approximation for π (ratio of a circle's circumference to its diameter) and e (Euler's number).
 

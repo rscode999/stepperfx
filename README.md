@@ -8,7 +8,7 @@ This program supports both normal and enhanced (version 2) processes.
 
 For Java 21+
 
-By contributing to this project, you agree to follow the rules listed in the [rules document](rules.md).
+By using, viewing, or contributing to this project, you agree to follow the rules listed in the [rules document](rules.md).
 
 
 ### Table of Contents
@@ -33,6 +33,12 @@ These settings are known to work for the IntelliJ IDE. I have never used another
 The main class is `src/main/java/stepperfx/Launcher`. If not exporting to a JAR, `src/main/java/stepperfx/MainApplication` also works as the main class.
 
 
+## Run Instructions
+
+Use `src/main/java/stepperfx/Launcher` (or `src/main/java/stepperfx/MainApplication`, if not exporting to a JAR)
+as the main class.
+
+If using Java 24+, run with the VM option `--enable-native-access=javafx.graphics`.
 
 ## Git Contribution Rules
 Make all changes and updates on a *new* Git branch. When the changes are completed and *thoroughly tested*, make a pull request to "main".
@@ -77,6 +83,10 @@ All Java source code is inside the `src/main/java/stepperfx` package.
 
 
 ## Final Notes
+
+The GUI is designed to be inconspicuous. All screens except for the login screen use a color that imitates "Go Away Green",
+allowing the GUI to avoid calling attention to itself. The color choice makes viewing by unauthorized users unlikely.
+The default text color is hard to see, so curious onlookers have a harder time reading the text.
 
 Anyone working on this project must follow the rules stated in the [rules document](rules.md).
 I reserve the rights to change, update, nullify, or interpret the rules at any time.  

@@ -1,33 +1,31 @@
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
+
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import stepperfx.threading.ProcessSubtaskMain;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 
 /**
- * Class to test the method {@code initializeKeyBlockPositions} in a {@code ProcessSubtaskMain}.
+ * Class to test the method {@code initializeKeyBlockPositions} in a {@code ProcessSubtaskMain},
+ * over several possible block counts and block lengths.
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class InitKeyBlockPositionsTest {
 
 
     //UTILITIES
 
     /**
-     * Block length to test. Must be on the interval [1, 100]
-     */
-    final private int BLOCK_LENGTH = 25;
-
-    /**
-     * Block count to test. Must be on the interval [1, 100]
-     */
-    final private int BLOCK_COUNT = 6;
-
-    /**
      * Returns the key block positions for the given text length for unenhanced (v1) operations.<br><br>
      *
-     * This is a reference implementation that is much slower than the actual method.
+     * This is a reference implementation that is much slower than the production version.
      * Use for testing only.
      *
      * @param textLength the text length to test
@@ -41,7 +39,6 @@ public class InitKeyBlockPositionsTest {
         //Set the output array, assign all empty space to 0
         byte[] result = new byte[blockCount];
 
-        //Move through the characters. Rotate at the correct time
         for(int i=1; i<=textLength; i++) {
             if(i % blockLength == 0) {
                 result[0]++;
@@ -61,61 +58,6 @@ public class InitKeyBlockPositionsTest {
         return result;
     }
 
-    // ////////////////////////////////////////////
-
-    /**
-     * Returns true if the two arrays are both not null, have the same length,
-     * and contain equal corresponding elements.
-     * Returns false otherwise.<br><br>
-     *
-     * Helper to {@code printAssert}.
-     *
-     * @param arr1 the first array to compare
-     * @param arr2 the second array to compare
-     * @return whether the arrays are equal
-     */
-     private boolean arraysEqual(byte[] arr1, byte[] arr2) {
-
-        if(arr1==null || arr2==null || arr1.length!=arr2.length) {
-            return false;
-        }
-
-        for(int i=0; i<arr1.length; i++) {
-            if(arr1[i] != arr2[i]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Checks if {@code expected} and {@code result} are equal according to {@code arraysEqual}.
-     * If not, the method prints the expected and result values as a string, then throws an AssertionFailedError.<br><br>
-     *
-     * Arrays are considered equal if the two arrays are both non-null, have the same length,
-     * and contain equal corresponding elements.
-     *
-     * @param expected expected output of the test
-     * @param result actual output of the test
-     */
-    private void printAssert(byte[] expected, byte[] result) {
-
-        if(BLOCK_LENGTH<=0 || BLOCK_LENGTH>100) {
-            throw new AssertionError("TEST INVALID- BLOCK_LENGTH value must be on the interval [1,100] (received " + BLOCK_LENGTH + ")");
-        }
-        if(BLOCK_COUNT<=0 || BLOCK_COUNT>100) {
-            throw new AssertionError("TEST INVALID- BLOCK_COUNT value must be on the interval [1,100] (received " + BLOCK_COUNT + ")");
-        }
-
-        //Do the comparison, abort upon failure
-         if(!arraysEqual(expected, result)) {
-             System.err.println("Expected: " + Arrays.toString(expected));
-             System.err.println("Result:   " + Arrays.toString(result));
-             throw new AssertionFailedError("Test failed- expected and result not equal");
-         }
-    }
-
 
 
     // //////////////////////////////////////////////////////////////////////////////////////////
@@ -124,191 +66,232 @@ public class InitKeyBlockPositionsTest {
     // //////////////////////////////////////////////////////////////////////////////////////////
     //TESTS
 
+    /**
+     * Returns a stream of arguments used for block counts and block lengths tested.
+     * @return argument stream for variable block count/length tests
+     */
+    private Stream<Arguments> sharedParameterProvider() {
+        return Stream.of(
+                Arguments.of(6, 25),
+                Arguments.of(3, 15),
+                Arguments.of(15, 2),
+                Arguments.of(3, 3),
+                Arguments.of(3, 1),
+                Arguments.of(1, 3),
+                Arguments.of(1, 1)
+        );
+    }
 
-    @DisplayName("The output should be all zeros when the given text length is less than BLOCK_LENGTH")
-    @Test
-    void testNoRotation() {
+
+
+    @DisplayName("The output should be all zeros when the given text length is less than blockLength")
+    @ParameterizedTest
+    @MethodSource("sharedParameterProvider")
+    void testNoRotation(int blockCount, int blockLength) {
         ProcessSubtaskMain p = new ProcessSubtaskMain();
         long input;
         byte[] expected;
         byte[] result;
 
         input = 0;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH);
-        printAssert(expected, result);
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength);
+        assertArrayEquals(expected, result);
 
         input = 3;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = BLOCK_LENGTH - 1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = blockLength - 1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
     }
 
 
     @DisplayName("The output should be all zeros, except for the first index, which should be 1, " +
-            "when the length is between BLOCK_LENGTH and 2*BLOCK_LENGTH-1")
-    @Test
-    void testSingleRotation() {
+            "when the length is between blockLength and 2*blockLength-1")
+    @ParameterizedTest
+    @MethodSource("sharedParameterProvider")
+    void testSingleRotation(int blockCount, int blockLength) {
         ProcessSubtaskMain p = new ProcessSubtaskMain();
         long input;
         byte[] expected;
         byte[] result;
 
-        input = BLOCK_LENGTH;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = blockLength;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = BLOCK_LENGTH+1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = blockLength+1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = BLOCK_LENGTH*2-1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (long)blockLength*2-1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
     }
 
 
     @DisplayName("The output should be all zeros, except for the first index, when the length is between " +
-            "BLOCK_LENGTH and BLOCK_LENGTH^2")
-    @Test
-    void testFirstIndexRotation() {
+            "blockLength and blockLength^2")
+    @ParameterizedTest
+    @MethodSource("sharedParameterProvider")
+    void testFirstIndexRotation(int blockCount, int blockLength) {
         ProcessSubtaskMain p = new ProcessSubtaskMain();
         long input;
         byte[] expected;
         byte[] result;
 
-        input = BLOCK_LENGTH*2;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (long)blockLength*2;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = BLOCK_LENGTH*3 - 1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (long)blockLength*3 - 1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = BLOCK_LENGTH*3;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (long)blockLength*3;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = BLOCK_LENGTH*5 - 1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (long)blockLength*5 - 1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = BLOCK_LENGTH*5;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (long)blockLength*5;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = BLOCK_LENGTH * BLOCK_LENGTH - 1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = blockLength * (long)blockLength - 1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
     }
 
 
-    @DisplayName("The second index should not be zero if the given length is at least BLOCK_LENGTH squared")
-    @Test
-    void testSecondIndexRotation() {
+    @DisplayName("The second index should not be zero if the given length is at least blockLength squared")
+    @ParameterizedTest
+    @MethodSource("sharedParameterProvider")
+    void testSecondIndexRotation(int blockCount, int blockLength) {
         ProcessSubtaskMain p = new ProcessSubtaskMain();
         long input;
         byte[] expected;
         byte[] result;
 
-        input = BLOCK_LENGTH * BLOCK_LENGTH;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = blockLength * (long)blockLength;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = (BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH-1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (blockLength * (long)blockLength) + blockLength-1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = (BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (blockLength * (long)blockLength) + blockLength;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
     }
 
 
-    @DisplayName("Other indices should not be zero if the given length is at least BLOCK_LENGTH squared. " +
+    @DisplayName("Other indices should not be zero if the given length is at least blockLength squared. " +
             "WARNING: this test may take a long time to run")
-    @Test
-    void testOtherIndexRotations() {
+    @ParameterizedTest
+    @MethodSource("sharedParameterProvider")
+    void testOtherIndexRotations(int blockCount, int blockLength) {
         ProcessSubtaskMain p = new ProcessSubtaskMain();
         long input;
         byte[] expected;
         byte[] result;
 
-        input = (BLOCK_LENGTH * BLOCK_LENGTH * BLOCK_LENGTH);
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        //Block length ^ 3
+        input = (blockLength * (long)blockLength * (long)blockLength);
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = (BLOCK_LENGTH * BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH*2 - 1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        //Block length ^ 3 plus a little extra
+        input = (blockLength * (long)blockLength * (long)blockLength) + (long)blockLength*2 - 1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = (BLOCK_LENGTH * BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH*2;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        //Block length ^ 3 plus a little extra
+        input = (blockLength * (long)blockLength * (long)blockLength) + (long)blockLength*2;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = (long)Math.pow(BLOCK_LENGTH,4) + BLOCK_LENGTH*5 - 1;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        //Block length ^ 4 plus a little extra
+        input = (long)Math.pow(blockLength,4) + (long)blockLength*5 - 1;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
 
-        input = (long)Math.pow(BLOCK_LENGTH,4) + BLOCK_LENGTH*5;
-        expected = initializeKeyBlockPositions_Reference(input, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        //Block length ^ 4 plus a little extra
+        input = (long)Math.pow(blockLength,4) + (long)blockLength*5;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
+
+        //Block length ^ block count
+        input = (long)Math.pow(blockLength, blockCount);
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
+
+        //Block length ^ block count plus extra
+        input = (long)Math.pow(blockLength, blockCount) + 1L;
+        expected = initializeKeyBlockPositions_Reference(input, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
     }
 
 
     @DisplayName("The output should reset to all zeros if overflowed")
-    @Test
-    void testOverflow() {
+    @ParameterizedTest
+    @MethodSource("sharedParameterProvider")
+    void testOverflow(int blockCount, int blockLength) {
         ProcessSubtaskMain p = new ProcessSubtaskMain();
         long input;
         byte[] expected;
         byte[] result;
 
-        input = (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1) + (BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH*2 - 1;
+        input = (long)Math.pow(blockLength, blockCount+1) + ((long) blockLength * (long)blockLength) + blockLength*2L - 1;
         if(input < 0) {
-            System.err.println("testOverflow- maximum value tested overflows long limit (max value: " + input + ")");
+            System.err.println("testOverflow- maximum input value tested (value: " + input + ") overflows long limit " +
+                    "for block count=" + blockCount + ", block length=" + blockLength + ". Test passed by default.");
             return;
         }
 
         //Barely overflows, should be all zeros
-        input = (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1);
-        expected = initializeKeyBlockPositions_Reference(0, BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (long)Math.pow(blockLength, blockCount+1);
+        expected = initializeKeyBlockPositions_Reference(0, blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength);
+        assertArrayEquals(expected, result);
 
         //Overflow + 1, should be all zeros
-        input = (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1) + 1;
-        expected = initializeKeyBlockPositions_Reference(input - (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1), BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH);
-        printAssert(expected, result);
+        input = (long)Math.pow(blockLength, blockCount+1) + 1;
+        expected = initializeKeyBlockPositions_Reference(input - (long)Math.pow(blockLength, blockCount+1), blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength);
+        assertArrayEquals(expected, result);
 
         //Overflow with some rotation, equivalent to a length of (BLOCK_LEN * BLOCK_LEN) + BLOCK_LEN*2 - 1
-        input = (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1) + (BLOCK_LENGTH * BLOCK_LENGTH) + BLOCK_LENGTH*2 - 1;
-        expected = initializeKeyBlockPositions_Reference(input - (long)Math.pow(BLOCK_LENGTH, BLOCK_COUNT+1), BLOCK_COUNT, BLOCK_LENGTH);
-        result = p.initializeKeyBlockPositions_Testing(input, BLOCK_COUNT, BLOCK_LENGTH); ;
-        printAssert(expected, result);
+        input = (long)Math.pow(blockLength, blockCount+1) + (blockLength * (long)blockLength) + (long)blockLength*2 - 1;
+        expected = initializeKeyBlockPositions_Reference(input - (long)Math.pow(blockLength, blockCount+1), blockCount, blockLength);
+        result = p.initializeKeyBlockPositions_Testing(input, blockCount, blockLength); ;
+        assertArrayEquals(expected, result);
     }
 
 }
