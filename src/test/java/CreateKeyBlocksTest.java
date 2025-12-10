@@ -1,4 +1,5 @@
 import org.junit.jupiter.api.*;
+import org.opentest4j.AssertionFailedError;
 import stepperfx.threading.ProcessTask;
 
 /**
@@ -9,18 +10,18 @@ public class CreateKeyBlocksTest {
     //UTILITY METHODS
 
     /**
-     * Returns true if `array1` and `array2` are both not null (no subarrays can be null), have the same dimensions, and values are
-     * equal up to and including the value at array1[arrayIndex][subarrayIndex]. Returns false otherwise<br><br>
+     * Returns true if {@code array1} and {@code array2} are both not null (no subarrays can be null), have the same dimensions, and values are
+     * equal up to and including the value at {@code array1[arrayIndex][subarrayIndex]}. Returns false otherwise<br><br>
      *
-     * Example: if array1 is [[1,2,3], [4,5,6]] and array2 is [[1,2,3], null], the method automatically returns false.<br>
-     * Example: if array1 is [[1,2,3], [4,5,6]] and array2 is [[0,1,2,3], [4,5,6,7]], the method automatically returns false.<br>
+     * Example: if {@code array1} is [[1,2,3], [4,5,6]] and {@code array2} is [[1,2,3], null], the method automatically returns false.<br>
+     * Example: if {@code array1} is [[1,2,3], [4,5,6]] and {@code array2} is [[0,1,2,3], [4,5,6,7]], the method automatically returns false.<br>
      *
-     * Example: if arrayIndex=2 and subarrayIndex=1 for a 4x3 array:<br>
+     * Example: if {@code arrayIndex}=2 and {@code subarrayIndex}=1 for a 4x3 array:<br>
      * [[*,*,*],<br>
      *  [*,*,*],<br>
      *  [*,*,2],<br>
      *  [0,1,2]]<br>
-     * All indices with asterisks should be compared between the two arrays. All others should be ignored.<br>
+     * All indices with asterisks are compared between the two arrays. All others are ignored.<br>
      *
      * Note: both arrays should be tables. If any array is not a table, returns false.<br><br>
      *
@@ -140,22 +141,22 @@ public class CreateKeyBlocksTest {
 
 
     /**
-     * Compares the two inputs. Checks for equality up to and including the value at [arrayIndex][subarrayIndex],
+     * Compares the two inputs. Checks for equality up to and including the value at {@code [arrayIndex][subarrayIndex]},
      * and ensures all values are on the interval [0,25].<br><br>
      *
-     * If any input's index is not on [0,25], as determined by valuesInRange, prints an error message to System.err
-     * and throws an AssertionError.
-     * If the inputs are not equal, as determined by arraysEqual, prints the expected and result
-     * to System.err in an easily readable format and throws an AssertionError.<br>
+     * If any input's index is not on [0,25], as determined by {@code valuesInRange}, prints an error message to System.err
+     * and throws an AssertionFailedError.
+     * If the inputs are not equal, as determined by {@code arraysEqual}, prints the expected and result
+     * to System.err in an easily readable format and throws an AssertionFailedError.<br>
      *
-     * Note: if arrayIndex=2 and subarrayIndex=1 for a 4x3 array:<br>
+     * Note: if {@code arrayIndex}=2 and {@code subarrayIndex}=1 for a 4x3 array:<br>
      * [[*,*,*],<br>
      *  [*,*,*],<br>
      *  [*,*,2],<br>
      *  [0,1,2]]<br>
      * All indices with asterisks should be compared between the two arrays. All others should be ignored.<br>
      *
-     * If arrayIndex is -1, this method does not do index comparison and only checks if all result indices are on [0,25]
+     * If {@code arrayIndex} is -1, this method does not do index comparison and only checks if all result indices are on [0,25]
      *
      * @param expected first array to compare
      * @param result second array to compare
@@ -171,7 +172,7 @@ public class CreateKeyBlocksTest {
         if(valuesOutOfRange(result)) {
             //Print output array
             if(result==null) {
-                throw new AssertionError("Test failed- result is null");
+                throw new AssertionFailedError("Test failed- result is null");
             }
             else {
                 System.err.println("Result:");
@@ -187,7 +188,7 @@ public class CreateKeyBlocksTest {
                         System.err.println(result[a][result[a].length - 1] + "}");
                     }
                 }
-                throw new AssertionError("Test failed- subarrays in the result are null, or the result contains values not on [0,25]");
+                throw new AssertionFailedError("Test failed- subarrays in the result are null, or the result contains values not on [0,25]");
             }
         }
 
@@ -220,7 +221,7 @@ public class CreateKeyBlocksTest {
                 }
             }
 
-            throw new AssertionError("Test failed- expected and result are different");
+            throw new AssertionFailedError("Test failed- expected and result are different");
         }
     }
 
