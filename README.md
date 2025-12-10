@@ -13,7 +13,7 @@ By using, viewing, or contributing to this project, you agree to follow the rule
 
 ### Table of Contents
 - [IDE Configuration Instructions](#ide-configuration-instructions)
-- [Git Contribution Rules](#git-contribution-rules)
+- [Git Contribution Guidelines](#git-contribution-rules)
 - [Project Structure](#project-structure)
   - [FXMLs and Stylesheets](#fxml-and-css-stylesheets)
   - [Images](#images)
@@ -28,7 +28,17 @@ Use the following directory configuration:
 - Test Sources root: `src/test/java`
 
 To change the directory configuration in IntelliJ, right-click on a directory, then go to "Mark Directory As".  
-These settings are known to work for the IntelliJ IDE. I have never used another IDE before.
+These settings are known to work for the IntelliJ IDE.
+
+<details>
+<summary>Fixing Imports Not Found</summary>
+This fix is known to work for IntelliJ v2025.2
+
+- In the configuration menu, go to:
+File -> "Invalidate Caches..."
+- Then, select all the checkboxes under "Optional".
+Click "Invalidate and Restart".
+</details>
 
 The main class is `src/main/java/stepperfx/Launcher`. If not exporting to a JAR, `src/main/java/stepperfx/MainApplication` also works as the main class.
 
@@ -60,7 +70,6 @@ FXML files are stored in `src/main/resources/views`.
 Images are stored in `src/main/resources/images`.
 - Any image that you don't want pushed to the GitHub
   should be put in another directory inside `src/main/resources/`, then added to your `.gitignore` file.
-  As an example, I have images in `src/main/resources/images_gitignored`, a directory added to my `.gitignore`.  
   Note: To use the images, you need to change the paths in the `src/main/java/stepperfx/integration/StyledDialogs` class.
 
 ##### Code
@@ -84,7 +93,7 @@ All Java source code is inside the `src/main/java/stepperfx` package.
 
 ## Final Notes
 
-The GUI is designed to be inconspicuous. All screens except for the login screen use a color that imitates "Go Away Green",
+The GUI is designed to be inconspicuous. All screens except for the login screen use a color that imitates Disney's "Go Away Green",
 allowing the GUI to avoid calling attention to itself. The color choice makes viewing by unauthorized users unlikely.
 The default text color is hard to see, so curious onlookers have a harder time reading the text.
 

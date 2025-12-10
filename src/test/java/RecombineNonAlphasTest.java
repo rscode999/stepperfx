@@ -54,16 +54,28 @@ public class RecombineNonAlphasTest {
      * The testing procedure separates non-alphabetic characters using {@code findNonAlphaPositions}, removes
      * non-letters with {@code removeNonAlphas}, then recombines the letters and non-letters with {@code recombineNonAlphas}.<br><br>
      *
+     * In the case of a test failure, characters are printed as their ASCII values. Refer to an ASCII or Unicode table
+     * for character/value mapping.<br><br>
+     *
      * The input at index {@code i} in {@code inputs} corresponds to the expected output at {@code expectedOutputs[i]}.
      *
-     * @param inputs array of Strings containing inputs to {@code recombineNonAlphas}
-     * @param expectedOutputs array of Strings containing expected outputs
+     * @param expectedOutputs array of Strings containing expected outputs. Cannot be null. No indices can be null
+     * @param inputs array of Strings containing inputs to {@code recombineNonAlphas}. Cannot be null. No indices can be null.
+     *               Must be the same length as {@code expectedOutputs}
      * @param reinsertingPunctuation whether to test reinserting punctuation
      */
-    void runTests(String[] inputs, String[] expectedOutputs, boolean reinsertingPunctuation) {
+    void runTests(String[] expectedOutputs, String[] inputs, boolean reinsertingPunctuation) {
+        if(expectedOutputs==null) throw new AssertionError("Expected outputs cannot be null");
+        if(inputs==null) throw new AssertionError("Inputs cannot be null");
+        if(expectedOutputs.length != inputs.length) throw new AssertionError("Expected outputs length (" + expectedOutputs.length +
+                ") must match inputs length (" + inputs.length + ")");
+
         ProcessSubtaskMain tester = new ProcessSubtaskMain();
 
         for (int i = 0; i < inputs.length; i++) {
+            if(expectedOutputs[i]==null) throw new AssertionError("Expected output array index " + i + " cannot be null");
+            if(inputs[i]==null) throw new AssertionFailedError("Input array index " + i + " cannot be null");
+
             //take input and expected output
             String input = inputs[i];
             String expected = expectedOutputs[i];
@@ -71,27 +83,50 @@ public class RecombineNonAlphasTest {
             //extract non-alphas
             char[] nonAlphaPositions = tester.findNonAlphaPositions_Testing(input);
 
-            String result = "";
+            //remove non-alphas, then reinsert them
+            String result = tester.recombineNonAlphas_Testing(
+                    tester.removeNonAlphas_Testing(input),
+                    nonAlphaPositions,
+                    reinsertingPunctuation
+            );
 
-            //compare result against expected
-            try {
-                //remove non-alphas, then reinsert them
-                result = tester.recombineNonAlphas_Testing(
-                        tester.removeNonAlphas_Testing(input),
-                        nonAlphaPositions,
-                        reinsertingPunctuation
-                );
+            //Null check
+            if(result == null) throw new AssertionFailedError("Result from input index " + i + " cannot be null");
 
-                assertEquals(expected, result);
+            //Length check
+            if(result.length() != expected.length()) {
+                System.err.println("Expected: " + expected);
+                System.err.println("Result:   " + result);
+                System.err.println("(Non-printing characters will not display properly)");
+                throw new AssertionFailedError("Expected length (" + expected.length() + ") does not equal result length (" +
+                        result.length() + ") at test index " + i);
             }
-            catch(AssertionFailedError e) { //to get the index printing and the pretty error message
-                System.err.println("Test at index " + i + " failed");
-                assertEquals(expected, result);
-            }
-            catch(Throwable t) {
-                System.err.println("Test at index " + i + " caused an exception. Stack trace:");
-                t.printStackTrace();
-                throw new AssertionFailedError();
+
+            //Element-wise equality check
+            for (int comp = 0; comp < expectedOutputs[i].length(); comp++) {
+                if(result.charAt(comp) != expected.charAt(comp)) {
+
+                    //Print expected, as ASCII sequence, marking mismatched value
+                    System.err.print("Expected: ");
+                    for (int c = 0; c < expected.length(); c++) {
+                        System.err.print((c == comp) ? (">" + (int)expected.charAt(c) + "<") : (int)expected.charAt(c));
+                        System.err.print(" ");
+                    }
+                    System.err.println();
+
+                    //Print result, as ASCII sequence, marking mismatched value
+                    System.err.print("Result:   ");
+                    for (int c = 0; c < result.length(); c++) {
+                        System.err.print((c == comp) ? (">" + (int)result.charAt(c) + "<") : (int)result.charAt(c));
+                        System.err.print(" ");
+                    }
+                    System.err.println();
+                    System.err.println("First mismatched element marked inside `><`");
+                    System.err.println("(Characters are printed as a sequence of ASCII values)");
+
+                    throw new AssertionFailedError("Expected and result do not match at character " + comp + " at test index " + i);
+
+                }
             }
         }
     }
@@ -112,8 +147,8 @@ public class RecombineNonAlphasTest {
         String[] inputs = new String[] {"abcdefgz", "ZxcVbN", "QWERTY"};
         String[] expectedOutputs = new String[] {"abcdefgz", "zxcvbn", "qwerty"};
 
-        runTests(inputs, expectedOutputs, true);
-        runTests(inputs, expectedOutputs, false);
+        runTests(expectedOutputs, inputs,true);
+        runTests(expectedOutputs, inputs,false);
     }
 
 
@@ -153,8 +188,8 @@ public class RecombineNonAlphasTest {
                 ""
         };
 
-        runTests(inputs, expectedOutputsReinsertingPunct, true);
-        runTests(inputs, expectedOutputsNotReinsertingPunct, false);
+        runTests(expectedOutputsReinsertingPunct, inputs, true);
+        runTests(expectedOutputsNotReinsertingPunct, inputs, false);
     }
 
 
@@ -182,8 +217,8 @@ public class RecombineNonAlphasTest {
                 "12300",
         };
 
-        runTests(inputs, expectedOutputsReinsertingPunct, true);
-        runTests(inputs, expectedOutputsNotReinsertingPunct, false);
+        runTests(expectedOutputsReinsertingPunct, inputs, true);
+        runTests(expectedOutputsNotReinsertingPunct, inputs, false);
     }
 
 
@@ -211,8 +246,8 @@ public class RecombineNonAlphasTest {
                 "leadingsymb0ls",
         };
 
-        runTests(inputs, expectedOutputsReinsertingPunct, true);
-        runTests(inputs, expectedOutputsNotReinsertingPunct, false);
+        runTests(expectedOutputsReinsertingPunct, inputs, true);
+        runTests(expectedOutputsNotReinsertingPunct, inputs, false);
     }
 
 
@@ -231,6 +266,7 @@ public class RecombineNonAlphasTest {
         noAlphaText = "dontdoit";
         assertEquals("dont do it", tester.recombineNonAlphas_Testing(noAlphaText, nonAlphas, true));
         assertEquals("dontdoit", tester.recombineNonAlphas_Testing(noAlphaText, nonAlphas, false));
+        //NOTE: If an integer is appended to a StringBuilder, the String representation of the integer (not the character) is appended
     }
 
 
@@ -267,7 +303,7 @@ public class RecombineNonAlphasTest {
                 "python"
         };
 
-        runTests(inputs, expectedOutputsReinsertingPunct, true);
-        runTests(inputs, expectedOutputsNotReinsertingPunct, false);
+        runTests(expectedOutputsReinsertingPunct, inputs, true);
+        runTests(expectedOutputsNotReinsertingPunct, inputs, false);
     }
 }
