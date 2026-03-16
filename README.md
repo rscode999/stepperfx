@@ -6,7 +6,7 @@ Enables users to take input directly in the app or through a chosen .txt file.
 Users can select an arbitrary number of worker threads to do the operations.  
 This program supports both normal and enhanced (version 2) processes.
 
-For Java 21+
+For Java 25+ (JavaFX v21.0.6 and JUnit v5.12.1)
 
 By using, viewing, or contributing to this project, you agree to follow the rules listed in the [rules document](rules.md).
 
@@ -25,7 +25,7 @@ By using, viewing, or contributing to this project, you agree to follow the rule
 Use the following directory configuration:
 - Sources root: `src/main/java`
 - Resources root: `src/main/resources`
-- Test Sources root: `src/test/java`
+- Test Sources root: `src/main/test`
 
 To change the directory configuration in IntelliJ, right-click on a directory, then go to "Mark Directory As".  
 These settings are known to work for the IntelliJ IDE.
@@ -40,7 +40,7 @@ File -> "Invalidate Caches..."
 Click "Invalidate and Restart".
 </details>
 
-The main class is `src/main/java/stepperfx/Launcher`. If not exporting to a JAR, `src/main/java/stepperfx/MainApplication` also works as the main class.
+The main class is `src/main/java/com/rscode/stepperfx/Launcher`. If not exporting to a JAR, `src/main/java/com/rscode/stepperfx/MainApplication` also works as the main class.
 
 
 ## Run Instructions
@@ -61,19 +61,19 @@ Do not push to "main" without my explicit permission!
 ## Project Structure
 
 ##### FXML and CSS Stylesheets
-FXML files are stored in `src/main/resources/views`.
+FXML files are stored in `src/main/resources/com/rscode/stepperfx/views`.
 - Each FXML file represents the layout of one of the app's screens.
 - The directory also contains CSS stylesheets: `login-styles.css`, for the login and login rejection screens,
   and `main-styles.css`, for all other screens (and dialogs).
 
 ##### Images
-Images are stored in `src/main/resources/images`.
+Images are stored in `src/main/resources/com/rscode/stepperfx/images`.
 - Any image that you don't want pushed to the GitHub
-  should be put in another directory inside `src/main/resources/`, then added to your `.gitignore` file.
-  Note: To use the images, you need to change the paths in the `src/main/java/stepperfx/integration/StyledDialogs` class.
+  should be put in another directory, then added to your `.gitignore` file.
+  Note: To use the images, you need to change the paths in the `src/main/java/com/rscode/stepperfx/integration/StyledDialogs` class.
 
 ##### Code
-All Java source code is inside the `src/main/java/stepperfx` package.
+All Java source code is inside the `src/main/java/com/rscode/stepperfx` package.
 - The **main class** is called `MainApplication`. To export the app as a JAR, select `Launcher` as the main class.
 
 - The `controllers` package contains the **GUI controllers**. Each controller class is responsible for one screen.
@@ -83,7 +83,7 @@ All Java source code is inside the `src/main/java/stepperfx` package.
   - `ScreenManager`, which controllers use to **change the screen**.
   - `ScreenName` (the enum), a set of **possible screen names**.
   - `StepperFields`, containing the **shared state** of the application. The class contains constants, encapsulated variables, and a shared Service for multithreaded operations.
-  - `StyledDialogs`, with static methods to **show dialogs**. It takes its styles from the `dialog` style class inside `src/main/resources/views/main-styles.css`.
+  - `StyledDialogs`, with static methods to **show dialogs**. It takes its styles from the `dialog` style class inside `src/main/java/com/rscode/stepperfx/views/main-styles.css`.
 
 - The `threading` package contains worker thread classes, which the app uses to **process inputs**.
   - `ProcessService`, where an instance is stored in a `StepperFields` instance, deploys a `ProcessTask`.

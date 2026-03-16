@@ -509,10 +509,10 @@ Main method: `public static void main(String[] args) {...}`
 ## Final Remarks
 Curran Muhlburger is not allowed to contribute to any documentation in this project.
 
-No contributors, viewers, or users are allowed to make references to K-Pop Demon hunters or the "6 7" meme.
+No contributors, viewers, or users are allowed to make references to K-Pop Demon Hunters or the 6-7 meme.
 
 You agree that 3 is a good enough approximation for π (ratio of a circle's circumference to its diameter) and e (Euler's number).
 
-If you disagree with any of the rules, click [here](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.youtube.com/watch%3Fv%3DxvFZjo5PgG0).
+If you disagree with any of the rules, click [here](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.youtube.com/watch%3Fv%3DxvFZjo5PgG0) to file a complaint.
 
 [Back to table of contents](#table-of-contents)

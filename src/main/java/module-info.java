@@ -1,15 +1,10 @@
-module test.stepperfx {
+module com.rscode.stepperfx {
     requires javafx.controls;
     requires javafx.fxml;
-    requires jdk.compiler;
-    requires java.desktop;
 
-    opens stepperfx to javafx.fxml;
-    exports stepperfx;
-    exports stepperfx.integration;
-    exports stepperfx.controllers;
-    exports stepperfx.threading;
-    opens stepperfx.controllers to javafx.fxml;
-    opens stepperfx.integration to javafx.fxml;
-
+    opens com.rscode.stepperfx to javafx.fxml;
+    opens com.rscode.stepperfx.controllers to javafx.fxml;
+    opens com.rscode.stepperfx.integration to javafx.fxml;
+    opens com.rscode.stepperfx.threading to javafx.fxml;
+    exports com.rscode.stepperfx;
 }

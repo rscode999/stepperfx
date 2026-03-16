@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<?import java.net.URL?>
+<BorderPane prefHeight="400" prefWidth="800" styleClass="background-colors"
+            xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.rscode.stepperfx.controllers.InputController">
+   <padding>
+      <Insets bottom="30" left="30" right="30" top="30" />
+   </padding>
+
+   <stylesheets>
+      <URL value="@main-styles.css"/>
+   </stylesheets>
+
+   <!-- TOP -->
+   <top>
+      <Label alignment="TOP_LEFT" text="Stepper App JavaFX" BorderPane.alignment="CENTER">
+         <font>
+            <Font name="Trebuchet MS" size="36.0" />
+         </font>
+      </Label>
+   </top>
+
+   <!-- CENTER (Contains the VBox) -->
+   <center>
+      <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+
+         <Label fx:id="textInputLabel" text="Text">
+            <font>
+               <Font size="18.0" />
+            </font>
+         </Label>
+
+         <TextArea fx:id="textInput" focusTraversable="false" prefHeight="190" prefWidth="200.0"
+                   styleClass="control-colors" wrapText="true">
+            <font>
+               <Font name="Trebuchet MS" size="12.0" />
+            </font>
+         </TextArea>
+
+         <!-- Selector Area -->
+         <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="30.0">
+
+            <ChoiceBox fx:id="modeSelector" onAction="#onModeSelectorChange" prefWidth="120.0"
+                       styleClass="control-colors"/>
+
+            <ChoiceBox fx:id="punctSelector" prefWidth="160.0"
+                       styleClass="control-colors"/>
+
+            <ChoiceBox fx:id="inputSelector" onAction="#onInputSelectorChange" prefWidth="130.0"
+                       styleClass="control-colors"/>
+
+            <ComboBox fx:id="threadSelector" onAction="#onThreadSelectorChange" prefWidth="180.0"
+                      styleClass="control-colors"/>
+
+         </HBox>
+
+         <Label text="Key">
+            <font>
+               <Font size="18.0" />
+            </font>
+         </Label>
+
+         <TextArea fx:id="keyInput" focusTraversable="false" prefHeight="110.0" prefWidth="200.0"
+                   styleClass="control-colors" wrapText="true">
+            <font>
+               <Font name="Trebuchet MS" size="12.0" />
+            </font>
+         </TextArea>
+
+         <!-- Bottom "Enter Button" Area -->
+         <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="30">
+
+            <CheckBox fx:id="v2Selector" mnemonicParsing="false"
+                      styleClass="background-colors" text="Version 2" >
+               <font>
+                  <Font name="Trebuchet MS" size="12.0" />
+               </font>
+            </CheckBox>
+
+            <Button fx:id="startButton" onAction="#startProcess" mnemonicParsing="false"
+                    prefWidth="170" styleClass="control-colors" text="Start Forward Process">
+               <font>
+                  <Font name="Trebuchet MS" size="14.0" />
+               </font>
+            </Button>
+
+            <Button onAction="#showSettingsScreen" mnemonicParsing="false"
+                    prefWidth="120.0" styleClass="control-colors" text="Settings">
+               <font>
+                  <Font name="Trebuchet MS" size="14.0" />
+               </font>
+            </Button>
+
+            <Button onAction="#showLoginScreen" defaultButton="true" mnemonicParsing="false" prefWidth="150"
+                    styleClass="control-colors" text="Return to login">
+               <font>
+                  <Font name="Trebuchet MS" size="14.0" />
+               </font>
+            </Button>
+
+         </HBox>
+
+      </VBox>
+   </center>
+
+</BorderPane>

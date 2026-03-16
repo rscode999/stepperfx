@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import java.net.URL?>
+
+<VBox alignment="CENTER" prefHeight="400" prefWidth="800" spacing="30.0" styleClass="background-colors"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.rscode.stepperfx.controllers.LoginRejectController">
+
+   <stylesheets>
+      <URL value="@login-styles.css"/>
+   </stylesheets>
+
+   <Label text="Incorrect password">
+      <font>
+         <Font name="Trebuchet MS" size="25"/>
+      </font>
+   </Label>
+
+   <Button onAction="#closeApp" mnemonicParsing="false" text="Close App">
+      <font>
+         <Font name="Trebuchet MS" size="15.0"/>
+      </font>
+   </Button>
+
+</VBox>
