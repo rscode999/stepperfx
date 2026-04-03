@@ -96,39 +96,6 @@ final public class StepperFields {
 
     // ///////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////
-    //CONSTRUCTOR
-
-    /**
-     * Initializes the StepperFields. All fields inside
-     * are guaranteed to be initialized upon completion of this method.<br><br>
-     */
-    public StepperFields() {
-        assertConstantInvariants();
-    }
-
-
-    /**
-     * Throws an AssertionError if any constant's invariants are broken
-     */
-    private void assertConstantInvariants() {
-        if(DEFAULT_BLOCK_COUNT<=0) throw new AssertionError("Block count must be positive");
-        if(DEFAULT_BLOCK_LENGTH<=0) throw new AssertionError("Block length must be positive");
-        if(DEFAULT_INPUT_FILENAME==null || DEFAULT_INPUT_FILENAME.length()<4 || !DEFAULT_INPUT_FILENAME.endsWith(".txt"))
-            throw new AssertionError("Default input filename must end in \".txt\"");
-        if(DEFAULT_OUTPUT_FILENAME==null || DEFAULT_OUTPUT_FILENAME.length()<4 || !DEFAULT_OUTPUT_FILENAME.endsWith(".txt"))
-            throw new AssertionError("Default output filename must end in \".txt\"");
-        if(KEY_BLOCK_INCREMENTS==null || KEY_BLOCK_INCREMENTS.length < DEFAULT_BLOCK_COUNT)
-            throw new AssertionError("Key block increment length must be at least BLOCK_COUNT");
-        if(MAX_BLOCK_COUNT != KEY_BLOCK_INCREMENTS.length) throw new AssertionError("Max block count must equal KEY_BLOCK_INCREMENTS.length");
-        if(MAX_BLOCK_LENGTH <= 0) throw new AssertionError("Max block length must be positive");
-        if(MAX_THREADS<1) throw new AssertionError("Max thread count must be positive");
-        if(RESULT_PAGE_LENGTH<1) throw new AssertionError("Result page length must be positive");
-    }
-
-
-
-    // ///////////////////////////////////////////////////////////////////////////////////
-    // ///////////////////////////////////////////////////////////////////////////////////
     //GETTERS, SETTERS
 
 

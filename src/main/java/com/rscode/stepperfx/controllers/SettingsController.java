@@ -1,14 +1,11 @@
 package com.rscode.stepperfx.controllers;
 
+import com.rscode.stepperfx.integration.*;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import com.rscode.stepperfx.integration.ScreenName;
-import com.rscode.stepperfx.integration.StepperFields;
-import com.rscode.stepperfx.integration.IntegratedController;
-import com.rscode.stepperfx.integration.StyledDialogs;
 
 import java.util.Optional;
 
@@ -113,7 +110,7 @@ public final class SettingsController extends IntegratedController {
         //Update the "changes applied" label, if changes were made
         if(!blockCountInput.getText().isEmpty()
                 || !blockLengthInput.getText().isEmpty()
-                || highContrastStyleSelector.isSelected() != screenManager.usingAlternateStyles()) {
+                || highContrastStyleSelector.isSelected() != ScreenControl.getUsingAlternateStyles()) {
             statusText.setText("Changes applied");
         }
         else {
@@ -123,7 +120,7 @@ public final class SettingsController extends IntegratedController {
         //Update the settings
         StepperFields.setBlockCount(newBlockCount);
         StepperFields.setBlockLength(newBlockLength);
-        screenManager.setAlternateStyles(highContrastStyleSelector.isSelected());
+        ScreenControl.setAlternateStyles(highContrastStyleSelector.isSelected());
 
         //Update the labels
         blockCountInputText.setText("Number of blocks (current: " + StepperFields.getBlockCount() + ")");
@@ -150,7 +147,7 @@ public final class SettingsController extends IntegratedController {
      */
     @Override
     protected void prepareScreenTransition() {
-        highContrastStyleSelector.setSelected(screenManager.usingAlternateStyles());
+        highContrastStyleSelector.setSelected(ScreenControl.getUsingAlternateStyles());
         blockCountInputText.setText("Number of blocks (current: " + StepperFields.getBlockCount() + ")");
         blockLengthInputText.setText("Block length (current: " + StepperFields.getBlockLength() + ")");
     }
@@ -162,7 +159,7 @@ public final class SettingsController extends IntegratedController {
      */
     @FXML
     private void showInputScreen() {
-        screenManager.showScreen(ScreenName.INPUT);
+        ScreenControl.showScreen(ScreenName.INPUT);
         statusText.setText(" ");
         blockCountInput.setText("");
         blockLengthInput.setText("");

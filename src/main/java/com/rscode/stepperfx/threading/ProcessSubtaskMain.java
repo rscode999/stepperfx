@@ -1,15 +1,13 @@
 package com.rscode.stepperfx.threading;
 
 import javafx.concurrent.Task;
-
 import java.util.Arrays;
-
 import static com.rscode.stepperfx.integration.StepperFields.getKeyBlockIncrementIndex;
 
 /**
  * Performs part of the work of a ProcessTask
  */
-public class ProcessSubtaskMain extends Task<String> {
+final public class ProcessSubtaskMain extends Task<String> {
 
     /**
      * True if this worker is encrypting its text, false otherwise
@@ -126,17 +124,16 @@ public class ProcessSubtaskMain extends Task<String> {
         char[] nonAlphas = findNonAlphaPositions(textPiece);
         textPiece = removeNonAlphas(textPiece);
 
-
         //do the specified process
         if(usingV2Process) {
-            textPiece = encrypting ? encrypt2(textPiece, key, startSegment) : decrypt2(textPiece, key, startSegment);
+            textPiece = encrypting ? encryptStepper2(textPiece, key, startSegment) : decryptStepper2(textPiece, key, startSegment);
         }
         else {
-            textPiece = encrypting ? encrypt(textPiece, key, startSegment) : decrypt(textPiece, key, startSegment);
+            textPiece = encrypting ? encryptStepper(textPiece, key, startSegment) : decryptStepper(textPiece, key, startSegment);
         }
 
         //do the numbers
-        nonAlphas = encrypting ? encryptNumbers(nonAlphas, key) : decryptNumbers(nonAlphas, key);
+        nonAlphas = encrypting ? encryptStepperNumbers(nonAlphas, key) : decryptStepperNumbers(nonAlphas, key);
 
         //reinsert non-alphas
         textPiece = recombineNonAlphas(textPiece, nonAlphas, (!encrypting || punctMode>=1));
@@ -167,7 +164,7 @@ public class ProcessSubtaskMain extends Task<String> {
      * @param startSegment index to start decrypting from. Must be non-negative
      * @return decrypted version of text
      */
-    private String decrypt(String text, byte[][] key, int startSegment) {
+    private String decryptStepper(String text, byte[][] key, int startSegment) {
         //Enforce preconditions
 
         //Check that both inputs are not null
@@ -317,7 +314,7 @@ public class ProcessSubtaskMain extends Task<String> {
      * @param startingSegment index to start decrypting from. Must be non-negative
      * @return decrypted version of text
      */
-    private String decrypt2(String text, byte[][] key, int startingSegment) {
+    private String decryptStepper2(String text, byte[][] key, int startingSegment) {
         //Enforce preconditions
 
         //Check that both inputs are not null
@@ -461,7 +458,7 @@ public class ProcessSubtaskMain extends Task<String> {
      * @param key key to decrypt with. Cannot be null. All indices must be on the interval [0,25]
      * @return copy of {@code input} with numbers decrypted
      */
-    private char[] decryptNumbers(char[] textNonAlphas, byte[][] key) {
+    private char[] decryptStepperNumbers(char[] textNonAlphas, byte[][] key) {
         if(textNonAlphas==null) {
             throw new AssertionError("Text non-alphas cannot be null");
         }
@@ -519,7 +516,7 @@ public class ProcessSubtaskMain extends Task<String> {
      * @param startSegment index to start encrypting from. Must be non-negative
      * @return encrypted version of text
      */
-    private String encrypt(String text, byte[][] key, int startSegment) {
+    private String encryptStepper(String text, byte[][] key, int startSegment) {
         //Enforce preconditions
 
         //Check that both inputs are not null
@@ -650,7 +647,7 @@ public class ProcessSubtaskMain extends Task<String> {
      * @param startingSegment index to start encrypting from. Must be non-negative
      * @return encrypted version of text
      */
-    private String encrypt2(String text, byte[][] key, int startingSegment) {
+    private String encryptStepper2(String text, byte[][] key, int startingSegment) {
         //Enforce preconditions
 
         //Check that both inputs are not null
@@ -770,7 +767,7 @@ public class ProcessSubtaskMain extends Task<String> {
      * @param key key to encrypt with. Cannot be null. All indices must be on the interval [0, 25]
      * @return copy of input, but with numbers encrypted
      */
-    private char[] encryptNumbers(char[] textNonAlphas, byte[][] key) {
+    private char[] encryptStepperNumbers(char[] textNonAlphas, byte[][] key) {
         if(textNonAlphas == null) throw new AssertionError("Text non-alphas cannot be null");
         if(key==null) {
             throw new AssertionError("Key cannot be null");

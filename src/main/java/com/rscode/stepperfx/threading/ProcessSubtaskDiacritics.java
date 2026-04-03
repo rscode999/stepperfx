@@ -7,7 +7,7 @@ import java.util.HashSet;
 /**
  * Worker thread that removes diacritics and non-ASCII numbers from its given input
  */
-public class ProcessSubtaskDiacritics extends Task<String> {
+final public class ProcessSubtaskDiacritics extends Task<String> {
 
     /**
      * The given input for this worker to process

@@ -6,7 +6,7 @@ Enables users to take input directly in the app or through a chosen .txt file.
 Users can select an arbitrary number of worker threads to do the operations.  
 This program supports both normal and enhanced (version 2) processes.
 
-For Java 25+ (JavaFX v21.0.6 and JUnit v5.12.1)
+For Java 21+ (JavaFX v21.0.6 and JUnit v5.12.1)
 
 By using, viewing, or contributing to this project, you agree to follow the rules listed in the [rules document](rules.md).
 
@@ -32,7 +32,7 @@ These settings are known to work for the IntelliJ IDE.
 
 <details>
 <summary>Fixing Imports Not Found</summary>
-This fix is known to work for IntelliJ v2025.2
+This fix is known to work for IntelliJ v2025.3
 
 - In the configuration menu, go to:
 File -> "Invalidate Caches..."
@@ -79,8 +79,8 @@ All Java source code is inside the `src/main/java/com/rscode/stepperfx` package.
 - The `controllers` package contains the **GUI controllers**. Each controller class is responsible for one screen.
 
 - The `integration` package holds functionality **shared throughout the app**. It contains 4 classes and 1 enum:
-  - `IntegratedController`, the **base class for GUI controllers**. It allows controllers to change the screen and access shared variables.
-  - `ScreenManager`, which controllers use to **change the screen**.
+  - `IntegratedController`, the **base class for GUI controllers**. IntegratedControllers can be tracked by the app.
+  - `ScreenControl`, containing static variables and methods used to **change the screen**.
   - `ScreenName` (the enum), a set of **possible screen names**.
   - `StepperFields`, containing static variables with the **shared state** of the application. The class contains constants, encapsulated variables, and a shared Service for multithreaded operations.
   - `StyledDialogs`, with static methods to **show dialogs**. It takes its styles from the `dialog` style class inside `src/main/java/com/rscode/stepperfx/views/main-styles.css`.

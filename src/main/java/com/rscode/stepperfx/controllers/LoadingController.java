@@ -6,7 +6,7 @@ import javafx.scene.control.Label;
 import com.rscode.stepperfx.integration.ScreenName;
 import com.rscode.stepperfx.integration.StepperFields;
 import com.rscode.stepperfx.integration.IntegratedController;
-import com.rscode.stepperfx.integration.ScreenManager;
+import com.rscode.stepperfx.integration.ScreenControl;
 import com.rscode.stepperfx.threading.ProcessTask;
 
 /**
@@ -28,14 +28,9 @@ final public class LoadingController extends IntegratedController {
 
     /**
      * Sets and configures the fields of this controller
-     *
-     * @param manager ScreenManager for screen changes
      */
     @Override
-    public void initializeController(ScreenManager manager) {
-        assertInitializeController(manager);
-
-        this.screenManager = manager;
+    public void initializeController() {
 
         StepperFields.addServiceMessageListener((obs, oldValue, newValue) -> {
             loadStatus.setText(newValue);
@@ -55,6 +50,6 @@ final public class LoadingController extends IntegratedController {
         //IMPORTANT: Stop the Service before changing the screen. If not, the worker threads will continue running while a sponsored content dialog is showing.
         //If background threads keep running, the screen may unexpectedly change to the results screen.
         StepperFields.stopService();
-        screenManager.showScreen(ScreenName.INPUT);
+        ScreenControl.showScreen(ScreenName.INPUT);
     }
 }

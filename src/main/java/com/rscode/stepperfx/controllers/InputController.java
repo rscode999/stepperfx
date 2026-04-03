@@ -126,12 +126,9 @@ final public class InputController extends IntegratedController {
     /**
      * Initializes the controller with {@code manager}.<br>
      * Sets GUI elements. Assigns a listener to clear the text inputs upon successful operations.
-     *
-     * @param manager ScreenManager for screen changes
      */
     @Override
-    public void initializeController(ScreenManager manager) {
-        assertInitializeController(manager);
+    public void initializeController() {
 
         //Check thread option formatting
         for(int v=0; v<THREAD_OPTIONS.length; v++) {
@@ -156,9 +153,6 @@ final public class InputController extends IntegratedController {
             }
         }
 
-        //Initialize controller's fields
-        this.screenManager = manager;
-
         //Set choice boxes and combo box. Then select their first option
         inputSelector.setItems(FXCollections.observableArrayList(INPUT_SELECTION_OPTIONS));
         inputSelector.getSelectionModel().selectFirst();
@@ -182,16 +176,15 @@ final public class InputController extends IntegratedController {
         });
 
         //Set key listener on this screen
-        manager.addKeyEventFilter(name, event -> {
+        ScreenControl.addKeyEventFilter(name, event -> {
             if(event.getCode().equals(KeyCode.ALT)) {
-                manager.setAlternateStyles(false);
+                ScreenControl.setAlternateStyles(false);
             }
             else if(event.getCode().equals(KeyCode.ESCAPE)) {
                 showLoginScreen();
             }
         });
 
-        assertInitializeController(manager);
     }
 
 
@@ -323,7 +316,7 @@ final public class InputController extends IntegratedController {
      */
     @FXML
     private void showLoginScreen() {
-        screenManager.showScreen(ScreenName.LOGIN);
+        ScreenControl.showScreen(ScreenName.LOGIN);
         textInput.setText("");
         keyInput.setText("");
     }
@@ -335,7 +328,7 @@ final public class InputController extends IntegratedController {
      */
     @FXML
     private void showSettingsScreen() {
-        screenManager.showScreen(ScreenName.SETTINGS);
+        ScreenControl.showScreen(ScreenName.SETTINGS);
     }
 
 
@@ -347,7 +340,7 @@ final public class InputController extends IntegratedController {
     @FXML
     private void startProcess() {
 
-        screenManager.showScreen(ScreenName.LOADING, false);
+        ScreenControl.showScreen(ScreenName.LOADING, false);
 
         //Set mode options
         boolean encrypting = !modeSelector.getValue().equals(MODE_OPTIONS[2]);

@@ -28,7 +28,7 @@ import static com.rscode.stepperfx.integration.StepperFields.*;
  *
  * The output is received with a ValueProperty listener on the Service that deployed this object.
  */
-public class ProcessTask extends Task<String[]> {
+final public class ProcessTask extends Task<String[]> {
 
     /**
      * Names for each of the possible loading states that the task can be in.
@@ -284,13 +284,22 @@ public class ProcessTask extends Task<String[]> {
 
             //change the message to "Finalizing..." (which disables the cancel button through the loading controller's listener)
             updateMessage(LOADING_STATE_NAMES[4]);
-            Thread.sleep(100); //give the FX app thread time to update
+            try {
+                Thread.sleep(100); //give the FX app thread time to update
+            }
+            //Handle cancelling while the threads sleep
+            catch(InterruptedException e) {
+                return new String[]{null, null, null, null};
+            }
 
             return new String[] {runResult.toString().strip(), createKeyBlocksReverse(formattedKey), null, null};
         }
+        //Any unhandled exception: Print the stack trace and return error
+        //Any errors are handled and displayed by the results controller, through the same value listener that loads successful results
         catch(Throwable t) {
-            System.err.println("Exception thrown in ProcessTask");
+            System.err.println("Exception thrown in ProcessTask------------------");
             t.printStackTrace();
+            System.err.println("End ProcessTask Stack Trace----------------------");
             return new String[] {null, null, t.getClass().toString(), t.getMessage()};
         }
     }

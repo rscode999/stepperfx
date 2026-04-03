@@ -67,28 +67,24 @@ final public class ResultsController extends IntegratedController {
      * Sets the app's fields.<br>
      * Attaches a value listener to the app's shared Service to load the Service's output.<br>
      * Attaches an event filter to the scene graph root (in the screen manager) to check for key presses.
-     *
-     * @param manager ScreenManager for screen changes
      */
     @Override
-    public void initializeController(ScreenManager manager) {
-        assertInitializeController(manager);
-        this.screenManager = manager;
+    public void initializeController() {
 
         //Configure key shortcuts
-        screenManager.addKeyEventFilter(name, event -> {
+        ScreenControl.addKeyEventFilter(name, event -> {
 
             //Move between pages with arrow keys
             if (KeyCode.RIGHT.equals(event.getCode()) || KeyCode.UP.equals(event.getCode())) {
-                setNextPage();
+                showNextPage();
             }
             else if(KeyCode.LEFT.equals(event.getCode()) || KeyCode.DOWN.equals(event.getCode())) {
-                setPreviousPage();
+                showPreviousPage();
             }
 
             //Quick settings for color switching
             else if(event.getCode().equals(KeyCode.ALT)) {
-                manager.setAlternateStyles(false);
+                ScreenControl.setAlternateStyles(false);
             }
             else if(event.getCode().equals(KeyCode.ESCAPE)) {
                 showLoginScreen();
@@ -117,7 +113,7 @@ final public class ResultsController extends IntegratedController {
                     StepperFields.resetService();
 
                     //It's important to change the screen first, then show the sponsored content.
-                    screenManager.showScreen(ScreenName.INPUT, false);
+                    ScreenControl.showScreen(ScreenName.INPUT, false);
 
                     //File loading exception: load with error message
                     if(newValue[2].equals("class java.io.FileNotFoundException")) {
@@ -161,7 +157,7 @@ final public class ResultsController extends IntegratedController {
                     resultArea.setText(resultPages.getFirst());
                     keyArea.setText(newValue[1]);
 
-                    screenManager.showScreen(ScreenName.RESULTS);
+                    ScreenControl.showScreen(ScreenName.RESULTS);
                 }
 
                 //Something weird
@@ -171,7 +167,6 @@ final public class ResultsController extends IntegratedController {
             });
         });
 
-        assertInitializeController(manager);
     }
 
 
@@ -209,7 +204,7 @@ final public class ResultsController extends IntegratedController {
      */
     @FXML
     private void showLoginScreen() {
-        screenManager.showScreen(ScreenName.LOGIN);
+        ScreenControl.showScreen(ScreenName.LOGIN);
         StepperFields.resetService();
         resultArea.setText("");
         keyArea.setText("");
@@ -223,7 +218,7 @@ final public class ResultsController extends IntegratedController {
      * does nothing.
      */
     @FXML
-    private void setNextPage() {
+    private void showNextPage() {
         if(currentResultPage+1 == resultPages.size()) {
             return;
         }
@@ -242,7 +237,7 @@ final public class ResultsController extends IntegratedController {
      * If the current result page equals 0 (i.e. the first page is displayed), does nothing.
      */
     @FXML
-    private void setPreviousPage() {
+    private void showPreviousPage() {
         if(currentResultPage == 0) {
             return;
         }

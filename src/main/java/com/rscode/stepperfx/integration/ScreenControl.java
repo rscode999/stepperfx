@@ -14,85 +14,97 @@ import java.util.*;
 
 
 /**
- * Centralized manager for screen transitions.<br><br>
+ * Static centralized manager for screen transitions.<br><br>
  *
- * The {@code IntegratedController} class uses an instance of this class to change the displayed screen.<br><br>
- *
- * A {@code ScreenManager} can load new screens until the {@code finishLoading} method is called.<br>
- * Afterward, the manager can change screens, and can no longer load new screens.<br><br>
+ * A {@code ScreenControl} can load new screens until the {@code finishLoading} method is called.<br>
+ * Afterward, the controller can change screens, and can no longer load new screens.<br><br>
  *
  * One default and one alternate style may be linked to each screen name.<br>
  * The default style is loaded from an FXML file, or is loaded by the {@code addAlternateStylesheet} method if no default exists.
  * An alternate style may be added through {@code addAlternateStylesheet}.<br>
  * Calling {@code useAlternateStyles} displays any alternate styles, if they exist.
  */
-final public class ScreenManager {
+final public class ScreenControl {
 
     /**
-     * Stores controllers for each of the Manager's screens
+     * The main application window where the screens will be displayed
      */
-    private final HashMap<ScreenName, IntegratedController> controllerMap;
+    private static Stage applicationStage;
 
     /**
-     * Reference to the main application window where the screens will be displayed
+     * Stores controllers for each of the screens
      */
-    private final Stage primaryStage;
+    private static final HashMap<ScreenName, IntegratedController> controllerMap = new HashMap<>(6);
 
     /**
      * Set containing previously loaded FXML paths.<br><br>
      *
      * Used to check if a FXML file has been previously loaded.<br>
-     * Becomes null when the ScreenManager is finished loading.
+     * Becomes null when the ScreenControl is finished loading.
      */
-    private HashSet<String> loadedFxmlPaths;
+    private static HashSet<String> loadedFxmlPaths = new HashSet<>(10);
 
     /**
-     * Stores root nodes of the ScreenManager's FXML files.
+     * Stores root nodes of the ScreenControl's FXML files.
      * Keys, assigned during the {@code addScreen} method, are the screen's names
      */
-    private final HashMap<ScreenName, Parent> rootMap;
+    private static final HashMap<ScreenName, Parent> rootMap = new HashMap<>();
 
     /**
      * True if the manager is currently displaying alternate screens, false otherwise
      */
-    private boolean usingAlternateStyles;
+    private static boolean usingAlternateStyles = false;
 
-
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //CONSTRUCTOR
-
-    /**
-     * Creates a new ScreenManager with a stage.
-     * @param primaryStage stage to load. Can't be null
-     */
-    public ScreenManager(Stage primaryStage) {
-        if(primaryStage == null) throw new AssertionError("Primary stage cannot be null");
-
-        this.primaryStage = primaryStage;
-
-        usingAlternateStyles = false;
-
-        //Initialize the map and path set
-        controllerMap = new HashMap<>(6);
-        loadedFxmlPaths = new HashSet<>(10);
-        rootMap = new HashMap<>();
-    }
 
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //GETTERS
-
+    //GETTERS, SETTERS
 
     /**
      * Returns whether the manager is displaying its alternate screens
      * @return true if alternate screens are shown
      */
-    public boolean usingAlternateStyles() {
+    public static boolean getUsingAlternateStyles() {
         return usingAlternateStyles;
     }
 
+
+
+    /**
+     * If {@code newAlternateStyles} is true, the manager displays the alternate style of each screen.<br>
+     * Otherwise, the manager displays default styles.<br>
+     * The update appears instantly.<br><br>
+     *
+     * For each screen with only one style loaded, the method does not affect those screens.<br>
+     *
+     * @param newAlternateStyles whether to display the manager's alternate styles
+     * @throws IllegalStateException if the manager is not finished loading, i.e. {@code finishLoading} was not called
+     */
+    public static void setAlternateStyles(boolean newAlternateStyles) {
+        if(loadedFxmlPaths != null) throw new IllegalStateException("Cannot set alternate styles when the manager is not done loading. Call {managerName}.finishLoading() first");
+
+        if(usingAlternateStyles != newAlternateStyles) {
+            for(ScreenName name : rootMap.keySet()) {
+                //Reverse every stylesheet list for each screen (activating the alternate stylesheet)
+                ObservableList<String> stylesheets = rootMap.get(name).getStylesheets();
+                FXCollections.reverse(stylesheets);
+            }
+
+            usingAlternateStyles = !usingAlternateStyles;
+        }
+    }
+
+
+
+    /**
+     * Sets the application's stage to {@code applicationStage}.
+     * @param applicationStage stage to load. Can't be null
+     */
+    public static void setApplicationStage(Stage applicationStage) {
+        if(applicationStage == null) throw new AssertionError("Primary stage cannot be null");
+        ScreenControl.applicationStage = applicationStage;
+    }
 
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,18 +116,21 @@ final public class ScreenManager {
      * Adds a FXML file (controlled by an {@code IntegratedController}) dictating a scene at path {@code fxmlPath},
      * giving it the name {@code name}.<br><br>
      *
+     * Must be called after an application stage is initialized, i.e. after {@code ScreenControl.setApplicationStage()}
+     * is called.<br><br>
+     *
      * Paths to FXMLs are relative to the directory marked as the `resources` root.<br>
      * To load a FXML at src/main/resources/views/view.fxml, the accepted load path is /views/view.fxml. This
      * assumes that the resources root is `resources`.<br>
      * Important: Load paths must begin with a slash.<br><br>
      *
-     * @param name associated name of the FXML file. Cannot be null. Must not match any other screen names tracked by this ScreenManager
+     * @param name associated name of the FXML file. Cannot be null. Must not match any other screen names tracked by this ScreenControl
      * @param fxmlPath path to FXML file, relative to the project's resources root. Cannot be null.
      *                 Cannot match any previously loaded filepath. Associated controller must be an IntegratedController.
      * @throws IllegalStateException if a load is attempted after {@code finishLoading} is called
      * @throws IOException if the given FXML file path is invalid
      */
-    public void addScreen(ScreenName name, String fxmlPath) throws IOException {
+    public static void addScreen(ScreenName name, String fxmlPath) throws IOException {
         if(name==null) {
             throw new AssertionError("Name cannot be null");
         }
@@ -137,8 +152,13 @@ final public class ScreenManager {
             throw new AssertionError("The file at \"" + fxmlPath + "\" has already been loaded by the manager");
         }
 
+        //Check if a stage has been loaded
+        if(applicationStage == null) {
+            throw new AssertionError("No stage has been loaded. Use ScreenControl.setApplicationStage to load a stage before adding a screen");
+        }
 
-        URL resource = getClass().getResource(fxmlPath);
+
+        URL resource = ScreenControl.class.getResource(fxmlPath);
         //Check if no null
         if(resource == null) {
             throw new IOException("The path \"" + fxmlPath + "\" does not lead to a FXML file");
@@ -154,12 +174,12 @@ final public class ScreenManager {
         //Add to the loaded set
         loadedFxmlPaths.add(fxmlPath);
 
-        //Assign this ScreenManager object to manage the FXML's controller and pass shared fields into the controller
+        //Assign this ScreenControl object to manage the FXML's controller and pass shared fields into the controller
         //IMPORTANT: This step must be done after updating the screen map. `addEventFilter` depends on the screen map being updated.
         Object controller = loader.getController();
         if(controller instanceof IntegratedController) {
             ((IntegratedController) controller).name = name;
-            ((IntegratedController) controller).initializeController(this);
+            ((IntegratedController) controller).initializeController();
 
             //add to controller list
             controllerMap.put(name, (IntegratedController)controller);
@@ -169,8 +189,8 @@ final public class ScreenManager {
         }
 
         //Swap roots
-        if (primaryStage.getScene() == null) {
-            primaryStage.setScene(new Scene(sceneGraphRoot));
+        if (applicationStage.getScene() == null) {
+            applicationStage.setScene(new Scene(sceneGraphRoot));
         }
     }
 
@@ -196,7 +216,7 @@ final public class ScreenManager {
      * @throws IOException if the file at {@code stylesheetPath} does not exist
      * @throws IllegalStateException if the manager is done loading, i.e. {@code finishLoading} was called
      */
-    public void addAlternateStylesheet(ScreenName screenName, String stylesheetPath) throws IOException {
+    public static void addAlternateStylesheet(ScreenName screenName, String stylesheetPath) throws IOException {
         if(stylesheetPath==null) throw new AssertionError("CSS path cannot be null");
 
         //Check state
@@ -208,7 +228,7 @@ final public class ScreenManager {
 
 
         //Get the path to the new stylesheet
-        URL resource = getClass().getResource(stylesheetPath);
+        URL resource = ScreenControl.class.getResource(stylesheetPath);
         if(resource==null) {
             throw new IOException("The path at \"" + stylesheetPath + "\" does not lead to a file");
         }
@@ -236,14 +256,14 @@ final public class ScreenManager {
      *
      * This method may be safely called during the {@code initializeController} method of an {@code IntegratedController}.
      *
-     * @param screenName name of the screen to use. Cannot be null. Must be a screen name managed by this ScreenManager
+     * @param screenName name of the screen to use. Cannot be null. Must be a screen name managed by this ScreenControl
      * @param eventHandler event handler to place on the desired screen. Cannot be null
      */
-    public void addKeyEventFilter(ScreenName screenName, javafx.event.EventHandler<? super KeyEvent> eventHandler) {
+    public static void addKeyEventFilter(ScreenName screenName, javafx.event.EventHandler<? super KeyEvent> eventHandler) {
         if(screenName==null) throw new AssertionError("Screen name cannot be null");
         if(eventHandler==null) throw new AssertionError("Event handler cannot be null");
         if(!rootMap.containsKey(screenName)) {
-            throw new AssertionError("The screen name \"" + screenName + "\" is not managed by this ScreenManager");
+            throw new AssertionError("The screen name \"" + screenName + "\" is not managed by this ScreenControl");
         }
 
         Parent sceneGraphRoot = rootMap.get(screenName);
@@ -253,61 +273,35 @@ final public class ScreenManager {
 
 
     /**
-     * Prevents the ScreenManager from loading or altering screens.<br>
+     * Prevents ScreenControl from loading or altering screens.<br>
      * Enables screen changing.<br><br>
      *
      * The effects of this method cannot be reversed.
      */
-    public void finishLoading() {
+    public static void finishLoading() {
         loadedFxmlPaths = null;
     }
 
 
 
     /**
-     * If {@code newAlternateStyles} is true, the manager displays the alternate style of each screen.<br>
-     * Otherwise, the manager displays default styles.<br>
-     * The update appears instantly.<br><br>
-     *
-     * For each screen with only one style loaded, the method does not affect those screens.<br>
-     *
-     * @param newAlternateStyles whether to display the manager's alternate styles
-     * @throws IllegalStateException if the manager is not finished loading, i.e. {@code finishLoading} was not called
-     */
-    public void setAlternateStyles(boolean newAlternateStyles) {
-        if(loadedFxmlPaths != null) throw new IllegalStateException("Cannot set alternate styles when the manager is not done loading. Call {managerName}.finishLoading() first");
-
-        if(this.usingAlternateStyles != newAlternateStyles) {
-            for(ScreenName name : rootMap.keySet()) {
-                //Reverse every stylesheet list for each screen (activating the alternate stylesheet)
-                ObservableList<String> stylesheets = rootMap.get(name).getStylesheets();
-                FXCollections.reverse(stylesheets);
-            }
-
-            this.usingAlternateStyles = !this.usingAlternateStyles;
-        }
-    }
-
-
-
-    /**
-     * Sets the ScreenManager's stage with a screen whose name is {@code name}.<br><br>
+     * Sets the ScreenControl's stage with a screen whose name is {@code name}.<br><br>
      *
      * This method has a {@code fields.getSponsoredContentProbability()} probability of showing a sponsored content dialog.<br><br>
      *
      * WARNING: If a sponsored content dialog is shown, the FX app thread will block!
      * Any background process will continue to run until the dialog is closed!
      *
-     * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
+     * @param name name of the screen. Must be the name of a screen managed by this ScreenControl
      * @throws IllegalStateException if the manager is not finished loading screens
      */
-    public void showScreen(ScreenName name) {
+    public static void showScreen(ScreenName name) {
         showScreen(name, true);
     }
 
 
     /**
-     * Sets the ScreenManager's stage with a screen whose name is {@code name}.<br><br>
+     * Sets the ScreenControl's stage with a screen whose name is {@code name}.<br><br>
      *
      * If {@code showingSponsoredContent} is true, this method has a {@code StepperFields.getSponsoredContentProbability()}
      * probability of showing a sponsored content dialog.<br>
@@ -316,11 +310,11 @@ final public class ScreenManager {
      * WARNING: If a sponsored content dialog is shown, the FX app thread will block!
      * Any background process will continue to run until the dialog is closed!
      *
-     * @param name name of the screen. Must be the name of a screen managed by this ScreenManager
+     * @param name name of the screen. Must be the name of a screen managed by this ScreenControl
      * @param showSponsoredContent whether to have a chance of showing sponsored content
      * @throws IllegalStateException if the manager is not finished loading screens
      */
-    public void showScreen(ScreenName name, boolean showSponsoredContent) {
+    public static void showScreen(ScreenName name, boolean showSponsoredContent) {
         if(name == null) {
             throw new AssertionError("Screen name cannot be null");
         }
@@ -332,24 +326,24 @@ final public class ScreenManager {
 
         //Check if the manager is loadable, i.e. the set of loaded FXML paths is not null
         if(loadedFxmlPaths != null) {
-            throw new IllegalStateException("Cannot show new screens before the manager finishes loading. Call {managerName}.finishLoading() to allow screen changing");
+            throw new IllegalStateException("Cannot show new screens before the manager finishes loading. Call ScreenControl.finishLoading() to allow screen changing");
         }
 
 
         //Replace the root of the existing Scene
-        if (primaryStage.getScene() == null) {
-            primaryStage.setScene(new Scene(rootMap.get(name)));
+        if (applicationStage.getScene() == null) {
+            applicationStage.setScene(new Scene(rootMap.get(name)));
         }
         else {
-            primaryStage.getScene().setRoot(rootMap.get(name));
+            applicationStage.getScene().setRoot(rootMap.get(name));
         }
 
         //Prepare the screen for view
         IntegratedController controller = controllerMap.get(name);
         controller.prepareScreenTransition();
 
-        primaryStage.sizeToScene(); //Adjust window size to fit new content
-        primaryStage.show();
+        applicationStage.sizeToScene(); //Adjust window size to fit new content
+        applicationStage.show();
 
         //Show the sponsored content, if desired
         if(showSponsoredContent && (float)Math.random() < StepperFields.getSponsoredContentProbability()) {
