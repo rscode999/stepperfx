@@ -1,5 +1,6 @@
 package com.rscode.stepperfx.controllers;
 
+import com.rscode.stepperfx.integration.StepperFields;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import com.rscode.stepperfx.integration.IntegratedController;
@@ -52,7 +53,7 @@ final public class LoginController extends IntegratedController {
         }
         else {
             screenManager.showScreen(ScreenName.INPUT);
-            fields.setLoginCredentials(index);
+            StepperFields.setLoginCredentials(index);
             pwField.setText("");
         }
     }

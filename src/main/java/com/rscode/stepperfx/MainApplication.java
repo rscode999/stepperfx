@@ -19,16 +19,15 @@ final public class MainApplication extends Application {
      */
     @Override
     public void start(Stage initialStage) throws Exception {
-        StepperFields fields = new StepperFields();
-        ScreenManager manager = new ScreenManager(initialStage, fields);
+        ScreenManager manager = new ScreenManager(initialStage);
 
         //Set the screens
-        manager.addScreen(ScreenName.LOGIN, "/com/rscode/stepperfx/views/login-view.fxml", fields);
-        manager.addScreen(ScreenName.LOGIN_REJECT, "/com/rscode/stepperfx/views/login-reject-view.fxml", fields);
-        manager.addScreen(ScreenName.INPUT, "/com/rscode/stepperfx/views/input-view.fxml", fields);
-        manager.addScreen(ScreenName.LOADING, "/com/rscode/stepperfx/views/loading-view.fxml", fields);
-        manager.addScreen(ScreenName.SETTINGS, "/com/rscode/stepperfx/views/settings-view.fxml", fields);
-        manager.addScreen(ScreenName.RESULTS, "/com/rscode/stepperfx/views/results-view.fxml", fields);
+        manager.addScreen(ScreenName.LOGIN, "/com/rscode/stepperfx/views/login-view.fxml");
+        manager.addScreen(ScreenName.LOGIN_REJECT, "/com/rscode/stepperfx/views/login-reject-view.fxml");
+        manager.addScreen(ScreenName.INPUT, "/com/rscode/stepperfx/views/input-view.fxml");
+        manager.addScreen(ScreenName.LOADING, "/com/rscode/stepperfx/views/loading-view.fxml");
+        manager.addScreen(ScreenName.SETTINGS, "/com/rscode/stepperfx/views/settings-view.fxml");
+        manager.addScreen(ScreenName.RESULTS, "/com/rscode/stepperfx/views/results-view.fxml");
 
         //Add alternate styles for input, settings, results screens
         manager.addAlternateStylesheet(ScreenName.INPUT, "/com/rscode/stepperfx/views/high-contrast-main-styles.css");

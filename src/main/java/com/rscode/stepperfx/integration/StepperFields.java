@@ -5,7 +5,7 @@ import javafx.concurrent.Worker;
 import com.rscode.stepperfx.threading.ProcessService;
 
 /**
- * Contains methods and fields that represent the app's unified state.
+ * Contains static methods and fields that represent the app's unified state.
  * One of the fields is a javafx.concurrent.Service used to do operations.<br><br>
  *
  * This class is not thread-safe! It should never be handled by multiple threads at the same time.
@@ -68,33 +68,30 @@ final public class StepperFields {
     /**
      * Current number of blocks specified by the user. Cannot exceed {@code KEY_BLOCK_INCREMENTS.length}.
      */
-    private int blockCount = DEFAULT_BLOCK_COUNT;
+    private static int blockCount = DEFAULT_BLOCK_COUNT;
 
     /**
      * Current number of characters per block specified by the user
      */
-    private int blockLength = DEFAULT_BLOCK_LENGTH;
-
-    /**
-     * Current number of characters per block specified by the user. For use with static methods. Must equal {@code blockCount}.
-     */
-    private static int blockCountStatic = DEFAULT_BLOCK_COUNT;
+    private static int blockLength = DEFAULT_BLOCK_LENGTH;
 
     /**
      * Holds the user's login credentials
      */
-    private int loginCredentials;
+    private static int loginCredentials = 1;
 
     /**
-     * A Service that controllers can start, cancel, and reset. Can never be null.
+     * A Service that controllers can start, cancel, and reset. Can never be null.<br><br>
+     *
+     * Service start process:<br>
+     * - The input controller starts the Service with
      */
-    private final ProcessService service;
+    private static final ProcessService service = new ProcessService();
 
     /**
-     * Probability of seeing sponsored content, after every screen change. Must be on the interval [0, 1].<br><br>
-     * The premium version has a 1-{@code sponsoredContentProbability} chance of seeing sponsored content.
+     * Probability of seeing sponsored content, after every screen change. Must be on the interval [0, 1].
      */
-    private float sponsoredContentProbability = 0.8f;
+    private static float sponsoredContentProbability = 0.8f;
 
 
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -102,16 +99,11 @@ final public class StepperFields {
     //CONSTRUCTOR
 
     /**
-     * Creates a new instance of StepperFields. All fields inside
+     * Initializes the StepperFields. All fields inside
      * are guaranteed to be initialized upon completion of this method.<br><br>
-     *
-     * A new instance should be created only once.
      */
     public StepperFields() {
         assertConstantInvariants();
-
-        loginCredentials = 1;
-        service = new ProcessService();
     }
 
 
@@ -144,7 +136,7 @@ final public class StepperFields {
      * Returns the current block count stored by the shared fields
      * @return block count
      */
-    public int getBlockCount() {
+    public static int getBlockCount() {
         return blockCount;
     }
 
@@ -152,11 +144,10 @@ final public class StepperFields {
      * Sets the current block count to {@code newBlockCount}.
      * @param newBlockCount block count to change to.  Must be on the interval [1, {@code StepperFields.MAX_BLOCK_COUNT}]
      */
-    public void setBlockCount(int newBlockCount) {
+    public static void setBlockCount(int newBlockCount) {
         if(newBlockCount<=0 || newBlockCount>MAX_BLOCK_COUNT)
             throw new AssertionError("New block count must be on the interval [1," + MAX_BLOCK_COUNT + "]");
         blockCount = newBlockCount;
-        blockCountStatic = newBlockCount;
     }
 
 
@@ -164,7 +155,7 @@ final public class StepperFields {
      * Returns the current block length stored by the shared fields
      * @return block length
      */
-    public int getBlockLength() {
+    public static int getBlockLength() {
         return blockLength;
     }
 
@@ -172,7 +163,7 @@ final public class StepperFields {
      * Sets the current block length to {@code newBlockLength}.
      * @param newBlockLength value to set to. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_LENGTH}]
      */
-    public void setBlockLength(int newBlockLength) {
+    public static void setBlockLength(int newBlockLength) {
         if(newBlockLength<=0 || newBlockLength>MAX_BLOCK_LENGTH)
             throw new AssertionError("New block length must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
         blockLength = newBlockLength;
@@ -182,7 +173,7 @@ final public class StepperFields {
     /**
      * Returns the value at index {@code index} of the app's key block increments array.<br><br>
      *
-     * If {@code index} is at least {@code {stepperFieldsName}.getBlockCount()}, a warning is printed to System.err.<br>
+     * If {@code index} is at least {@code StepperFields.getBlockCount()}, a warning is printed to System.err.<br>
      *
      * @param index index to retrieve in the key block increments
      * @return value at specified index of the increments array
@@ -193,8 +184,8 @@ final public class StepperFields {
             throw new ArrayIndexOutOfBoundsException("The given index (value=" + index +
                     ") must be on the interval [0, " + (KEY_BLOCK_INCREMENTS.length-1) + "]- instead received " + index);
         }
-        if(index >= blockCountStatic) {
-            System.err.println("WARNING: Index of key block increments (value=" + index + ") should be on the interval [0, " + (blockCountStatic-1) + "]");
+        if(index >= blockCount) {
+            System.err.println("WARNING: Index of key block increments (value=" + index + ") should be on the interval [0, " + (blockCount-1) + "]");
         }
 
         return KEY_BLOCK_INCREMENTS[index];
@@ -205,7 +196,7 @@ final public class StepperFields {
      * Returns the user's stored login credentials
      * @return login credentials
      */
-    public int getLoginCredentials() {
+    public static int getLoginCredentials() {
         return loginCredentials;
     }
 
@@ -213,7 +204,7 @@ final public class StepperFields {
      * Sets the stored login credentials to {@code newCredentials}.
      * @param newCredentials new credentials to set
      */
-    public void setLoginCredentials(int newCredentials) {
+    public static void setLoginCredentials(int newCredentials) {
         loginCredentials = newCredentials;
     }
 
@@ -223,7 +214,7 @@ final public class StepperFields {
      * The value returned is on the interval [0,1].
      * @return sponsored content probability
      */
-    public float getSponsoredContentProbability() {
+    public static float getSponsoredContentProbability() {
         if(sponsoredContentProbability<0 || sponsoredContentProbability>1)
             throw new AssertionError("INTERNAL ERROR- Sponsored content probability must be on the interval [0,1]. Instead received " + sponsoredContentProbability);
 
@@ -232,9 +223,9 @@ final public class StepperFields {
 
     /**
      * Sets the probability that sponsored content is shown on the next screen change.
-     * @param newProbability new probability to use. {@code (float)newProbability} must be on the interval [0,1]
+     * @param newProbability new probability to use. Must be on the interval [0,1]
      */
-    public void setSponsoredContentProbability(double newProbability) {
+    public static void setSponsoredContentProbability(double newProbability) {
         if((float)newProbability<0 || (float)newProbability>1)
             throw new AssertionError("Float value of new sponsored content probability must be on the interval [0,1]- instead received " + (float)newProbability);
 
@@ -252,7 +243,7 @@ final public class StepperFields {
      * Assigns {@code listener} as a message property listener on the app's Service.
      * @param listener listener to assign
      */
-    public void addServiceMessageListener(ChangeListener<? super String> listener) {
+    public static void addServiceMessageListener(ChangeListener<? super String> listener) {
         service.messageProperty().addListener(listener);
     }
 
@@ -262,7 +253,7 @@ final public class StepperFields {
      * Assigns {@code listener} as a progress property listener on the app's Service.
      * @param listener listener to assign
      */
-    public void addServiceProgressListener(ChangeListener<? super Number> listener) {
+    public static void addServiceProgressListener(ChangeListener<? super Number> listener) {
         service.progressProperty().addListener(listener);
     }
 
@@ -271,7 +262,7 @@ final public class StepperFields {
     /**
      * Assigns {@code listener} as a value property listener on the app's Service.<br><br>
      *
-     * Value format: String array of length 4 containing {result, formatted key, error type, error message}<br>
+     * Value format: String array of length 4 containing {result, formatted key, error type, error message}<br><br>
      * Possible configurations:<br>
      * - Result and key non-null, error type and message null: process completed successfully<br>
      * - Result and key null, error type message non-null: process stopped with error<br>
@@ -281,7 +272,7 @@ final public class StepperFields {
      *
      * @param listener listener to assign
      */
-    public void addServiceValueListener(ChangeListener<? super String[]> listener) {
+    public static void addServiceValueListener(ChangeListener<? super String[]> listener) {
         service.valueProperty().addListener(listener);
     }
 
@@ -291,7 +282,7 @@ final public class StepperFields {
      * Sets the app's Service to its READY state, preparing it to be run again.<br><br>
      * This method works when the Service is in any state.
      */
-    public void resetService() {
+    public static void resetService() {
         service.reset();
     }
 
@@ -313,7 +304,7 @@ final public class StepperFields {
      * @param nThreads number of threads to use during processing. Must be on the interval [0, {@code StepperFields.MAX_THREADS}]
      * @throws IllegalStateException if the service is not ready to be run
      */
-    public void startService(String input, String key, boolean encrypting, boolean usingV2Process,
+    public static void startService(String input, String key, boolean encrypting, boolean usingV2Process,
                              int blockCount, int blockLength,
                              int punctMode,
                              boolean loadingFromFile, int nThreads) {
@@ -345,7 +336,7 @@ final public class StepperFields {
     /**
      * Stops the Service's execution and puts it in the READY state.
      */
-    public void stopService() {
+    public static void stopService() {
         service.cancel();
         service.reset();
     }

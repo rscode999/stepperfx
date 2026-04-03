@@ -124,15 +124,14 @@ final public class InputController extends IntegratedController {
     //"CONSTRUCTOR"
 
     /**
-     * Initializes the controller with {@code manager}, {@code sceneGraphRoot}, and {@code fields}.<br>
+     * Initializes the controller with {@code manager}.<br>
      * Sets GUI elements. Assigns a listener to clear the text inputs upon successful operations.
      *
      * @param manager ScreenManager for screen changes
-     * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, StepperFields fields) {
-        assertInitializeController(manager, fields);
+    public void initializeController(ScreenManager manager) {
+        assertInitializeController(manager);
 
         //Check thread option formatting
         for(int v=0; v<THREAD_OPTIONS.length; v++) {
@@ -159,7 +158,6 @@ final public class InputController extends IntegratedController {
 
         //Initialize controller's fields
         this.screenManager = manager;
-        this.fields = fields;
 
         //Set choice boxes and combo box. Then select their first option
         inputSelector.setItems(FXCollections.observableArrayList(INPUT_SELECTION_OPTIONS));
@@ -173,9 +171,9 @@ final public class InputController extends IntegratedController {
 
         // ///////////////////////////////////////////////////////////////////////////
 
-        //Set listener on the shared service to clear the inputs upon successful output
-        fields.addServiceValueListener((obs, oldValue, newValue) -> {
-            //Service output: {processed text, key, error message}
+        //Set listener on the shared service to clear the text/key inputs upon successful output
+        StepperFields.addServiceValueListener((obs, oldValue, newValue) -> {
+            //Service output: {processed text, key, error type, error message}
             if(newValue!=null && newValue[0]!=null && newValue[1]!=null && newValue[2]==null) {
                 //This means: the service was not cancelled, and the service produced a valid output with a null error message
                 textInput.setText("");
@@ -193,7 +191,7 @@ final public class InputController extends IntegratedController {
             }
         });
 
-        assertInitializeController(manager, fields);
+        assertInitializeController(manager);
     }
 
 
@@ -380,12 +378,12 @@ final public class InputController extends IntegratedController {
             substr = substr.substring(9);
             threadCount = Integer.parseInt(substr);
         }
-        if(fields.getLoginCredentials() != 0) {
+        if(StepperFields.getLoginCredentials() != 0) {
             threadCount = 0;
         }
 
-        fields.startService(textInput.getText().strip(), keyInput.getText().strip(), encrypting, v2Selector.isSelected(),
-                fields.getBlockCount(), fields.getBlockLength(),
+        StepperFields.startService(textInput.getText().strip(), keyInput.getText().strip(), encrypting, v2Selector.isSelected(),
+                StepperFields.getBlockCount(), StepperFields.getBlockLength(),
                 punctMode,
                 loadingFromFile, threadCount);
 

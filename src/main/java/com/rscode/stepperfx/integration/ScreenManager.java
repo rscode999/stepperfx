@@ -34,11 +34,6 @@ final public class ScreenManager {
     private final HashMap<ScreenName, IntegratedController> controllerMap;
 
     /**
-     * Holds the application's shared state
-     */
-    private final StepperFields fields;
-
-    /**
      * Reference to the main application window where the screens will be displayed
      */
     private final Stage primaryStage;
@@ -68,16 +63,13 @@ final public class ScreenManager {
     //CONSTRUCTOR
 
     /**
-     * Creates a new ScreenManager with a stage and an instance eof shared fields.
+     * Creates a new ScreenManager with a stage.
      * @param primaryStage stage to load. Can't be null
-     * @param fields shared fields to load. Can't be null
      */
-    public ScreenManager(Stage primaryStage, StepperFields fields) {
+    public ScreenManager(Stage primaryStage) {
         if(primaryStage == null) throw new AssertionError("Primary stage cannot be null");
-        if(fields == null) throw new AssertionError("Shared fields cannot be null");
 
         this.primaryStage = primaryStage;
-        this.fields = fields;
 
         usingAlternateStyles = false;
 
@@ -110,7 +102,7 @@ final public class ScreenManager {
 
     /**
      * Adds a FXML file (controlled by an {@code IntegratedController}) dictating a scene at path {@code fxmlPath},
-     * giving it the name {@code name} and loading it with the shared fields {@code fields}.<br><br>
+     * giving it the name {@code name}.<br><br>
      *
      * Paths to FXMLs are relative to the directory marked as the `resources` root.<br>
      * To load a FXML at src/main/resources/views/view.fxml, the accepted load path is /views/view.fxml. This
@@ -120,11 +112,10 @@ final public class ScreenManager {
      * @param name associated name of the FXML file. Cannot be null. Must not match any other screen names tracked by this ScreenManager
      * @param fxmlPath path to FXML file, relative to the project's resources root. Cannot be null.
      *                 Cannot match any previously loaded filepath. Associated controller must be an IntegratedController.
-     * @param fields shared fields to load into the controller of the scene. Cannot be null
      * @throws IllegalStateException if a load is attempted after {@code finishLoading} is called
      * @throws IOException if the given FXML file path is invalid
      */
-    public void addScreen(ScreenName name, String fxmlPath, StepperFields fields) throws IOException {
+    public void addScreen(ScreenName name, String fxmlPath) throws IOException {
         if(name==null) {
             throw new AssertionError("Name cannot be null");
         }
@@ -134,9 +125,6 @@ final public class ScreenManager {
         }
         if(fxmlPath==null) {
             throw new AssertionError("FXML path cannot be null");
-        }
-        if(fields==null) {
-            throw new AssertionError("Fields cannot be null");
         }
 
         //Check if the manager is done
@@ -171,7 +159,7 @@ final public class ScreenManager {
         Object controller = loader.getController();
         if(controller instanceof IntegratedController) {
             ((IntegratedController) controller).name = name;
-            ((IntegratedController) controller).initializeController(this, fields);
+            ((IntegratedController) controller).initializeController(this);
 
             //add to controller list
             controllerMap.put(name, (IntegratedController)controller);
@@ -321,7 +309,7 @@ final public class ScreenManager {
     /**
      * Sets the ScreenManager's stage with a screen whose name is {@code name}.<br><br>
      *
-     * If {@code showingSponsoredContent} is true, this method has a {@code fields.getSponsoredContentProbability()}
+     * If {@code showingSponsoredContent} is true, this method has a {@code StepperFields.getSponsoredContentProbability()}
      * probability of showing a sponsored content dialog.<br>
      * If false, a sponsored dialog is never shown.<br><br>
      *
@@ -358,13 +346,13 @@ final public class ScreenManager {
 
         //Prepare the screen for view
         IntegratedController controller = controllerMap.get(name);
-        controller.prepareScreen();
+        controller.prepareScreenTransition();
 
         primaryStage.sizeToScene(); //Adjust window size to fit new content
         primaryStage.show();
 
         //Show the sponsored content, if desired
-        if(showSponsoredContent && (float)Math.random() < fields.getSponsoredContentProbability()) {
+        if(showSponsoredContent && (float)Math.random() < StepperFields.getSponsoredContentProbability()) {
             StyledDialogs.showSponsoredDialog();
         }
     }

@@ -30,16 +30,14 @@ final public class LoadingController extends IntegratedController {
      * Sets and configures the fields of this controller
      *
      * @param manager ScreenManager for screen changes
-     * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, StepperFields fields) {
-        assertInitializeController(manager, fields);
+    public void initializeController(ScreenManager manager) {
+        assertInitializeController(manager);
 
         this.screenManager = manager;
-        this.fields = fields;
 
-        fields.addServiceMessageListener((obs, oldValue, newValue) -> {
+        StepperFields.addServiceMessageListener((obs, oldValue, newValue) -> {
             loadStatus.setText(newValue);
 
             //Disable the cancel button when a cancel operation is impossible
@@ -56,7 +54,7 @@ final public class LoadingController extends IntegratedController {
     public void stopLoading() {
         //IMPORTANT: Stop the Service before changing the screen. If not, the worker threads will continue running while a sponsored content dialog is showing.
         //If background threads keep running, the screen may unexpectedly change to the results screen.
-        fields.stopService();
+        StepperFields.stopService();
         screenManager.showScreen(ScreenName.INPUT);
     }
 }

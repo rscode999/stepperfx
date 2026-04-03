@@ -73,8 +73,8 @@ public final class SettingsController extends IntegratedController {
     @FXML
     private void applySettings() {
 
-        int newBlockCount = fields.getBlockCount();
-        int newBlockLength = fields.getBlockLength();
+        int newBlockCount = StepperFields.getBlockCount();
+        int newBlockLength = StepperFields.getBlockLength();
 
         //Get new block count
         if(!blockCountInput.getText().isEmpty()) {
@@ -121,13 +121,13 @@ public final class SettingsController extends IntegratedController {
         }
 
         //Update the settings
-        fields.setBlockCount(newBlockCount);
-        fields.setBlockLength(newBlockLength);
+        StepperFields.setBlockCount(newBlockCount);
+        StepperFields.setBlockLength(newBlockLength);
         screenManager.setAlternateStyles(highContrastStyleSelector.isSelected());
 
         //Update the labels
-        blockCountInputText.setText("Number of blocks (current: " + fields.getBlockCount() + ")");
-        blockLengthInputText.setText("Block length (current: " + fields.getBlockLength() + ")");
+        blockCountInputText.setText("Number of blocks (current: " + StepperFields.getBlockCount() + ")");
+        blockLengthInputText.setText("Block length (current: " + StepperFields.getBlockLength() + ")");
 
         blockCountInput.setText("");
         blockLengthInput.setText("");
@@ -149,10 +149,10 @@ public final class SettingsController extends IntegratedController {
      * Prepares the settings screen for view. Updates the high-contrast selector, block count, and block length displayed.
      */
     @Override
-    protected void prepareScreen() {
+    protected void prepareScreenTransition() {
         highContrastStyleSelector.setSelected(screenManager.usingAlternateStyles());
-        blockCountInputText.setText("Number of blocks (current: " + fields.getBlockCount() + ")");
-        blockLengthInputText.setText("Block length (current: " + fields.getBlockLength() + ")");
+        blockCountInputText.setText("Number of blocks (current: " + StepperFields.getBlockCount() + ")");
+        blockLengthInputText.setText("Block length (current: " + StepperFields.getBlockLength() + ")");
     }
 
 
@@ -187,7 +187,7 @@ public final class SettingsController extends IntegratedController {
         String key = rawKey.get();
 
         if(key.equals("PI-EQUALS-3")) {
-            fields.setSponsoredContentProbability(0.2);
+            StepperFields.setSponsoredContentProbability(0.2);
             StyledDialogs.showInfoDialog("Key accepted", "Key accepted", "Enjoy seeing less sponsored content!");
             productKeyButton.setDisable(true);
         }

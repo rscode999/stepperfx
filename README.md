@@ -82,11 +82,11 @@ All Java source code is inside the `src/main/java/com/rscode/stepperfx` package.
   - `IntegratedController`, the **base class for GUI controllers**. It allows controllers to change the screen and access shared variables.
   - `ScreenManager`, which controllers use to **change the screen**.
   - `ScreenName` (the enum), a set of **possible screen names**.
-  - `StepperFields`, containing the **shared state** of the application. The class contains constants, encapsulated variables, and a shared Service for multithreaded operations.
+  - `StepperFields`, containing static variables with the **shared state** of the application. The class contains constants, encapsulated variables, and a shared Service for multithreaded operations.
   - `StyledDialogs`, with static methods to **show dialogs**. It takes its styles from the `dialog` style class inside `src/main/java/com/rscode/stepperfx/views/main-styles.css`.
 
 - The `threading` package contains worker thread classes, which the app uses to **process inputs**.
-  - `ProcessService`, where an instance is stored in a `StepperFields` instance, deploys a `ProcessTask`.
+  - `ProcessService`, where an instance is stored in the `StepperFields`, deploys a `ProcessTask`.
   - `ProcessTask` processes the input given to it by a `ProcessService`. To help it process input, a Task assigns work to ProcessSubtask instances.
   - `ProcessSubtaskDiacritics` and `ProcessSubtaskMain` parse a small piece of their given inputs.
 

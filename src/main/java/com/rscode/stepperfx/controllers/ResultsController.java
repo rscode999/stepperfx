@@ -69,12 +69,10 @@ final public class ResultsController extends IntegratedController {
      * Attaches an event filter to the scene graph root (in the screen manager) to check for key presses.
      *
      * @param manager ScreenManager for screen changes
-     * @param fields shared fields
      */
     @Override
-    public void initializeController(ScreenManager manager, StepperFields fields) {
-        assertInitializeController(manager, fields);
-        this.fields = fields;
+    public void initializeController(ScreenManager manager) {
+        assertInitializeController(manager);
         this.screenManager = manager;
 
         //Configure key shortcuts
@@ -99,7 +97,7 @@ final public class ResultsController extends IntegratedController {
 
 
         //Attach value listener to the service to handle its output
-        fields.addServiceValueListener((obs, oldValue, newValue) -> {
+        StepperFields.addServiceValueListener((obs, oldValue, newValue) -> {
 
             //runs the code on the main FX app thread, not a worker thread
             Platform.runLater(() -> {
@@ -116,7 +114,7 @@ final public class ResultsController extends IntegratedController {
 
                 //Error: display the dialog (dialog creation works on any screen)
                 if(newValue[0]==null && newValue[1]==null && newValue[2]!=null && newValue[3]!=null) {
-                    fields.resetService();
+                    StepperFields.resetService();
 
                     //It's important to change the screen first, then show the sponsored content.
                     screenManager.showScreen(ScreenName.INPUT, false);
@@ -131,7 +129,7 @@ final public class ResultsController extends IntegratedController {
                     }
 
                     //After the dialog shows, show sponsored content
-                    if(Math.random() < fields.getSponsoredContentProbability()) {
+                    if(Math.random() < StepperFields.getSponsoredContentProbability()) {
                         StyledDialogs.showSponsoredDialog();
                     }
                 }
@@ -173,7 +171,7 @@ final public class ResultsController extends IntegratedController {
             });
         });
 
-        assertInitializeController(manager, fields);
+        assertInitializeController(manager);
     }
 
 
@@ -212,7 +210,7 @@ final public class ResultsController extends IntegratedController {
     @FXML
     private void showLoginScreen() {
         screenManager.showScreen(ScreenName.LOGIN);
-        fields.resetService();
+        StepperFields.resetService();
         resultArea.setText("");
         keyArea.setText("");
     }
@@ -221,7 +219,8 @@ final public class ResultsController extends IntegratedController {
 
     /**
      * Reconfigures the UI to display the next page of result text.<br>
-     * If the current result page equals the result page list's size (i.e. the last page is displayed), does nothing.
+     * If the current result page equals 1 less than the result page list's size (i.e. the last page is displayed),
+     * does nothing.
      */
     @FXML
     private void setNextPage() {

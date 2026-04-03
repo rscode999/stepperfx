@@ -3,17 +3,11 @@ package com.rscode.stepperfx.integration;
 
 /**
  * Base class for GUI controllers.
- * Allows for management by a ScreenManager and access to a StepperFields instance shared between controllers.<br><br>
+ * Allows for management by a ScreenManager.<br><br>
  *
  * The ScreenManager is stored in a field called {@code screenManager}.<br>
- * The StepperFields is in {@code fields}.
  */
 public class IntegratedController {
-
-    /**
-     * Contains a reference to fields that are shared between other controllers.
-     */
-    protected StepperFields fields;
 
     /**
      * The name of the screen that the Controller controls. Assigned upon addition to a ScreenManager.<br>
@@ -50,14 +44,10 @@ public class IntegratedController {
      * Throws an AssertionError if any inputs break {@code initializeController}'s preconditions.<br><br>
      * Call manually when a subclass overrides {@code initializeController}.
      * @param manager ScreenManager to check
-     * @param fields StepperFields to check
      */
-    protected final void assertInitializeController(ScreenManager manager, StepperFields fields) {
+    protected final void assertInitializeController(ScreenManager manager) {
         if(manager == null) {
             throw new AssertionError("Manager cannot be null");
-        }
-        if(fields == null) {
-            throw new AssertionError("Fields cannot be null");
         }
     }
 
@@ -82,24 +72,21 @@ public class IntegratedController {
     //METHODS
 
     /**
-     * Loads the controller with the shared components {@code manager} and {@code fields}.<br>
+     * Loads the controller with {@code manager}.<br>
      * Serves as the controller's de facto constructor.<br><br>
      *
      * A ScreenManager uses this method to initialize newly added controllers.<br><br>
      *
-     * This method may be overridden where the controller attaches listeners to {@code screenManager}
-     * and {@code fields}, or otherwise must guarantee that they are not null.<br>
+     * This method may be overridden where the controller attaches listeners to {@code screenManager},
+     * or otherwise must guarantee that they are not null.<br>
      * If overridden, the method should initialize the controller's
-     * {@code screenManager} and {@code fields}.<br>
+     * {@code screenManager}.<br>
      *
      * @param manager the ScreenManager responsible for the controller. Cannot be null
-     * @param fields reference to shared fields between controllers. Cannot be null
      */
-    protected void initializeController(ScreenManager manager, StepperFields fields) {
-        assertInitializeController(manager, fields);
-
+    protected void initializeController(ScreenManager manager) {
+        assertInitializeController(manager);
         this.screenManager = manager;
-        this.fields = fields;
     }
 
 
@@ -110,7 +97,7 @@ public class IntegratedController {
      *
      * This method is called when a ScreenManager transitions to the controller's screen.
      */
-    protected void prepareScreen() {
+    protected void prepareScreenTransition() {
         //Base class's method does nothing. Subclasses may override this method.
     }
 }
