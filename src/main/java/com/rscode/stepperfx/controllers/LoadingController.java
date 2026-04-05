@@ -15,6 +15,18 @@ import com.rscode.stepperfx.threading.ProcessTask;
 final public class LoadingController extends IntegratedController {
 
     /**
+     * Names for each of the possible loading states that the task can be in.
+     * Progression through the states starts at index 0, then index 1, and so on.<br><br>
+     *
+     * Used by a {@code ProcessTask} to update the loading screen text.<br><br>
+     *
+     * Index 3 ("Writing to file...") is currently not used.
+     */
+    public final static String[] LOADING_STATE_NAMES =
+            new String[] {"Loading input...", "Formatting...", "Executing...", "Writing to file...", "Finalizing..."};
+
+
+    /**
      * Cancels the ongoing process when clicked. Disabled when the Service sends its output to the app.
      */
     @FXML
@@ -36,7 +48,7 @@ final public class LoadingController extends IntegratedController {
             loadStatus.setText(newValue);
 
             //Disable the cancel button when a cancel operation is impossible
-            cancelButton.setDisable(newValue.equals(ProcessTask.LOADING_STATE_NAMES[4]));
+            cancelButton.setDisable(newValue.equals(LOADING_STATE_NAMES[4]));
         });
     }
 

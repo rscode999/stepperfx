@@ -1,5 +1,7 @@
 package com.rscode.stepperfx.threading;
 
+import com.rscode.stepperfx.integration.OperationSelection;
+import com.rscode.stepperfx.integration.PunctuationSelection;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import com.rscode.stepperfx.integration.StepperFields;
@@ -33,11 +35,6 @@ final public class ProcessService extends Service<String[]> {
     private int charsPerBlock;
 
     /**
-     * True if the service is encrypting, false if the service is decrypting
-     */
-    private boolean encrypting;
-
-    /**
      * Input text for the service to process. If loading from a file, contains a filepath to load from.
      */
     private String input;
@@ -58,19 +55,14 @@ final public class ProcessService extends Service<String[]> {
     private int nThreads;
 
     /**
-     * 0 if the task removes all punctuation from the input.<br>
-     * 1 if the task removes spaces from the input.<br>
-     * 2 if the task processes the input with all punctuation.<br><br>
-     *
-     * No other value is allowed.
+     * Which operation the Service carries out. Example: Stepper 2, encryption.
      */
-    private int punctMode;
+    private OperationSelection operationSelection;
 
     /**
-     * True if using version 2 processes, false otherwise
+     * Punctuation preferences for the output's operation
      */
-    private boolean usingV2Process;
-
+    private PunctuationSelection punctSelection;
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -92,9 +84,9 @@ final public class ProcessService extends Service<String[]> {
      */
     @Override
     public Task<String[]> createTask() {
-        ProcessTask task = new ProcessTask(input, key, encrypting, usingV2Process,
+        ProcessTask task = new ProcessTask(input, key, operationSelection, punctSelection,
                 blocks, charsPerBlock,
-                punctMode, loadingFromFile, nThreads);
+                loadingFromFile, nThreads);
 
         input = null;
         key = null;
@@ -112,33 +104,29 @@ final public class ProcessService extends Service<String[]> {
      *
      * @param input input text to process, or a filepath to load from. Cannot be null
      * @param key key to process the input with. Cannot be null
-     * @param encrypting true if the service encrypts, false if the service decrypts
-     * @param usingV2Process true if the service uses version 2 processes
-     * @param blocks number of blocks to use. Must be positive
-     * @param charsPerBlock number of characters in each block to use. Must be positive
-     * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
-     *                  2 if the task processes the input with all punctuation
+     * @param operationSelection operation to do, as a OperationSelection object (i.e. Stepper 2, encrypt)
+     * @param punctSelection punctuation preferences, as a PunctuationSelection object
+     * @param blockCount number of blocks to use. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_COUNT}]
+     * @param blockLength number of characters in each block to use. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_LENGTH}]
      * @param loadingFromFile whether to load input from a file
-     * @param nThreads number of threads to use during processing. Must be on the interval [0, StepperFields.MAX_THREADS]
+     * @param nThreads number of threads to use during processing. Must be on the interval [0, {@code StepperFields.MAX_THREADS}]
      */
-    public void initializeService(String input, String key, boolean encrypting, boolean usingV2Process,
-                                  int blocks, int charsPerBlock,
-                                  int punctMode, boolean loadingFromFile, int nThreads) {
+    public void initializeService(String input, String key, OperationSelection operationSelection, PunctuationSelection punctSelection,
+                                  int blockCount, int blockLength,
+                                  boolean loadingFromFile, int nThreads) {
 
-        if(input==null) throw new AssertionError("Input cannot be null");
-        if(key==null) throw new AssertionError("Key cannot be null");
-        if(blocks<=0 || blocks>MAX_BLOCK_COUNT) throw new AssertionError("Blocks must be on the interval [1, " + MAX_BLOCK_COUNT + "]- instead received " + blocks);
-        if(charsPerBlock<=0 || charsPerBlock>MAX_BLOCK_LENGTH) throw new AssertionError("Chars per block must be on the interval [1, " + MAX_BLOCK_LENGTH + "]- instead received " + charsPerBlock);
-        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be 0, 1, or 2: instead received " + punctMode);
+        if(input == null) throw new AssertionError("Input cannot be null");
+        if(key == null) throw new AssertionError("Key cannot be null");
+        if(blockCount<=0 || blockCount>MAX_BLOCK_COUNT) throw new AssertionError("Block count must be on the interval [1, " + MAX_BLOCK_COUNT + "]- instead received " + blockCount);
+        if(blockLength<=0 || blockLength>MAX_BLOCK_LENGTH) throw new AssertionError("Block length must be on the interval [1, " + MAX_BLOCK_LENGTH + "]- instead received " + blockLength);
         if(nThreads<0 || nThreads>StepperFields.MAX_THREADS) throw new AssertionError("Number of threads must be on the interval [0, " + StepperFields.MAX_THREADS + "]- instead received " + nThreads);
 
         this.input = input;
         this.key = key;
-        this.encrypting = encrypting;
-        this.usingV2Process = usingV2Process;
-        this.blocks = blocks;
-        this.charsPerBlock = charsPerBlock;
-        this.punctMode = punctMode;
+        this.operationSelection = operationSelection;
+        this.punctSelection = punctSelection;
+        this.blocks = blockCount;
+        this.charsPerBlock = blockLength;
         this.loadingFromFile = loadingFromFile;
         this.nThreads = nThreads;
     }

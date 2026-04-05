@@ -1,6 +1,7 @@
 package com.rscode.stepperfx;
 
 import com.rscode.stepperfx.integration.ScreenControl;
+import com.rscode.stepperfx.integration.StepperFields;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import com.rscode.stepperfx.integration.ScreenName;
@@ -18,6 +19,8 @@ final public class MainApplication extends Application {
      */
     @Override
     public void start(Stage initialStage) throws Exception {
+
+        StepperFields.assertConstantPreconditions();
 
         ScreenControl.setApplicationStage(initialStage);
 

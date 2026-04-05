@@ -343,15 +343,33 @@ final public class InputController extends IntegratedController {
         ScreenControl.showScreen(ScreenName.LOADING, false);
 
         //Set mode options
-        boolean encrypting = !modeSelector.getValue().equals(MODE_OPTIONS[2]);
+        OperationSelection operationSelection;
+        //Decrypt (Final value in MODE_OPTIONS is selected)
+        if(modeSelector.getValue().equals(MODE_OPTIONS[2])) {
+            if(v2Selector.isSelected()) {
+                operationSelection = OperationSelection.STEPPER2_DECRYPT;
+            }
+            else {
+                operationSelection = OperationSelection.STEPPER_DECRYPT;
+            }
+        }
+        //Encrypt
+        else {
+            if(v2Selector.isSelected()) {
+                operationSelection = OperationSelection.STEPPER2_ENCRYPT;
+            }
+            else {
+                operationSelection = OperationSelection.STEPPER_ENCRYPT;
+            }
+        }
 
         //Set punctuation mode
-        int punctMode = 0;
+        PunctuationSelection punctSelection = PunctuationSelection.REMOVE_ALL_PUNCTUATION;
         if (punctSelector.getValue().equals(PUNCT_OPTIONS[3])) {
-            punctMode = 2;
+            punctSelection = PunctuationSelection.USE_PUNCTUATION;
         }
         else if (punctSelector.getValue().equals(PUNCT_OPTIONS[2])) {
-            punctMode = 1;
+            punctSelection = PunctuationSelection.REMOVE_SPACES;
         }
 
         //Set file loading mode
@@ -375,9 +393,8 @@ final public class InputController extends IntegratedController {
             threadCount = 0;
         }
 
-        StepperFields.startService(textInput.getText().strip(), keyInput.getText().strip(), encrypting, v2Selector.isSelected(),
+        StepperFields.startService(textInput.getText().strip(), keyInput.getText().strip(), operationSelection, punctSelection,
                 StepperFields.getBlockCount(), StepperFields.getBlockLength(),
-                punctMode,
                 loadingFromFile, threadCount);
 
     }

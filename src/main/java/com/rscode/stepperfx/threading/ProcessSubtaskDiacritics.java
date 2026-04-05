@@ -12,19 +12,19 @@ final public class ProcessSubtaskDiacritics extends Task<String> {
     /**
      * The given input for this worker to process
      */
-    private final String inputPiece;
+    private final String textPiece;
 
 
     // ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     // CONSTRUCTORS
 
     /**
-     * Creates a new subtask and assigns it to remove diacritics from {@code inputPiece}.
-     * @param inputPiece text to remove diacritics from. Cannot be null
+     * Creates a new subtask and assigns it to remove diacritics from {@code textPiece}.
+     * @param textPiece text to remove diacritics from. Cannot be null
      */
-    public ProcessSubtaskDiacritics(String inputPiece) {
-        if(inputPiece==null)  throw new AssertionError("Input piece cannot be null");
-        this.inputPiece = inputPiece;
+    public ProcessSubtaskDiacritics(String textPiece) {
+        if(textPiece == null)  throw new AssertionError("Input piece cannot be null");
+        this.textPiece = textPiece;
     }
 
 
@@ -33,7 +33,7 @@ final public class ProcessSubtaskDiacritics extends Task<String> {
      * FOR METHOD UNIT TESTING ONLY! Creates a new instance, initialized to garbage values.
      */
     public ProcessSubtaskDiacritics() {
-        inputPiece = null;
+        textPiece = null;
      }
 
 
@@ -47,8 +47,8 @@ final public class ProcessSubtaskDiacritics extends Task<String> {
     @Override
     protected String call() {
         //Constructor check
-        if(inputPiece==null) throw new AssertionError("PROCESS SUBTASK DIACRITICS- TESTING CONSTRUCTOR USED FOR OPERATIONS");
-        return removeDiacritics(inputPiece);
+        if(textPiece == null) throw new AssertionError("PROCESS SUBTASK DIACRITICS- TESTING CONSTRUCTOR USED FOR OPERATIONS");
+        return removeDiacritics(textPiece);
     }
 
 

@@ -1,6 +1,9 @@
 package com.rscode.stepperfx.threading;
 
 
+import com.rscode.stepperfx.controllers.LoadingController;
+import com.rscode.stepperfx.integration.OperationSelection;
+import com.rscode.stepperfx.integration.PunctuationSelection;
 import javafx.concurrent.Task;
 import com.rscode.stepperfx.integration.StepperFields;
 
@@ -30,15 +33,6 @@ import static com.rscode.stepperfx.integration.StepperFields.*;
  */
 final public class ProcessTask extends Task<String[]> {
 
-    /**
-     * Names for each of the possible loading states that the task can be in.
-     * Progression through the states starts at index 0, then index 1, and so on.<br><br>
-     *
-     * Index 3 ("Writing to file...") is currently not used.
-     */
-    public final static String[] LOADING_STATE_NAMES =
-            new String[] {"Loading input...", "Formatting...", "Executing...", "Writing to file...", "Finalizing..."};
-
 
     // //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -51,16 +45,6 @@ final public class ProcessTask extends Task<String[]> {
      * Number of characters per block to use in processes
      */
     private final int blockLength;
-
-    /**
-     * True if using version 2 processes, false otherwise
-     */
-    private final boolean doingV2Process;
-
-    /**
-     * True if the service is encrypting, false if the service is decrypting
-     */
-    private final boolean encrypting;
 
     /**
      * Input text for the service to process
@@ -78,13 +62,14 @@ final public class ProcessTask extends Task<String[]> {
     private final int nWorkerThreads;
 
     /**
-     * 0 if the task removes all punctuation from the input.<br>
-     * 1 if the task removes spaces from the input.<br>
-     * 2 if the task processes the input with all punctuation.<br><br>
-     *
-     * No other value is allowed.
+     * Which operation the Task carries out. Example: Stepper 2, encryption.
      */
-    private final int punctMode;
+    private final OperationSelection operationSelection;
+
+    /**
+     * Punctuation preferences for the given operation
+     */
+    private final PunctuationSelection punctSelection;
 
     /**
      * Whether the service's task will load its input from a file
@@ -97,38 +82,33 @@ final public class ProcessTask extends Task<String[]> {
      *
      * @param input input text to process, or a filepath to load from. Cannot be null
      * @param key key to process the input with. Cannot be null
-     * @param encrypting true if the service encrypts, false if the service decrypts
-     * @param doingV2Process true if using enhanced (v2) processes, false otherwise
-     * @param blocks number of blocks to use. Must be positive
-     * @param charsPerBlock number of characters in each block to use. Must be positive
-     * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
-     *                  2 if the task processes the input with all punctuation
+     * @param operationSelection operation to do, as a OperationSelection object (i.e. Stepper 2, encrypt)
+     * @param punctSelection punctuation preferences, as a PunctuationSelection object
+     * @param blockCount number of blocks to use. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_COUNT}]
+     * @param blockLength number of characters in each block to use. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_LENGTH}]
      * @param usingFileInput whether to load input from a file
-     * @param nWorkerThreads number of threads to use during processing. Must be on the interval [0, StepperFields.MAX_THREADS]
+     * @param nWorkerThreads number of threads to use during processing. Must be on the interval [0, {@code StepperFields.MAX_THREADS}]
      */
-    public ProcessTask(String input, String key, boolean encrypting, boolean doingV2Process,
-                       int blocks, int charsPerBlock,
-                       int punctMode, boolean usingFileInput, int nWorkerThreads) {
+    public ProcessTask(String input, String key, OperationSelection operationSelection, PunctuationSelection punctSelection,
+                       int blockCount, int blockLength,
+                       boolean usingFileInput, int nWorkerThreads) {
 
-        if(input==null) throw new AssertionError("Input cannot be null");
-        if(key==null) throw new AssertionError("Key cannot be null");
-        if(blocks<=0 || blocks>MAX_BLOCK_COUNT) throw new AssertionError("Blocks must be on the interval" +
-                " [1, " + MAX_BLOCK_COUNT + "]- received " + blocks);
-        if(charsPerBlock<=0 || charsPerBlock>MAX_BLOCK_LENGTH) throw new AssertionError("Chars per block " +
-                "must be on the interval [1, " + MAX_BLOCK_LENGTH + "]- received " + charsPerBlock);
-        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on " +
-                "the interval [0,2]- received " + punctMode);
+        if(input == null) throw new AssertionError("Input cannot be null");
+        if(key == null) throw new AssertionError("Key cannot be null");
+        if(blockCount<=0 || blockCount>MAX_BLOCK_COUNT) throw new AssertionError("Blocks must be on the interval" +
+                " [1, " + MAX_BLOCK_COUNT + "]- received " + blockCount);
+        if(blockLength<=0 || blockLength>MAX_BLOCK_LENGTH) throw new AssertionError("Chars per block " +
+                "must be on the interval [1, " + MAX_BLOCK_LENGTH + "]- received " + blockLength);
         if(nWorkerThreads<0 || nWorkerThreads>StepperFields.MAX_THREADS)
             throw new AssertionError("Number of worker threads must be on the interval [0, " + StepperFields.MAX_THREADS
             + "]- received " + nWorkerThreads);
 
         this.input = input;
         this.key = key;
-        this.encrypting = encrypting;
-        this.doingV2Process = doingV2Process;
-        this.blockCount = blocks;
-        this.blockLength = charsPerBlock;
-        this.punctMode = punctMode;
+        this.operationSelection = operationSelection;
+        this.punctSelection = punctSelection;
+        this.blockCount = blockCount;
+        this.blockLength = blockLength;
         this.usingFileInput = usingFileInput;
         this.nWorkerThreads = nWorkerThreads;
     }
@@ -139,19 +119,20 @@ final public class ProcessTask extends Task<String[]> {
     public ProcessTask() {
         this.input = null;
         this.key = null;
-        this.encrypting = false;
-        this.doingV2Process = false;
+        this.operationSelection = OperationSelection.STEPPER_ENCRYPT;
+        this.punctSelection = PunctuationSelection.USE_PUNCTUATION;
         this.blockCount = -1;
         this.blockLength = -1;
         this.usingFileInput = false;
-        this.punctMode = -127;
         this.nWorkerThreads = -1;
     }
 
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////
     // ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // CALL
 
 
     /**
@@ -178,7 +159,7 @@ final public class ProcessTask extends Task<String[]> {
                 throw new AssertionError("WRONG CONSTRUCTOR USED");
             }
 
-            updateMessage(LOADING_STATE_NAMES[0]);
+            updateMessage(LoadingController.LOADING_STATE_NAMES[0]);
 
             //Prevent the user from getting epilepsy
             try {
@@ -207,7 +188,7 @@ final public class ProcessTask extends Task<String[]> {
             StringBuilder runResult = new StringBuilder(); //Intermediate result
             for (int run = 1; run <= 2; run++) { //run 1 -> diacritics workers, run 2 -> main process workers
 
-                updateMessage(LOADING_STATE_NAMES[run]);
+                updateMessage(LoadingController.LOADING_STATE_NAMES[run]);
 
                 //Bug fix
                 if (nWorkerThreads <= 0) {
@@ -228,8 +209,8 @@ final public class ProcessTask extends Task<String[]> {
                 for (int i = 0; i < nWorkerThreads; i++) {
                     subtasks[i] = (run == 1)
                             ? new ProcessSubtaskDiacritics(subtaskWorkloads[i])
-                            : new ProcessSubtaskMain(subtaskWorkloads[i], formattedKey, encrypting, doingV2Process,
-                            punctMode, startingSegment);
+                            : new ProcessSubtaskMain(subtaskWorkloads[i], formattedKey,
+                                operationSelection, punctSelection, startingSegment);
 
                     //Advance starting segment
                     startingSegment += (countAlphaChars(subtaskWorkloads[i]) / blockLength);
@@ -283,7 +264,7 @@ final public class ProcessTask extends Task<String[]> {
             }
 
             //change the message to "Finalizing..." (which disables the cancel button through the loading controller's listener)
-            updateMessage(LOADING_STATE_NAMES[4]);
+            updateMessage(LoadingController.LOADING_STATE_NAMES[4]);
             try {
                 Thread.sleep(100); //give the FX app thread time to update
             }
@@ -292,7 +273,7 @@ final public class ProcessTask extends Task<String[]> {
                 return new String[]{null, null, null, null};
             }
 
-            return new String[] {runResult.toString().strip(), createKeyBlocksReverse(formattedKey), null, null};
+            return new String[] {runResult.toString().strip(), createKeyFromKeyBlocks(formattedKey), null, null};
         }
         //Any unhandled exception: Print the stack trace and return error
         //Any errors are handled and displayed by the results controller, through the same value listener that loads successful results
@@ -307,10 +288,10 @@ final public class ProcessTask extends Task<String[]> {
 
 
 
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////////////////////////////////////////
     //METHODS
 
     /**
@@ -526,13 +507,13 @@ final public class ProcessTask extends Task<String[]> {
      * @return {@code blocks} by {@code charsPerBlock} byte[][] array loaded with text from {@code input}
      */
     private byte[][] createKeyBlocks(String input, int blocks, int charsPerBlock) {
-        if(input==null) {
+        if(input == null) {
             throw new AssertionError("Input string cannot be null");
         }
-        if(blocks<=0) {
+        if(blocks <= 0) {
             throw new AssertionError("Blocks must be positive");
         }
-        if(charsPerBlock<=0) {
+        if(charsPerBlock <= 0) {
             throw new AssertionError("Chars per block must be positive");
         }
 
@@ -540,11 +521,11 @@ final public class ProcessTask extends Task<String[]> {
         StringBuilder formattedKey = new StringBuilder();
 
         //Create the formatted key. Fill until every input character is loaded
-        for(int i=0; i<input.length(); i++) {
+        for(int i = 0; i < input.length(); i++) {
             char currentChar = Character.toLowerCase(input.charAt(i));
             currentChar = removeDiacritics(currentChar);
 
-            if(currentChar>=97 && currentChar<=122) {
+            if((int)currentChar>=97 && (int)currentChar<=122) {
                 formattedKey.append(currentChar);
             }
         }
@@ -555,7 +536,7 @@ final public class ProcessTask extends Task<String[]> {
 
         //If the output is not filled, load with random characters
         while(formattedKey.length() < blocks*charsPerBlock) {
-            for(int r=0; r<rng.nextInt(); r++) {
+            for(int r = 0; r < rng.nextInt(); r++) {
                 rng.nextInt();
             }
             int currentRandChar = rng.nextInt();
@@ -566,7 +547,7 @@ final public class ProcessTask extends Task<String[]> {
             }
 
             //Convert the number to a lowercase character ASCII value
-            currentRandChar = (currentRandChar%26 + 97);
+            currentRandChar = (currentRandChar % 26 + 97);
 
             //Add random character to the formatted key
             formattedKey.append((char) currentRandChar);
@@ -574,11 +555,11 @@ final public class ProcessTask extends Task<String[]> {
 
         //At this point, the formatted key should contain blocks*charsPerBlock characters.
         byte[][] output = new byte[blocks][charsPerBlock];
-        int inputIndex=0;
+        int inputIndex = 0;
         //Load the output with the input's indices
-        for(int a=0; a<blocks; a++) {
-            for(int i=0; i<charsPerBlock; i++) {
-                output[a][i]=(byte)(formattedKey.charAt(inputIndex) - 97);
+        for(int a = 0; a < blocks; a++) {
+            for(int i = 0; i < charsPerBlock; i++) {
+                output[a][i] = (byte)(formattedKey.charAt(inputIndex) - 97);
                 inputIndex++;
             }
         }
@@ -587,6 +568,8 @@ final public class ProcessTask extends Task<String[]> {
     }
 
     /**
+     * FOR UNIT TESTING ONLY!!!<br><br>
+     *
      * Returns a byte[][] array with `blocks` indices, each with `charsPerBlock` characters,
      * containing the text from `input` as numerical values.<br><br>
      *
@@ -599,8 +582,6 @@ final public class ProcessTask extends Task<String[]> {
      * -If `input` contains less than `blocks`*`charsPerBlock` English ASCII letters, any character not filled by `input`
      * becomes a random value on the interval [0,25]. If `input` contains more than `blocks`*`charsPerBlock` English ASCII letters,
      * any character past index `blocks`*`charsPerBlock` in the input is ignored.<br><br>
-     *
-     * FOR UNIT TESTING ONLY!!!
      *
      * @param input the input text. Can't be null
      * @param blocks number of indices in the output array. Must be positive
@@ -621,7 +602,7 @@ final public class ProcessTask extends Task<String[]> {
      * @param input input array. Cannot be null. No subarrays can be null. All indices must be on the interval [0, 25]
      * @return String representation of the input
      */
-    private String createKeyBlocksReverse(byte[][] input) {
+    private String createKeyFromKeyBlocks(byte[][] input) {
         if(input == null) {
             throw new AssertionError("Input cannot be null");
         }
@@ -629,14 +610,14 @@ final public class ProcessTask extends Task<String[]> {
         StringBuilder output = new StringBuilder(input.length * input[0].length);
 
         //move through the blocks
-        for (int b=0; b<input.length; b++) {
+        for (int b = 0; b < input.length; b++) {
             if(input[b] == null) {
                 throw new AssertionError("Block index " + b + " cannot be null");
             }
 
             //append each value in the block to the output
-            for(int c=0; c<input[b].length; c++) {
-                if((int)input[b][c]<0 || (int)input[b][c]>25) {
+            for(int c = 0; c < input[b].length; c++) {
+                if((int)input[b][c] < 0 || (int)input[b][c] > 25) {
                     throw new AssertionError("Index [" + b + "][" + c + "] (value: " + input[b][c] + ") must be on the interval [0, 25]");
                 }
 
@@ -660,10 +641,10 @@ final public class ProcessTask extends Task<String[]> {
      * @param filepath name of the input file. Can't be null
      * @return contents from the given input filename, or the empty string if the task is cancelled
      * @throws FileNotFoundException if the file can't be read or the filename lacks the ".txt" extension.
-     * Displays a descriptive error message, which is displayed to the user, if thrown.
+     * Displays a descriptive error message, which can be displayed to the user, if thrown.
      */
     private String readFile(String filepath) throws FileNotFoundException {
-        if(filepath==null) {
+        if(filepath == null) {
             throw new AssertionError("Filename cannot be null");
         }
 
@@ -748,11 +729,11 @@ final public class ProcessTask extends Task<String[]> {
 
 
         //loop through outChar strings
-        for(int os=0; os<outChars.length; os++) {
+        for(int os = 0; os < outChars.length; os++) {
             //loop through individual letters in the outChars string.
             //if match, set replacement char to ASCII replacement
 
-            for(int oc=0; oc<outChars[os].length(); oc++) {
+            for(int oc = 0; oc < outChars[os].length(); oc++) {
                 if(outChars[os].charAt(oc)==input) {
                     charReplacement=inChars[os];
                     break;

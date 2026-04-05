@@ -30,6 +30,7 @@ final public class StepperFields {
     final public static String DEFAULT_INPUT_FILENAME = "input.txt";
 
     /**
+     * (Currently not used.)<br><br>
      * Filename for the output file if none is given. Cannot be null. Must end in ".txt"
      */
     final public static String DEFAULT_OUTPUT_FILENAME = "output.txt";
@@ -84,7 +85,11 @@ final public class StepperFields {
      * A Service that controllers can start, cancel, and reset. Can never be null.<br><br>
      *
      * Service start process:<br>
-     * - The input controller starts the Service with
+     * - The input controller loads and starts the Service when the "start operation" button is clicked<br>
+     * - The Service deploys a ProcessTask<br>
+     * - The ProcessTask deploys ProcessSubtasks<br>
+     * - The ProcessSubtasks pass their outputs to the ProcessTask. The ProcessTask finishing updates the Service's value property.<br>
+     * - Final output is collected through a value listener set on the Service by the results screen
      */
     private static final ProcessService service = new ProcessService();
 
@@ -92,6 +97,33 @@ final public class StepperFields {
      * Probability of seeing sponsored content, after every screen change. Must be on the interval [0, 1].
      */
     private static float sponsoredContentProbability = 0.8f;
+
+
+    // ////////////////////////////////////////////////////////////////////////////////////////
+
+
+    /**
+     * Checks preconditions of all constants. Throws an {@code AssertionError} if a precondition is broken.
+     */
+    public static void assertConstantPreconditions() {
+        //This is an idiot check.
+        if(DEFAULT_BLOCK_COUNT <= 0)
+            throw new AssertionError("Default block count must be positive- instead received " + DEFAULT_BLOCK_COUNT);
+        if(DEFAULT_BLOCK_LENGTH <= 0)
+            throw new AssertionError("Default block length must be positive- instead received " + DEFAULT_BLOCK_LENGTH);
+        if(DEFAULT_INPUT_FILENAME.endsWith(".txt") == false)
+            throw new AssertionError("Default input filename must end in \".txt\"- instead received " + DEFAULT_INPUT_FILENAME);
+        if(DEFAULT_OUTPUT_FILENAME.endsWith(".txt") == false)
+            throw new AssertionError("Default output filename must end in \".txt\"- instead received " + DEFAULT_OUTPUT_FILENAME);
+        if(KEY_BLOCK_INCREMENTS.length < DEFAULT_BLOCK_COUNT)
+            throw new AssertionError("Length of key block increments, " + KEY_BLOCK_INCREMENTS.length + ", must be at least the default block count, " + DEFAULT_BLOCK_COUNT);
+        if(MAX_BLOCK_COUNT != KEY_BLOCK_INCREMENTS.length)
+            throw new AssertionError("Max block count, " + MAX_BLOCK_COUNT + ", must be at least the length of the key block increments array, " + KEY_BLOCK_INCREMENTS.length);
+        if(MAX_BLOCK_LENGTH <= 0)
+            throw new AssertionError("Max block length must be positive- instead received " + MAX_BLOCK_LENGTH);
+        if(MAX_THREADS <= 0)
+            throw new AssertionError("Max thread count must be positive- instead received " + MAX_THREADS);
+    }
 
 
     // ///////////////////////////////////////////////////////////////////////////////////
@@ -118,6 +150,7 @@ final public class StepperFields {
     }
 
 
+
     /**
      * Returns the current block length stored by the shared fields
      * @return block length
@@ -135,6 +168,7 @@ final public class StepperFields {
             throw new AssertionError("New block length must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
         blockLength = newBlockLength;
     }
+
 
 
     /**
@@ -159,6 +193,7 @@ final public class StepperFields {
     }
 
 
+
     /**
      * Returns the user's stored login credentials
      * @return login credentials
@@ -176,6 +211,7 @@ final public class StepperFields {
     }
 
 
+
     /**
      * Returns the probability that sponsored content is shown on the next screen change.<br><br>
      * The value returned is on the interval [0,1].
@@ -190,7 +226,7 @@ final public class StepperFields {
 
     /**
      * Sets the probability that sponsored content is shown on the next screen change.
-     * @param newProbability new probability to use. Must be on the interval [0,1]
+     * @param newProbability new probability to use. Value as a float must be on the interval [0,1]
      */
     public static void setSponsoredContentProbability(double newProbability) {
         if((float)newProbability<0 || (float)newProbability>1)
@@ -257,37 +293,40 @@ final public class StepperFields {
 
     /**
      * Starts the app's Service, loading it with the given data.
-     * If the Service is not in the READY state, throws an IllegalStateException.
+     * If the Service is not in the READY state, throws an IllegalStateException.<br><br>
+     *
+     * Service start process:<br>
+     * - The input controller loads and starts the Service when the "start operation" button is clicked<br>
+     * - The Service deploys a ProcessTask<br>
+     * - The ProcessTask deploys ProcessSubtasks<br>
+     * - The ProcessSubtasks pass their outputs to the ProcessTask. The ProcessTask finishing updates the Service's value property.<br>
+     * - Final output is collected through a value listener set on the Service by the results screen
      *
      * @param input what the Service should process, or a filepath to the input. Cannot be null
      * @param key key for processing the input. Cannot be null
-     * @param encrypting true if the service will encrypt, false if the service will decrypt
-     * @param usingV2Process true if using enhanced (v2) processes, false otherwise
+     * @param operationSelection operation to do, as a OperationSelection object (i.e. Stepper 2, encrypt)
+     * @param punctSelection punctuation preferences, as a PunctuationSelection object
      * @param blockCount number of blocks to use. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_COUNT}]
-     * @param blockLength number of characters in each block to use. Must be on the interval [1, {@code StepperFields.MAX_BLOCK_LENGTH}]
-     * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
-     *                  2 if the task processes the input with all punctuation
+     * @param blockLength number of characters in each block to use.
+     *                    Must be on the interval [1, {@code StepperFields.MAX_BLOCK_LENGTH}]
      * @param loadingFromFile true if loading input from a separate file, false otherwise
      * @param nThreads number of threads to use during processing. Must be on the interval [0, {@code StepperFields.MAX_THREADS}]
      * @throws IllegalStateException if the service is not ready to be run
      */
-    public static void startService(String input, String key, boolean encrypting, boolean usingV2Process,
+    public static void startService(String input, String key, OperationSelection operationSelection, PunctuationSelection punctSelection,
                              int blockCount, int blockLength,
-                             int punctMode,
                              boolean loadingFromFile, int nThreads) {
 
         if(input == null) throw new AssertionError("Input cannot be null");
-        if(key==null) throw new AssertionError("Key cannot be null");
+        if(key == null) throw new AssertionError("Key cannot be null");
         if(blockCount<=0 || blockCount>MAX_BLOCK_COUNT) throw new AssertionError("Block count (value: " + blockCount + ") must be on the interval [1, " + MAX_BLOCK_COUNT + "]");
         if(blockLength<=0 || blockLength>MAX_BLOCK_LENGTH) throw new AssertionError("Block length (value: " + blockLength + ") must be on the interval [1, " + MAX_BLOCK_LENGTH + "]");
-        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode (value: " + punctMode + ") must be 0, 1, or 2");
         if(nThreads<0 || nThreads>MAX_THREADS) throw new AssertionError("Number of threads (value: " + nThreads + ")" +
                 " must be on the interval [0, " + MAX_THREADS + "]");
 
         if(service.getState() == Worker.State.READY) {
-            service.initializeService(input, key, encrypting, usingV2Process,
+            service.initializeService(input, key, operationSelection, punctSelection,
                     blockCount, blockLength,
-                    punctMode,
                     loadingFromFile, nThreads);
 
             service.start();

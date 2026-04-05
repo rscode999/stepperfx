@@ -1,5 +1,7 @@
 package com.rscode.stepperfx.threading;
 
+import com.rscode.stepperfx.integration.OperationSelection;
+import com.rscode.stepperfx.integration.PunctuationSelection;
 import javafx.concurrent.Task;
 import java.util.Arrays;
 import static com.rscode.stepperfx.integration.StepperFields.getKeyBlockIncrementIndex;
@@ -8,11 +10,6 @@ import static com.rscode.stepperfx.integration.StepperFields.getKeyBlockIncremen
  * Performs part of the work of a ProcessTask
  */
 final public class ProcessSubtaskMain extends Task<String> {
-
-    /**
-     * True if this worker is encrypting its text, false otherwise
-     */
-    final private boolean encrypting;
 
     /**
      * The String to process. Can't be null
@@ -25,19 +22,19 @@ final public class ProcessSubtaskMain extends Task<String> {
     final private byte[][] key;
 
     /**
-     * Allowed values: 0 if including punctuation, 1 if excluding spaces, 2 if alphabetic characters only
+     * Which operation the Task carries out. Example: Stepper 2, encryption.
      */
-    final private int punctMode;
+    private final OperationSelection operationSelection;
+
+    /**
+     * Punctuation preferences for the given operation
+     */
+    private final PunctuationSelection punctSelection;
 
     /**
      * The segment number in the Boss's input string. Can't be negative
      */
     final private int startSegment;
-
-    /**
-     * True if using version 2 processes, false otherwise
-     */
-    final private boolean usingV2Process;
 
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,39 +45,36 @@ final public class ProcessSubtaskMain extends Task<String> {
      * Creates a new {@code ProcessSubtaskMain} and loads its fields.
      * @param textPiece the substring it should process. Can't be null
      * @param key the key to process the substring with. Can't be null. No subarrays can be null.
-     *            All indices must be on the interval [0,25]
-     * @param encrypting true if this Worker should encrypt its text, false otherwise
-     * @param usingV2Process true if using enhanced (v2) process, false otherwise
-     * @param punctMode 0 if the task removes all punctuation from the input, 1 if the task removes spaces from the input,
-     *            2 if the task processes the input with all punctuation
+     *            All indices must be on the interval [0,25].
+     * @param operationSelection operation to do, as a OperationSelection object (i.e. Stepper 2, encrypt)
+     * @param punctSelection punctuation preferences, as a PunctuationSelection object
      * @param startSegment text segment to start processing the input. Cannot be negative
      */
-    public ProcessSubtaskMain(String textPiece, byte[][] key, boolean encrypting, boolean usingV2Process,
-                              int punctMode, int startSegment) {
+    public ProcessSubtaskMain(String textPiece, byte[][] key,
+                              OperationSelection operationSelection, PunctuationSelection punctSelection,
+                              int startSegment) {
 
-        if(textPiece==null) throw new AssertionError("Input text cannot be null");
-        if(key==null) throw new AssertionError("Key cannot be null");
-        if(punctMode<0 || punctMode>2) throw new AssertionError("Punctuation mode must be on the interval [0,2]- instead received " + punctMode);
-        if(startSegment<0) throw new AssertionError("Start segment cannot be negative- instead received " + startSegment);
+        if(textPiece == null) throw new AssertionError("Input text cannot be null");
+        if(key == null) throw new AssertionError("Key cannot be null");
+        if(startSegment < 0) throw new AssertionError("Start segment cannot be negative- instead received " + startSegment);
 
         this.textPiece = textPiece;
 
         //Make a deep copy of the key
-        if(key[0]==null) throw new AssertionError("Key array at index 0 cannot be null");
+        if(key[0] == null) throw new AssertionError("Key array at index 0 cannot be null");
         this.key = new byte[key.length][key[0].length];
-        for(int a=0; a<key.length; a++) {
-            if(key[a]==null) throw new AssertionError("Key array at index " + a + " cannot be null");
+        for(int a = 0; a < key.length; a++) {
+            if(key[a] == null) throw new AssertionError("Key array at index " + a + " cannot be null");
 
-            for(int i=0; i<key[0].length; i++) {
-                if(key[a][i]<0 || key[a][i]>25) throw new AssertionError("Key value [" + a + "][" + i + "] must be on the interval [0,25]- instead received " + key[a][i]);
+            for(int i = 0; i < key[0].length; i++) {
+                if(key[a][i] < 0 || key[a][i] > 25) throw new AssertionError("Key value [" + a + "][" + i + "] must be on the interval [0,25]- instead received " + key[a][i]);
                 this.key[a][i] = key[a][i];
             }
         }
 
-        this.encrypting = encrypting;
-        this.punctMode = punctMode;
+        this.operationSelection = operationSelection;
+        this.punctSelection = punctSelection;
         this.startSegment = startSegment;
-        this.usingV2Process = usingV2Process;
     }
 
 
@@ -91,10 +85,9 @@ final public class ProcessSubtaskMain extends Task<String> {
     public ProcessSubtaskMain() {
         this.textPiece = null;
         this.key = null;
-        this.encrypting = false;
-        this.punctMode = -1;
+        this.operationSelection = OperationSelection.STEPPER_ENCRYPT;
+        this.punctSelection = PunctuationSelection.USE_PUNCTUATION;
         this.startSegment = -1;
-        this.usingV2Process = false;
     }
 
 
@@ -111,12 +104,12 @@ final public class ProcessSubtaskMain extends Task<String> {
      */
     protected String call() {
         //Constructor check
-        if(textPiece==null || key==null || punctMode<0 || punctMode>2 || startSegment<0) {
+        if(textPiece==null || key==null || startSegment<0) {
             throw new AssertionError("PROCESS SUBTASK MAIN- TESTING CONSTRUCTOR USED FOR OPERATIONS");
         }
 
         //remove spaces (if specified)
-        if(encrypting && punctMode==1) {
+        if(operationSelection.isEncryptionOperation() && punctSelection==PunctuationSelection.REMOVE_SPACES) {
             textPiece = removeSpaces(textPiece);
         }
 
@@ -125,18 +118,25 @@ final public class ProcessSubtaskMain extends Task<String> {
         textPiece = removeNonAlphas(textPiece);
 
         //do the specified process
-        if(usingV2Process) {
-            textPiece = encrypting ? encryptStepper2(textPiece, key, startSegment) : decryptStepper2(textPiece, key, startSegment);
+        if(operationSelection.isStepper2Operation()) {
+            textPiece = operationSelection.isEncryptionOperation()
+                    ? encryptStepper2(textPiece, key, startSegment)
+                    : decryptStepper2(textPiece, key, startSegment);
         }
         else {
-            textPiece = encrypting ? encryptStepper(textPiece, key, startSegment) : decryptStepper(textPiece, key, startSegment);
+            textPiece = operationSelection.isEncryptionOperation()
+                    ? encryptStepper(textPiece, key, startSegment)
+                    : decryptStepper(textPiece, key, startSegment);
         }
 
         //do the numbers
-        nonAlphas = encrypting ? encryptStepperNumbers(nonAlphas, key) : decryptStepperNumbers(nonAlphas, key);
+        nonAlphas = operationSelection.isEncryptionOperation()
+                ? encryptStepperNumbers(nonAlphas, key)
+                : decryptStepperNumbers(nonAlphas, key);
 
         //reinsert non-alphas
-        textPiece = recombineNonAlphas(textPiece, nonAlphas, (!encrypting || punctMode>=1));
+        textPiece = recombineNonAlphas(textPiece, nonAlphas,
+                (!operationSelection.isEncryptionOperation() || !punctSelection.equals(PunctuationSelection.REMOVE_ALL_PUNCTUATION)));
 
         return textPiece;
     }
@@ -180,9 +180,9 @@ final public class ProcessSubtaskMain extends Task<String> {
         //Check text contents: all alphabetic lowercase ASCII characters (done during decr. process)
 
         //Check key contents: all indices on [0,25]
-        for (byte[] bytes : key) {
-            for (byte aByte : bytes) {
-                if (aByte < 0 || aByte > 25) {
+        for (byte[] b : key) {
+            for (byte c : b) {
+                if (c < 0 || c > 25) {
                     throw new AssertionError("All key indices must be on the interval [0,25]");
                 }
             }
@@ -201,39 +201,39 @@ final public class ProcessSubtaskMain extends Task<String> {
                 key.length, key[0].length);
         StringBuilder output = new StringBuilder(text.length());
 
-        int currentChar=0;
+        int currentChar = 0;
 
         byte[] keyBlockReadPositions = new byte[key.length];
         System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
-        for(int m = 0; m<(text.length() % key[0].length); m++) {
-            for(int a=0; a<keyBlockReadPositions.length; a++) {
+        for(int m = 0; m < (text.length() % key[0].length); m++) {
+            for(int a = 0; a < keyBlockReadPositions.length; a++) {
                 keyBlockReadPositions[a]++;
                 if(keyBlockReadPositions[a] >= key[0].length) {
-                    keyBlockReadPositions[a]=0;
+                    keyBlockReadPositions[a] = 0;
                 }
             }
         }
 
-        for(int t = text.length()-1; t>=text.length()-(text.length() % key[0].length); t--) {
+        for(int t = text.length()-1; t >= text.length() - (text.length() % key[0].length); t--) {
             if(isCancelled()) {
                 return "";
             }
 
-            for(int d=0; d<keyBlockReadPositions.length; d++) {
+            for(int d = 0; d < keyBlockReadPositions.length; d++) {
                 keyBlockReadPositions[d]--;
                 if(keyBlockReadPositions[d] < 0) {
                     keyBlockReadPositions[d] = (byte) (key[0].length - 1);
                 }
             }
 
-            if(!(text.charAt(t)>=97 && text.charAt(t)<=122)) {
+            if(!(text.charAt(t) >= 97 && text.charAt(t) <= 122)) {
                 throw new IllegalArgumentException("Text must contain all lowercase English ASCII characters");
             }
 
             currentChar=text.charAt(t) - 97;
 
-            for(int k=keyBlockReadPositions.length-1; k>=0; k--) {
+            for(int k = keyBlockReadPositions.length - 1; k >= 0; k--) {
                 currentChar = (currentChar - key[k][keyBlockReadPositions[k]]) % 26;
                 if(currentChar < 0) {
                     currentChar += 26;
@@ -252,10 +252,10 @@ final public class ProcessSubtaskMain extends Task<String> {
 
             keyBlockBasePositions[0]--;
 
-            for(int m=0; m<keyBlockBasePositions.length-1; m++) {
+            for(int m = 0; m < keyBlockBasePositions.length - 1; m++) {
 
                 if(keyBlockBasePositions[m]<0) {
-                    for(int r=0; r<=m; r++) {
+                    for(int r = 0; r <= m; r++) {
                         keyBlockBasePositions[m] = (byte) (key[0].length - 1);
                     }
                     keyBlockBasePositions[m+1]--;
@@ -322,14 +322,14 @@ final public class ProcessSubtaskMain extends Task<String> {
             throw new AssertionError("Text and key cannot be null");
         }
         for(byte[] k : key) {
-            if(k==null) {
+            if(k == null) {
                 throw new AssertionError("No index in the key can be null");
             }
         }
 
         //Check text contents: all alphabetic lowercase ASCII characters
-        for(int v=0; v<text.length(); v++) {
-            if(!(text.charAt(v)>=97 && text.charAt(v)<=122)) {
+        for(int v = 0; v < text.length(); v++) {
+            if(!(text.charAt(v) >= 97 && text.charAt(v) <= 122)) {
                 throw new AssertionError("Text must contain all lowercase English ASCII characters");
             }
         }
@@ -357,17 +357,17 @@ final public class ProcessSubtaskMain extends Task<String> {
 
         StringBuilder output = new StringBuilder(text.length());
 
-        int currentChar=0;
+        int currentChar = 0;
         int currentBlock = (startingSegment + text.length() / key[0].length);
 
         byte[] keyBlockReadPositions = new byte[key.length];
         System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
         for(int m = 0; m < (text.length() % key[0].length); m++) {
-            for(int a=0; a<keyBlockReadPositions.length; a++) {
+            for(int a = 0; a < keyBlockReadPositions.length; a++) {
                 keyBlockReadPositions[a]++;
                 if(keyBlockReadPositions[a] >= key[0].length) {
-                    keyBlockReadPositions[a]=0;
+                    keyBlockReadPositions[a] = 0;
                 }
             }
         }
@@ -376,43 +376,43 @@ final public class ProcessSubtaskMain extends Task<String> {
             return "";
         }
 
-        for(int t = text.length()-1; t >= text.length()-(text.length() % key[0].length); t--) {
+        for(int t = text.length() - 1; t >= text.length() - (text.length() % key[0].length); t--) {
 
-            for(int d=0; d<keyBlockReadPositions.length; d++) {
+            for(int d = 0; d < keyBlockReadPositions.length; d++) {
                 keyBlockReadPositions[d] -= 1;
                 if(keyBlockReadPositions[d] < 0) {
                     keyBlockReadPositions[d] = (byte) (key[0].length - 1);
                 }
             }
 
-            currentChar=text.charAt(t) - 97;
-            for(int k = keyBlockReadPositions.length-1; k >= 0; k--) {
+            currentChar = text.charAt(t) - 97;
+            for(int k = keyBlockReadPositions.length - 1; k >= 0; k--) {
                 currentChar = (currentChar - key[k][keyBlockReadPositions[k]]) % 26;
                 if(currentChar < 0) {
                     currentChar += 26;
                 }
             }
 
-            output.append((char)(currentChar+97));
+            output.append((char)(currentChar + 97));
 
         }
 
-        for(int seg = text.length()-(text.length() % key[0].length)-1; seg >= 0; seg -= key[0].length) {
+        for(int seg = text.length()-(text.length() % key[0].length) - 1; seg >= 0; seg -= key[0].length) {
             if(isCancelled()) {
                 return "";
             }
 
             currentBlock--;
-            if((currentBlock+1) % key[0].length==0) {
+            if((currentBlock + 1) % key[0].length == 0) {
                 keyBlockBasePositions = initializeKeyBlockPositions(currentBlock, key.length, key[0].length);
             }
 
 
-            for(int m=0; m<keyBlockBasePositions.length; m++) {
+            for(int m = 0; m < keyBlockBasePositions.length; m++) {
                 keyBlockBasePositions[m] -= (byte)(getKeyBlockIncrementIndex(m) % key[0].length);
 
-                if(keyBlockBasePositions[m]<0) {
-                    keyBlockBasePositions[m] += (byte) key[0].length;
+                if(keyBlockBasePositions[m] < 0) {
+                    keyBlockBasePositions[m] += (byte)key[0].length;
                 }
             }
 
@@ -420,7 +420,7 @@ final public class ProcessSubtaskMain extends Task<String> {
 
             for(int t = seg; t > seg - key[0].length; t--) {
 
-                for(int d=0; d<keyBlockReadPositions.length; d++) {
+                for(int d = 0; d < keyBlockReadPositions.length; d++) {
                     keyBlockReadPositions[d]--;
                     if(keyBlockReadPositions[d] < 0) {
                         keyBlockReadPositions[d]= (byte) (key[0].length - 1);
@@ -429,7 +429,7 @@ final public class ProcessSubtaskMain extends Task<String> {
 
                 currentChar=(int)text.charAt(t) - 97;
 
-                for(int k=keyBlockReadPositions.length-1; k>=0; k--) {
+                for(int k = keyBlockReadPositions.length - 1; k >= 0; k--) {
 
                     currentChar = (currentChar - key[k][keyBlockReadPositions[k]]) % 26;
                     if(currentChar < 0) {
@@ -459,10 +459,10 @@ final public class ProcessSubtaskMain extends Task<String> {
      * @return copy of {@code input} with numbers decrypted
      */
     private char[] decryptStepperNumbers(char[] textNonAlphas, byte[][] key) {
-        if(textNonAlphas==null) {
+        if(textNonAlphas == null) {
             throw new AssertionError("Text non-alphas cannot be null");
         }
-        if(key==null) {
+        if(key == null) {
             throw new AssertionError("Key cannot be null");
         }
 
@@ -483,8 +483,8 @@ final public class ProcessSubtaskMain extends Task<String> {
         dKey = dKey % 26;
 
         char[] output = new char[textNonAlphas.length];
-        for(int i=0; i<textNonAlphas.length; i++) {
-            if(!((int)textNonAlphas[i]>=48 && (int)textNonAlphas[i]<=57)) {
+        for(int i = 0; i < textNonAlphas.length; i++) {
+            if(!((int)textNonAlphas[i] >= 48 && (int)textNonAlphas[i] <= 57)) {
                 output[i] = textNonAlphas[i];
             }
             else {
@@ -530,15 +530,15 @@ final public class ProcessSubtaskMain extends Task<String> {
         }
 
         //Check text contents: all alphabetic lowercase ASCII characters
-        for(int v=0; v<text.length(); v++) {
-            if(!(text.charAt(v)>=97 && text.charAt(v)<=122)) {
+        for(int v = 0; v < text.length(); v++) {
+            if(!((int)text.charAt(v) >= 97 && (int)text.charAt(v) <= 122)) {
                 throw new AssertionError("Text must contain all lowercase English ASCII characters");
             }
         }
 
         //Check key contents: all indices on [0,25]
-        for (byte[] blocks : key) {
-            for (byte k : blocks) {
+        for (byte[] b : key) {
+            for (byte k : b) {
                 if (k < 0 || k > 25) {
                     throw new AssertionError("All key indices must be on the interval [0,25]");
                 }
@@ -569,17 +569,17 @@ final public class ProcessSubtaskMain extends Task<String> {
 
             System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
-            for(int t = seg; t<(seg + key[0].length); t++) {
+            for(int t = seg; t < (seg + key[0].length); t++) {
 
                 currentChar=(int)text.charAt(t) - 97;
 
-                for(int k=0; k<keyBlockReadPositions.length; k++) {
+                for(int k = 0; k < keyBlockReadPositions.length; k++) {
                     currentChar = (currentChar + key[k][keyBlockReadPositions[k]]) % 26;
                 }
 
-                output.append((char)(currentChar+97));
+                output.append((char)(currentChar + 97));
 
-                for(int a=0; a<keyBlockReadPositions.length; a++) {
+                for(int a = 0; a < keyBlockReadPositions.length; a++) {
                     keyBlockReadPositions[a]++;
                     if(keyBlockReadPositions[a] >= key[0].length) {
                         keyBlockReadPositions[a]=0;
@@ -589,17 +589,17 @@ final public class ProcessSubtaskMain extends Task<String> {
 
             keyBlockBasePositions[0]++;
 
-            for(int m=0; m<keyBlockBasePositions.length-1; m++) {
+            for(int m = 0; m < keyBlockBasePositions.length - 1; m++) {
 
                 if(keyBlockBasePositions[m] >= key[0].length) {
 
-                    for(int r=0; r<=m; r++) {
+                    for(int r = 0; r <= m; r++) {
                         keyBlockBasePositions[r]=0;
                     }
                     keyBlockBasePositions[m+1]++;
                 }
             }
-            if(keyBlockBasePositions[keyBlockBasePositions.length-1] >= key[0].length) {
+            if(keyBlockBasePositions[keyBlockBasePositions.length - 1] >= key[0].length) {
                 Arrays.fill(keyBlockBasePositions, (byte)0);
             }
 
@@ -610,20 +610,20 @@ final public class ProcessSubtaskMain extends Task<String> {
             return "";
         }
 
-        for(int t = text.length()-(text.length() % key[0].length); t<text.length(); t++) {
+        for(int t = text.length() - (text.length() % key[0].length); t < text.length(); t++) {
 
             currentChar=(int)text.charAt(t) - 97;
 
-            for(int k=0; k<keyBlockReadPositions.length; k++) {
+            for(int k = 0; k < keyBlockReadPositions.length; k++) {
                 currentChar = (currentChar + key[k][keyBlockReadPositions[k]]) % 26;
             }
 
-            output.append((char)(currentChar+97));
+            output.append((char)(currentChar + 97));
 
-            for(int a=0; a<keyBlockReadPositions.length; a++) {
+            for(int a = 0; a < keyBlockReadPositions.length; a++) {
                 keyBlockReadPositions[a]++;
                 if(keyBlockReadPositions[a] >= key[0].length) {
-                    keyBlockReadPositions[a]=0;
+                    keyBlockReadPositions[a] = 0;
                 }
             }
         }
@@ -655,22 +655,22 @@ final public class ProcessSubtaskMain extends Task<String> {
             throw new AssertionError("Text and key cannot be null");
         }
         for(byte[] k : key) {
-            if(k==null) {
+            if(k == null) {
                 throw new AssertionError("No index in the key can be null");
             }
         }
 
         //Check text contents: all alphabetic lowercase ASCII characters
-        for(int v=0; v<text.length(); v++) {
-            if(!(text.charAt(v)>=97 && text.charAt(v)<=122)) {
+        for(int v = 0; v < text.length(); v++) {
+            if(!((int)text.charAt(v) >= 97 && (int)text.charAt(v) <= 122)) {
                 throw new AssertionError("Text must contain all lowercase English ASCII characters");
             }
         }
 
         //Check key contents: all indices on [0,25]
-        for(byte[] block : key) {
-            for(byte index : block) {
-                if (index < 0 || index > 25) {
+        for(byte[] b : key) {
+            for(byte i : b) {
+                if (i < 0 || i > 25) {
                     throw new AssertionError("All key indices must be on the interval [0,25]");
                 }
             }
@@ -691,7 +691,7 @@ final public class ProcessSubtaskMain extends Task<String> {
 
 
         StringBuilder output = new StringBuilder(text.length());
-        int currentChar=0;
+        int currentChar = 0;
         int blocksEncrypted = startingSegment;
 
         for(int seg = 0; seg <= (text.length() - key[0].length); seg += key[0].length) {
@@ -701,17 +701,17 @@ final public class ProcessSubtaskMain extends Task<String> {
 
             System.arraycopy(keyBlockBasePositions, 0, keyBlockReadPositions, 0, keyBlockReadPositions.length);
 
-            for(int t = seg; t<(seg + key[0].length); t++) {
+            for(int t = seg; t < (seg + key[0].length); t++) {
 
                 currentChar=(int)text.charAt(t) - 97;
 
-                for(int k=0; k<keyBlockReadPositions.length; k++) {
+                for(int k = 0; k < keyBlockReadPositions.length; k++) {
                     currentChar = (currentChar + key[k][keyBlockReadPositions[k]]) % 26;
                 }
 
                 output.append((char)(currentChar+97));
 
-                for(int a=0; a<keyBlockReadPositions.length; a++) {
+                for(int a = 0; a < keyBlockReadPositions.length; a++) {
                     keyBlockReadPositions[a]++;
                     if(keyBlockReadPositions[a] >= key[0].length) {
                         keyBlockReadPositions[a]=0;
@@ -719,7 +719,7 @@ final public class ProcessSubtaskMain extends Task<String> {
                 }
             }
 
-            for(int r=0; r<keyBlockBasePositions.length; r++) {
+            for(int r = 0; r < keyBlockBasePositions.length; r++) {
                 keyBlockBasePositions[r] = (byte) ((keyBlockBasePositions[r] + getKeyBlockIncrementIndex(r)) % key[0].length);
             }
 
@@ -736,20 +736,20 @@ final public class ProcessSubtaskMain extends Task<String> {
             return "";
         }
 
-        for(int t = text.length()-(text.length() % key[0].length); t<text.length(); t++) {
+        for(int t = text.length() - (text.length() % key[0].length); t < text.length(); t++) {
 
             currentChar=(int)text.charAt(t) - 97;
 
-            for(int k=0; k<keyBlockReadPositions.length; k++) {
+            for(int k = 0; k < keyBlockReadPositions.length; k++) {
                 currentChar = (currentChar + key[k][keyBlockReadPositions[k]]) % 26;
             }
 
-            output.append((char)(currentChar+97));
+            output.append((char)(currentChar + 97));
 
-            for(int a=0; a<keyBlockReadPositions.length; a++) {
+            for(int a = 0; a < keyBlockReadPositions.length; a++) {
                 keyBlockReadPositions[a]++;
                 if(keyBlockReadPositions[a] >= key[0].length) {
-                    keyBlockReadPositions[a]=0;
+                    keyBlockReadPositions[a] = 0;
                 }
             }
         }
@@ -789,8 +789,8 @@ final public class ProcessSubtaskMain extends Task<String> {
         eKey = eKey % 26;
 
         char[] output = new char[textNonAlphas.length];
-        for(int i=0; i<textNonAlphas.length; i++) {
-            if(textNonAlphas[i]<48 || textNonAlphas[i]>57) {
+        for(int i = 0; i < textNonAlphas.length; i++) {
+            if(textNonAlphas[i] < 48 || textNonAlphas[i] > 57) {
                 output[i] = textNonAlphas[i];
             }
             else {
@@ -811,7 +811,7 @@ final public class ProcessSubtaskMain extends Task<String> {
      * Alphabetic characters are ASCII characters that belong to the English alphabet.<br>
      * Uppercase and lowercase letters are both treated as letters.<br><br>
      *
-     * A NUL character, a (char)0, should be loaded as a (char)7 instead.<br><br>
+     * A NUL character, i.e. a (char)0, should be loaded as a (char)7 instead.<br><br>
      *
      * Example: if the text is "A1b2c3", the output, expressed as ints, is {0, 48, 0, 49, 0, 50}.
      * Since indices 0, 2, and 4 in the input are alphabetic characters, the corresponding indices in the output is 0.
@@ -828,7 +828,7 @@ final public class ProcessSubtaskMain extends Task<String> {
 
         char[] nonAlphas = new char[text.length()];
 
-        for(int i=0; i<text.length(); i++) {
+        for(int i = 0; i < text.length(); i++) {
             if(isCancelled()) {
                 return new char[(char)0];
             }
@@ -838,9 +838,9 @@ final public class ProcessSubtaskMain extends Task<String> {
                 nonAlphas[i] = (char)7;
             }
             //Other non-letter
-            else if((int)text.charAt(i)<65
-                    || ((int)text.charAt(i)>90 && (int)text.charAt(i)<97)
-                    || (int)text.charAt(i)>122) {
+            else if((int)text.charAt(i) < 65
+                    || ((int)text.charAt(i) > 90 && (int)text.charAt(i) < 97)
+                    || (int)text.charAt(i) > 122) {
 
                 nonAlphas[i] = text.charAt(i);
             }
@@ -896,7 +896,7 @@ final public class ProcessSubtaskMain extends Task<String> {
         quotient = quotient / blockLength;
 
 
-        for(int i = result.length-1; i >= 0; i--) {
+        for(int i = result.length - 1; i >= 0; i--) {
 
             //Divide quotient and take only the portion to the right of the decimal point
             decimalPortion = (double)quotient / blockLength - (int)(quotient / blockLength);
@@ -949,14 +949,14 @@ final public class ProcessSubtaskMain extends Task<String> {
      * @return key block positions after encrypting {@code segments} segments
      */
     private byte[] initializeKeyBlockPositions2(long segments, int blockCount, int blockLength) {
-        if(segments<0) throw new AssertionError("Segments cannot be negative- received " + segments);
-        if(blockCount<=0) throw new AssertionError("Block count must be positive- received " + blockCount);
-        if(blockLength<=0) throw new AssertionError("Block length must be positive- received " + blockLength);
+        if(segments < 0) throw new AssertionError("Segments cannot be negative- received " + segments);
+        if(blockCount <= 0) throw new AssertionError("Block count must be positive- received " + blockCount);
+        if(blockLength <= 0) throw new AssertionError("Block length must be positive- received " + blockLength);
 
         byte[] output = initializeKeyBlockPositions(segments, blockCount, blockLength);
 
         for(int b = 0; b < segments % blockLength; b++) {
-            for(int i=0; i<output.length; i++) {
+            for(int i = 0; i < output.length; i++) {
                 output[i] = (byte) ((output[i] + getKeyBlockIncrementIndex(i)) % blockLength);
             }
         }
@@ -1003,10 +1003,10 @@ final public class ProcessSubtaskMain extends Task<String> {
      * @return version of text with non-alphabetic characters in their places
      */
     private String recombineNonAlphas(String text, char[] nonAlphas, boolean reinsertingPunctuation) {
-        if(text==null) {
+        if(text == null) {
             throw new AssertionError("Text cannot be null");
         }
-        if(nonAlphas==null) {
+        if(nonAlphas == null) {
             throw new AssertionError("Non-alphas cannot be null");
         }
 
@@ -1040,7 +1040,7 @@ final public class ProcessSubtaskMain extends Task<String> {
 
             }
             //Apostrophe found: ignore it
-            else if(nonAlphas[nonAlphasIndex]==(char)39 || nonAlphas[nonAlphasIndex]==(char)96 || nonAlphas[nonAlphasIndex]=='’' || nonAlphas[nonAlphasIndex]=='`') {
+            else if(nonAlphas[nonAlphasIndex] == (char)39 || nonAlphas[nonAlphasIndex] == (char)96 || nonAlphas[nonAlphasIndex] == '’' || nonAlphas[nonAlphasIndex] == '`') {
                 nonAlphasIndex++;
             }
             //Other non-letter found
@@ -1085,24 +1085,24 @@ final public class ProcessSubtaskMain extends Task<String> {
      * @return lowercased text without non-alphabetic characters
      */
     private String removeNonAlphas(String text) {
-        if(text==null) throw new AssertionError("Text can't be null");
+        if(text == null) throw new AssertionError("Text can't be null");
 
         if(isCancelled()) {
             return "";
         }
 
         StringBuilder output = new StringBuilder(text.length());
-        for(int i=0; i<text.length(); i++) {
+        for(int i = 0; i < text.length(); i++) {
             if(isCancelled()) {
                 return "";
             }
 
             //lowercase letter: append to output
-            if((int)text.charAt(i)>=97 && (int)text.charAt(i)<=122) {
+            if((int)text.charAt(i) >= 97 && (int)text.charAt(i) <= 122) {
                 output.append(text.charAt(i));
             }
             //uppercase letter: convert to uppercase, then append to output
-            else if((int)text.charAt(i)>=65 && (int)text.charAt(i)<=90) {
+            else if((int)text.charAt(i) >= 65 && (int)text.charAt(i) <= 90) {
                 output.append((char)(text.charAt(i) + 32));
             }
         }
@@ -1140,16 +1140,16 @@ final public class ProcessSubtaskMain extends Task<String> {
         StringBuilder output = new StringBuilder(input.length());
         output.append(input.charAt(0));
 
-        for(int i=1; i<input.length()-1; i++) {
+        for(int i = 1; i < input.length() - 1; i++) {
 
-            if(! (input.charAt(i)==' '
+            if(! (input.charAt(i) == ' '
                     && Character.isAlphabetic(input.charAt(i-1)) && Character.isAlphabetic(input.charAt(i+1)))) {
                 output.append(input.charAt(i));
             }
 
         }
 
-        output.append(input.charAt( input.length()-1 ));
+        output.append(input.charAt( input.length() - 1 ));
 
         return output.toString();
     }
